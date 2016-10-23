@@ -41,7 +41,7 @@ int main() {
 
   std::vector<Vertex> vertices;
   std::vector<GLuint> indices;
-  bool success = loader::BasicObjLoader::Load(in, vertices, indices);
+  bool success = loader::BasicObjLoader::load(in, vertices, indices);
   assert(success);
   assert(vertices.size() == 8);
   assert(indices.size() == 36);

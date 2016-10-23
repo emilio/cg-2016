@@ -35,7 +35,7 @@ ReadComponents(T* a_out, Conversion aConversionFn, std::string& a_line, size_t a
 }
 
 /* static */ bool
-BasicObjLoader::Load(std::istream& a_inStream,
+BasicObjLoader::load(std::istream& a_inStream,
                      std::vector<Vertex>& a_vertices,
                      std::vector<GLuint>& a_indices)
 {
