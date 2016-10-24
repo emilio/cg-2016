@@ -40,7 +40,7 @@ void handleKey(Scene& a_scene,
                bool& a_shouldClose) {
   constexpr const float CAMERA_MOVEMENT = 0.05f;
 
-  float multiplier = -8.0;
+  float multiplier = 1.0;
 
   if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Left) {
     multiplier = -1.0f;
