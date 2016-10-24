@@ -1,6 +1,7 @@
 
 #include "geometry/Mesh.h"
-#include "loader/BasicObjLoader.h"
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
 
 #include <memory>
 #include <fstream>
@@ -70,20 +71,62 @@ Mesh::~Mesh() {
 /* static */ std::unique_ptr<Mesh>
 Mesh::fromFile(const char* a_modelPath)
 {
-  std::ifstream in(a_modelPath);
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFile(a_modelPath, 0);
 
-  if (!in) {
+  if (!scene)
     return nullptr;
+
+  if (!scene->HasMeshes())
+    return nullptr;
+
+  // We only import the first one, dangit. If we need to import more we need to
+  // change this to return a node. Which isn't that bad, but at that point
+  // you're already duplicating a lot of work.
+  if (scene->mNumMeshes > 1)
+    return nullptr;
+
+  const aiMesh* mesh = scene->mMeshes[0];
+
+  assert(mesh->HasFaces());
+  assert(mesh->HasPositions());
+
+  std::vector<Vertex> vertices;
+  vertices.reserve(mesh->mNumVertices);
+
+  for (size_t i = 0; i < mesh->mNumVertices; ++i) {
+    Vertex vertex;
+    vertex.m_position =
+      glm::vec3(mesh->mVertices[i].x,
+                mesh->mVertices[i].y,
+                mesh->mVertices[i].z);
+
+    if (mesh->HasNormals()) {
+      vertex.m_normal =
+        glm::vec3(mesh->mNormals[i].x,
+                  mesh->mNormals[i].y,
+                  mesh->mNormals[i].z);
+    }
+
+    // FIXME: Texture coords, I guess.
+
+    vertices.push_back(vertex);
   }
 
-  std::vector<Vertex> a_vertices;
-  std::vector<GLuint> a_indices;
-  bool success = loader::BasicObjLoader::load(in, a_vertices, a_indices);
-  if (!success) {
-    return nullptr;
+  // We assume these are triangulated.
+  std::vector<GLuint> indices;
+  indices.reserve(mesh->mNumFaces * 3);
+  for (size_t i = 0; i < mesh->mNumFaces; ++i) {
+    const aiFace& face = mesh->mFaces[i];
+    assert(face.mNumIndices == 3);
+    indices.push_back(face.mIndices[0]);
+    indices.push_back(face.mIndices[1]);
+    indices.push_back(face.mIndices[2]);
   }
 
-  return std::make_unique<Mesh>(std::move(a_vertices), std::move(a_indices));
+  // NB: The importer destructor frees the stuff.
+
+  return std::make_unique<Mesh>(std::move(vertices), std::move(indices));
 }
 
 void Mesh::draw() {

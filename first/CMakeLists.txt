@@ -17,7 +17,7 @@ enable_testing()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/src/lib)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(WILL_RUN_TESTS ON CACHE BOOL "Run tests")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -g3 -Wall -Wextra")
@@ -59,9 +59,8 @@ endforeach(generated_file)
 
 add_custom_target(Generated DEPENDS ${GENERATED_FILES})
 
-link_directories(${LIBRARY_OUTPUT_PATH})
+link_directories(${LIBRARY_OUTPUT_PATH}/assimp/code)
 include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(${CMAKE_SOURCE_DIR}/lib)
 include_directories(${CMAKE_SOURCE_DIR}/lib/glm)
 include_directories(${CMAKE_SOURCE_DIR}/lib/assimp/include)
 
@@ -86,7 +85,7 @@ if(SFML_FOUND)
   target_link_libraries(main ${SFML_LIBRARIES})
 endif()
 
-target_link_libraries(main -lm -lGL)
+target_link_libraries(main -lm -lGL -lassimpd)
 
 include(ProcessorCount)
 ProcessorCount(N)
