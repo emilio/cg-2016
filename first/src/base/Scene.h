@@ -15,6 +15,7 @@ class AutoSceneLocker;
 
 class Scene {
   friend class AutoSceneLocker;
+
 public:
   Scene();
 
@@ -27,8 +28,10 @@ private:
   glm::mat4 m_projection;
   glm::mat4 m_view;
   bool m_shouldPaint;
-public: // FIXME: too lazy.
+
+public:  // FIXME: too lazy.
   glm::vec3 m_cameraPosition;
+
 private:
   glm::vec3 m_dimension;
   std::mutex m_lock;
@@ -38,7 +41,9 @@ private:
   bool m_wireframeMode;
 #endif
 
-  void assertLocked() { assert(m_locked); }
+  void assertLocked() {
+    assert(m_locked);
+  }
 
   void setupUniforms();
 
@@ -57,9 +62,7 @@ public:
 
 class AutoSceneLocker {
 public:
-  explicit AutoSceneLocker(Scene& a_scene)
-    : m_scene(a_scene)
-  {
+  explicit AutoSceneLocker(Scene& a_scene) : m_scene(a_scene) {
     m_scene.m_lock.lock();
 #ifdef DEBUG
     m_scene.m_locked = true;

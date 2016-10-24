@@ -5,15 +5,12 @@
 #include "base/ErrorChecker.h"
 #include "base/Logging.h"
 
-static bool
-createShaderFromSource(ShaderKind a_kind,
-                       const char* a_source,
-                       GLuint& a_shader)
-{
+static bool createShaderFromSource(ShaderKind a_kind,
+                                   const char* a_source,
+                                   GLuint& a_shader) {
   AutoGLErrorChecker checker;
 
-  LOG("Shader: %s, %s",
-      a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment",
+  LOG("Shader: %s, %s", a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment",
       a_source);
 
   a_shader = glCreateShader(GLenum(a_kind));
@@ -41,9 +38,9 @@ createShaderFromSource(ShaderKind a_kind,
   return true;
 }
 
-static bool
-createShaderOfKind(ShaderKind a_kind, const char* a_from, GLuint& a_shader)
-{
+static bool createShaderOfKind(ShaderKind a_kind,
+                               const char* a_from,
+                               GLuint& a_shader) {
   std::stringstream buff;
   std::ifstream stream(a_from);
 
@@ -52,8 +49,8 @@ createShaderOfKind(ShaderKind a_kind, const char* a_from, GLuint& a_shader)
   return createShaderFromSource(a_kind, buff.str().c_str(), a_shader);
 }
 
-/* static */ std::unique_ptr<Program>
-Program::fromShaderFiles(const char* a_vertexShader, const char* a_fragmentShader) {
+/* static */ std::unique_ptr<Program> Program::fromShaderFiles(
+    const char* a_vertexShader, const char* a_fragmentShader) {
   GLuint vertexShaderId, fragmentShaderId;
 
   if (!createShaderOfKind(ShaderKind::Vertex, a_vertexShader, vertexShaderId)) {
@@ -61,7 +58,8 @@ Program::fromShaderFiles(const char* a_vertexShader, const char* a_fragmentShade
     return nullptr;
   }
 
-  if (!createShaderOfKind(ShaderKind::Fragment, a_fragmentShader, fragmentShaderId)) {
+  if (!createShaderOfKind(ShaderKind::Fragment, a_fragmentShader,
+                          fragmentShaderId)) {
     ERROR("Shader compilation failed: %s", a_fragmentShader);
     return nullptr;
   }
@@ -83,9 +81,9 @@ Program::fromShaderFiles(const char* a_vertexShader, const char* a_fragmentShade
   GLint validateSuccess;
   glGetProgramiv(id, GL_VALIDATE_STATUS, &validateSuccess);
 
-
   if (!linkSuccess || !validateSuccess) {
-    fprintf(stderr, linkSuccess ? "Program validation failed\n" : "Program failed to link\n");
+    fprintf(stderr, linkSuccess ? "Program validation failed\n"
+                                : "Program failed to link\n");
     GLint logSize;
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logSize);
     assert(logSize >= 0);
@@ -101,5 +99,6 @@ Program::fromShaderFiles(const char* a_vertexShader, const char* a_fragmentShade
   }
 
   // NB: Not using make_unique because constructor is public.
-  return std::unique_ptr<Program>(new Program(id, vertexShaderId, fragmentShaderId));
+  return std::unique_ptr<Program>(
+      new Program(id, vertexShaderId, fragmentShaderId));
 }

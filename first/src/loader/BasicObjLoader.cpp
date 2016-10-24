@@ -10,10 +10,11 @@ namespace loader {
 #undef LOG
 #define LOG(...)
 
-template<typename T, size_t N, typename Conversion>
-static inline bool
-ReadComponents(T* a_out, Conversion aConversionFn, std::string& a_line, size_t a_current_index)
-{
+template <typename T, size_t N, typename Conversion>
+static inline bool ReadComponents(T* a_out,
+                                  Conversion aConversionFn,
+                                  std::string& a_line,
+                                  size_t a_current_index) {
   uint32_t current_vertex_component = 0;
 
   do {
@@ -21,24 +22,27 @@ ReadComponents(T* a_out, Conversion aConversionFn, std::string& a_line, size_t a
       if (a_current_index == a_line.length() - 1) {
         return true;
       }
-      ERROR("Invalid vertex: %s, got %u components, currently at position %zu of %zu",
-            a_line.c_str(), current_vertex_component, a_current_index, a_line.length());
+      ERROR(
+          "Invalid vertex: %s, got %u components, currently at position %zu of "
+          "%zu",
+          a_line.c_str(), current_vertex_component, a_current_index,
+          a_line.length());
       return false;
     }
 
     assert(a_line.length() > a_current_index);
-    a_out[current_vertex_component] = aConversionFn(&a_line[a_current_index + 1]);
+    a_out[current_vertex_component] =
+        aConversionFn(&a_line[a_current_index + 1]);
     current_vertex_component++;
-  } while ((a_current_index = a_line.find(" ", a_current_index + 1)) != std::string::npos);
+  } while ((a_current_index = a_line.find(" ", a_current_index + 1)) !=
+           std::string::npos);
 
   return current_vertex_component == N;
 }
 
-/* static */ bool
-BasicObjLoader::load(std::istream& a_inStream,
-                     std::vector<Vertex>& a_vertices,
-                     std::vector<GLuint>& a_indices)
-{
+/* static */ bool BasicObjLoader::load(std::istream& a_inStream,
+                                       std::vector<Vertex>& a_vertices,
+                                       std::vector<GLuint>& a_indices) {
   a_vertices.clear();
   a_indices.clear();
 
@@ -57,12 +61,14 @@ BasicObjLoader::load(std::istream& a_inStream,
     switch (line[0]) {
       case 'v': {
         glm::vec3 vertex;
-        if (!ReadComponents<float, 3>(glm::value_ptr(vertex), std::atof, line, 1)) {
+        if (!ReadComponents<float, 3>(glm::value_ptr(vertex), std::atof, line,
+                                      1)) {
           ERROR("Invalid line: %s", line.c_str());
           return false;
         }
-        LOG("Scanned %s, got (%f, %f, %f)", line.c_str(), vertex[0], vertex[1], vertex[2]);
-        a_vertices.push_back({ vertex, glm::vec3(), glm::vec2() });
+        LOG("Scanned %s, got (%f, %f, %f)", line.c_str(), vertex[0], vertex[1],
+            vertex[2]);
+        a_vertices.push_back({vertex, glm::vec3(), glm::vec2()});
         break;
       }
       case 'f': {
@@ -72,7 +78,8 @@ BasicObjLoader::load(std::istream& a_inStream,
           return false;
         }
 
-        LOG("Scanned %s, got (%u, %u, %u)", line.c_str(), indices[0], indices[1], indices[2]);
+        LOG("Scanned %s, got (%u, %u, %u)", line.c_str(), indices[0],
+            indices[1], indices[2]);
 
         for (auto& index : indices) {
           if (index == 0) {
@@ -83,11 +90,13 @@ BasicObjLoader::load(std::istream& a_inStream,
           index--;
 
           if (index >= a_vertices.size()) {
-            ERROR("Invalid index %u (had %u vertices)", index, (unsigned int)a_vertices.size());
+            ERROR("Invalid index %u (had %u vertices)", index,
+                  (unsigned int)a_vertices.size());
             return false;
           }
         }
-        a_indices.insert(a_indices.end(), std::begin(indices), std::end(indices));
+        a_indices.insert(a_indices.end(), std::begin(indices),
+                         std::end(indices));
         break;
       }
     }
@@ -99,13 +108,13 @@ BasicObjLoader::load(std::istream& a_inStream,
     GLuint i_1 = a_indices[i];
     GLuint i_2 = a_indices[i + 1];
     GLuint i_3 = a_indices[i + 2];
-    a_vertices[i_1].m_normal = a_vertices[i_2].m_normal = a_vertices[i_3].m_normal =
-      glm::normalize(
-        glm::cross(a_vertices[i_2].m_position - a_vertices[i_1].m_position,
-                   a_vertices[i_3].m_position - a_vertices[i_1].m_position));
+    a_vertices[i_1].m_normal = a_vertices[i_2].m_normal =
+        a_vertices[i_3].m_normal = glm::normalize(glm::cross(
+            a_vertices[i_2].m_position - a_vertices[i_1].m_position,
+            a_vertices[i_3].m_position - a_vertices[i_1].m_position));
   }
 
   return true;
 }
 
-} // namespace loader
+}  // namespace loader

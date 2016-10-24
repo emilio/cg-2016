@@ -46,8 +46,7 @@ public:
 
   ~Mesh();
 
-  Mesh(std::vector<Vertex>&& a_vertices,
-       std::vector<GLuint>&& a_indices);
+  Mesh(std::vector<Vertex>&& a_vertices, std::vector<GLuint>&& a_indices);
 
   void draw();
 
@@ -87,6 +86,5 @@ public:
     rotate(a_angleInRadians, glm::vec3(0, 0, 1));
   }
 
-  static std::unique_ptr<Mesh>
-  fromFile(const char* a_modelPath);
+  static std::unique_ptr<Mesh> fromFile(const char* a_modelPath);
 };

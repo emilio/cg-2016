@@ -10,10 +10,8 @@ namespace loader {
 
 class BasicObjLoader {
 public:
-  static bool
-  load(std::istream& a_inStream,
-       std::vector<Vertex>& a_vertices,
-       std::vector<uint32_t>& a_indices);
+  static bool load(std::istream& a_inStream,
+                   std::vector<Vertex>& a_vertices,
+                   std::vector<uint32_t>& a_indices);
 };
-
 }

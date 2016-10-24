@@ -5,7 +5,8 @@
 
 #define RAW(...) #__VA_ARGS__
 
-const char* CUBE_FILE = "\
+const char* CUBE_FILE =
+    "\
 # testing comments comments\n\
 v -0.500000 -0.500000 0.500000\n\
 v 0.500000 -0.500000 0.500000\n\
@@ -46,17 +47,17 @@ int main() {
   assert(vertices.size() == 8);
   assert(indices.size() == 36);
 
-#define ASSERT_VERTEX(index_, x_, y_, z_)            \
-  assert(vertices[index_].m_position.x == x_);       \
-  assert(vertices[index_].m_position.y == y_);       \
+#define ASSERT_VERTEX(index_, x_, y_, z_)                                      \
+  assert(vertices[index_].m_position.x == x_);                                 \
+  assert(vertices[index_].m_position.y == y_);                                 \
   assert(vertices[index_].m_position.z == z_);
 
   ASSERT_VERTEX(0, -0.5, -0.5, 0.5)
   ASSERT_VERTEX(7, 0.5, -0.5, -0.5)
 
-#define ASSERT_TRIANGLE(index_, a_, b_, c_)          \
-  assert(indices[index_ * 3] == a_ - 1);             \
-  assert(indices[index_ * 3 + 1] == b_ - 1);         \
+#define ASSERT_TRIANGLE(index_, a_, b_, c_)                                    \
+  assert(indices[index_ * 3] == a_ - 1);                                       \
+  assert(indices[index_ * 3 + 1] == b_ - 1);                                   \
   assert(indices[index_ * 3 + 2] == c_ - 1);
 
   ASSERT_TRIANGLE(0, 1, 2, 3);

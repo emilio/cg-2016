@@ -6,14 +6,12 @@
 #include <memory>
 #include <fstream>
 
-Mesh::Mesh(std::vector<Vertex>&& a_vertices,
-           std::vector<GLuint>&& a_indices)
+Mesh::Mesh(std::vector<Vertex>&& a_vertices, std::vector<GLuint>&& a_indices)
   : m_vertices(a_vertices)
   , m_indices(a_indices)
   , m_vao(UNINITIALIZED)
   , m_vbo(UNINITIALIZED)
-  , m_ebo(UNINITIALIZED)
-{
+  , m_ebo(UNINITIALIZED) {
 #ifdef DEBUG
   for (auto index : m_indices) {
     assert(index < m_vertices.size() || !"Index out of bounds");
@@ -68,9 +66,7 @@ Mesh::~Mesh() {
   glDeleteBuffers(1, &m_ebo);
 }
 
-/* static */ std::unique_ptr<Mesh>
-Mesh::fromFile(const char* a_modelPath)
-{
+/* static */ std::unique_ptr<Mesh> Mesh::fromFile(const char* a_modelPath) {
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(a_modelPath, 0);
 
@@ -96,16 +92,12 @@ Mesh::fromFile(const char* a_modelPath)
 
   for (size_t i = 0; i < mesh->mNumVertices; ++i) {
     Vertex vertex;
-    vertex.m_position =
-      glm::vec3(mesh->mVertices[i].x,
-                mesh->mVertices[i].y,
-                mesh->mVertices[i].z);
+    vertex.m_position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y,
+                                  mesh->mVertices[i].z);
 
     if (mesh->HasNormals()) {
-      vertex.m_normal =
-        glm::vec3(mesh->mNormals[i].x,
-                  mesh->mNormals[i].y,
-                  mesh->mNormals[i].z);
+      vertex.m_normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y,
+                                  mesh->mNormals[i].z);
     }
 
     // FIXME: Texture coords, I guess.
@@ -125,6 +117,17 @@ Mesh::fromFile(const char* a_modelPath)
   }
 
   // NB: The importer destructor frees the stuff.
+  if (!mesh->HasNormals()) {
+    for (size_t i = 0; i < indices.size(); i += 3) {
+      GLuint i_1 = indices[i];
+      GLuint i_2 = indices[i + 1];
+      GLuint i_3 = indices[i + 2];
+      vertices[i_1].m_normal = vertices[i_2].m_normal = vertices[i_3].m_normal =
+          glm::normalize(
+              glm::cross(vertices[i_2].m_position - vertices[i_1].m_position,
+                         vertices[i_3].m_position - vertices[i_1].m_position));
+    }
+  }
 
   return std::make_unique<Mesh>(std::move(vertices), std::move(indices));
 }

@@ -15,10 +15,7 @@ class Program;
 class Shader {
   friend class Program;
 
-  Shader(GLuint a_id, ShaderKind a_kind)
-    : m_id(a_id)
-    , m_kind(a_kind)
-  {
+  Shader(GLuint a_id, ShaderKind a_kind) : m_id(a_id), m_kind(a_kind) {
     assert(glIsShader(a_id));
   }
 
@@ -29,8 +26,12 @@ class Shader {
   ShaderKind m_kind;
 
 public:
-  GLuint id() { return m_id; }
-  ShaderKind kind() { return m_kind; }
+  GLuint id() {
+    return m_id;
+  }
+  ShaderKind kind() {
+    return m_kind;
+  }
 
   ~Shader() {
     glDeleteShader(m_id);
@@ -45,8 +46,7 @@ class Program {
   Program(GLuint a_id, GLuint a_vertexShaderId, GLuint a_fragmentShaderId)
     : m_id(a_id)
     , m_vertexShader(a_vertexShaderId, ShaderKind::Vertex)
-    , m_fragmentShader(a_fragmentShaderId, ShaderKind::Fragment)
-  {
+    , m_fragmentShader(a_fragmentShaderId, ShaderKind::Fragment) {
     assert(glIsProgram(m_id));
   }
 
@@ -59,12 +59,18 @@ public:
     glUseProgram(m_id);
   }
 
-  GLuint id() { return m_id; }
-  Shader& vertexShader() { return m_vertexShader; }
-  Shader& fragmentShader() { return m_fragmentShader; }
+  GLuint id() {
+    return m_id;
+  }
+  Shader& vertexShader() {
+    return m_vertexShader;
+  }
+  Shader& fragmentShader() {
+    return m_fragmentShader;
+  }
 
-  static std::unique_ptr<Program>
-  fromShaderFiles(const char* a_fragmentShader, const char* a_vertexShader);
+  static std::unique_ptr<Program> fromShaderFiles(const char* a_fragmentShader,
+                                                  const char* a_vertexShader);
 
   ~Program() {
     glDeleteProgram(m_id);

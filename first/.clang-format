@@ -1,0 +1,11 @@
+---
+BasedOnStyle: Chromium
+AllowAllParametersOfDeclarationOnNextLine: true
+AlignEscapedNewlinesLeft: false
+ConstructorInitializerIndentWidth: 2
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: Empty
+ColumnLimit: 80
+BreakConstructorInitializersBeforeComma: true
+---

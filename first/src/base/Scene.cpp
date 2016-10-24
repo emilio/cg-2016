@@ -61,7 +61,8 @@ void Scene::setupProjection(float width, float height) {
 
 void Scene::reloadShaders() {
   assertLocked();
-  m_mainProgram = Program::fromShaderFiles("res/vertex.glsl", "res/fragment.glsl");
+  m_mainProgram =
+      Program::fromShaderFiles("res/vertex.glsl", "res/fragment.glsl");
   setupUniforms();
 }
 
@@ -70,12 +71,11 @@ void Scene::toggleWireframeMode() {
   m_wireframeMode = !m_wireframeMode;
 }
 
-#define LOG_MATRIX(name_, var_)                                          \
-  LOG(name_ ":\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f", \
-            var_[0][0], var_[0][1], var_[0][2], var_[0][3],              \
-            var_[1][0], var_[1][1], var_[1][2], var_[1][3],              \
-            var_[2][0], var_[2][1], var_[2][2], var_[2][3],              \
-            var_[3][0], var_[3][1], var_[3][2], var_[3][3]);
+#define LOG_MATRIX(name_, var_)                                                \
+  LOG(name_ ":\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f",       \
+      var_[0][0], var_[0][1], var_[0][2], var_[0][3], var_[1][0], var_[1][1],  \
+      var_[1][2], var_[1][3], var_[2][0], var_[2][1], var_[2][2], var_[2][3],  \
+      var_[3][0], var_[3][1], var_[3][2], var_[3][3]);
 
 void Scene::draw() {
   LOG("DisplayScene");
@@ -90,9 +90,8 @@ void Scene::draw() {
 
   glm::mat4 viewProjection = m_projection * m_view;
 
-  LOG("camera: (%f %f %f)", m_cameraPosition[0],
-                            m_cameraPosition[1],
-                            m_cameraPosition[2]);
+  LOG("camera: (%f %f %f)", m_cameraPosition[0], m_cameraPosition[1],
+      m_cameraPosition[2]);
   LOG_MATRIX("projection", m_projection);
   LOG_MATRIX("view", m_view);
   LOG_MATRIX("viewProjection", viewProjection);
@@ -118,7 +117,8 @@ void Scene::draw() {
     LOG_MATRIX("transform", object->transform());
 
     glm::mat4 modelViewProjection = viewProjection * object->transform();
-    glUniformMatrix4fv(m_u_transform, 1, GL_FALSE, glm::value_ptr(modelViewProjection));
+    glUniformMatrix4fv(m_u_transform, 1, GL_FALSE,
+                       glm::value_ptr(modelViewProjection));
     object->draw();
   }
 }

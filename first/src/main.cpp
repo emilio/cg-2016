@@ -19,7 +19,6 @@
 
 #include <SFML/Graphics.hpp>
 
-
 int ROOT_WINDOW = -1;
 
 void handleText(Scene& a_scene, sf::Event::TextEvent& a_event, bool&) {
@@ -70,8 +69,7 @@ void handleKey(Scene& a_scene,
   a_scene.recomputeView();
 }
 
-static void
-dumpRenderingInfo() {
+static void dumpRenderingInfo() {
   AutoGLErrorChecker checker;
   GLint paramValue;
 
@@ -80,7 +78,7 @@ dumpRenderingInfo() {
 
 #define LOG_PARAM(name_)                                                       \
   glGetIntegerv(name_, &paramValue);                                           \
-  LOG(#name_ ": %d", paramValue);                                              \
+  LOG(#name_ ": %d", paramValue);
 
   LOG_PARAM(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)
   LOG_PARAM(GL_MAX_CUBE_MAP_TEXTURE_SIZE)
@@ -148,7 +146,7 @@ void renderer(std::shared_ptr<sf::Window> window,
 int main(int, char**) {
   const size_t INITIAL_WIDTH = 2000;
   const size_t INITIAL_HEIGHT = 2000;
-  const char* TITLE = "OpenGL"; // FIXME: Think of a good title
+  const char* TITLE = "OpenGL";  // FIXME: Think of a good title
 
   // Request OpenGL 3.1
   sf::ContextSettings settings;
@@ -161,7 +159,7 @@ int main(int, char**) {
 
   sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
   auto window =
-    std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default, settings);
+      std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default, settings);
   window->setVerticalSyncEnabled(true);
 
   std::shared_ptr<Scene> scene(nullptr);
