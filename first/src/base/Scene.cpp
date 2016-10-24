@@ -25,6 +25,10 @@ Scene::Scene()
   m_locked = false;
 }
 
+Scene::~Scene() {
+  glUseProgram(0);
+}
+
 void Scene::setupUniforms() {
   AutoGLErrorChecker checker;
   assertLocked();

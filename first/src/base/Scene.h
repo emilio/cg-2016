@@ -18,6 +18,7 @@ class Scene {
 
 public:
   Scene();
+  ~Scene();
 
 private:
   std::unique_ptr<Program> m_mainProgram;

@@ -1,9 +1,6 @@
 #include "base/Skybox.h"
 
-Skybox::Skybox() {
-  std::vector<Vertex> indices;
-  std::vector<GLuint> indices;
-
+std::unique_ptr<Skybox> create() {
   // TODO: Do stuff here.
-  Mesh::Mesh(vertices, indices);
+  return nullptr;
 }

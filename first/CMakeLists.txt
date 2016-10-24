@@ -67,6 +67,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/assimp/include)
 add_library(base OBJECT
   src/base/Program.cpp
   src/base/Scene.cpp
+  src/base/Skybox.cpp
   src/base/Terrain.cpp
 )
 
