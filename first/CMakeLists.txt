@@ -10,6 +10,9 @@ endif()
 # In order to use YouCompleteMe with Vim.
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
+# Add this before our local stuff because assimp doesn't build with -Werror
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/assimp)
+
 enable_testing()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
@@ -60,6 +63,7 @@ link_directories(${LIBRARY_OUTPUT_PATH})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 include_directories(${CMAKE_SOURCE_DIR}/lib/glm)
+include_directories(${CMAKE_SOURCE_DIR}/lib/assimp/include)
 
 add_library(base OBJECT
   src/base/Program.cpp
