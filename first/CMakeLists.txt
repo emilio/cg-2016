@@ -94,3 +94,4 @@ if(NOT N EQUAL 0)
 endif()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose ${JFLAG})
+add_custom_target(format COMMAND find ${CMAKE_SOURCE_DIR}/src -regex "'.*\\.\\(cpp\\|h\\)'" -exec clang-format -i {} "\;")
