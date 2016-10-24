@@ -61,7 +61,12 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 include_directories(${CMAKE_SOURCE_DIR}/lib/glm)
 
-add_library(base OBJECT src/base/Program.cpp src/base/Scene.cpp)
+add_library(base OBJECT
+  src/base/Program.cpp
+  src/base/Scene.cpp
+  src/base/Terrain.cpp
+)
+
 add_library(loader OBJECT src/loader/BasicObjLoader.cpp)
 add_library(geometry OBJECT src/geometry/Mesh.cpp)
 add_executable(main src/main.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:loader> $<TARGET_OBJECTS:geometry>)

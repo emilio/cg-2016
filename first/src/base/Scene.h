@@ -30,6 +30,7 @@ private:
 public: // FIXME: too lazy.
   glm::vec3 m_cameraPosition;
 private:
+  glm::vec3 m_dimension;
   std::mutex m_lock;
   bool m_locked;
 

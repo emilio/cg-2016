@@ -1,4 +1,5 @@
 #include "base/Scene.h"
+#include "base/Skybox.h"
 #include "base/gl.h"
 
 #include "glm/matrix.hpp"
@@ -11,6 +12,7 @@ Scene::Scene()
   , m_u_transform(0)
   , m_shouldPaint(true)
   , m_cameraPosition(0, 0, 3)
+  , m_dimension(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
   , m_locked(true)
 #ifdef DEBUG
   , m_wireframeMode(false)
