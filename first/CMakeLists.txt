@@ -70,13 +70,9 @@ add_library(base OBJECT
   src/base/Terrain.cpp
 )
 
-add_library(loader OBJECT src/loader/BasicObjLoader.cpp)
 add_library(geometry OBJECT src/geometry/Mesh.cpp)
-add_executable(main src/main.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:loader> $<TARGET_OBJECTS:geometry>)
+add_executable(main src/main.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:geometry>)
 add_dependencies(main Generated)
-
-add_executable(test-objloader src/tests/objloader.cpp $<TARGET_OBJECTS:loader>)
-add_test(test-objloader ${CMAKE_BINARY_DIR}/bin/test-objloader)
 
 # Ensure we have SFML 2.x
 find_package(SFML 2 REQUIRED system window graphics)
