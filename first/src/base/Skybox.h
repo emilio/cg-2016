@@ -8,6 +8,9 @@ const size_t SKYBOX_HEIGHT = 2000;
 const size_t SKYBOX_DEPTH = 2000;
 
 class Skybox : public Mesh {
+  Skybox(Mesh&& a_other) : Mesh(std::move(a_other)) {}
+
+public:
   static std::unique_ptr<Skybox> create();
 };
 

@@ -86,5 +86,21 @@ public:
     rotate(a_angleInRadians, glm::vec3(0, 0, 1));
   }
 
+  void scale(const glm::vec3& a_times) {
+    m_transform = glm::scale(m_transform, a_times);
+  }
+
+  void scaleX(float a_times) {
+    scale(glm::vec3(a_times, 1.0, 1.0));
+  }
+
+  void scaleY(float a_times) {
+    scale(glm::vec3(1.0, a_times, 1.0));
+  }
+
+  void scaleZ(float a_times) {
+    scale(glm::vec3(1.0, 1.0, a_times));
+  }
+
   static std::unique_ptr<Mesh> fromFile(const char* a_modelPath);
 };
