@@ -112,9 +112,9 @@ void Scene::draw() {
     assert(object);
 
     if (i++ % 2 == 0) {
-      object->rotateY(glm::radians(0.5));
+      object->rotateY(glm::radians(2.5f));
     } else {
-      object->rotateX(glm::radians(3.0f));
+      object->rotateX(glm::radians(4.0f));
     }
 
     LOG("Object %zu", i);
