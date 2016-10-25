@@ -1,6 +1,7 @@
 #include "base/Scene.h"
 #include "base/Skybox.h"
 #include "base/gl.h"
+#include "base/Skybox.h"
 
 #include "glm/matrix.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -8,6 +9,7 @@
 
 Scene::Scene()
   : m_frameCount(0)
+  , m_skybox(Skybox::create())
   , m_u_frame(0)
   , m_u_transform(0)
   , m_shouldPaint(true)
@@ -18,6 +20,7 @@ Scene::Scene()
   , m_wireframeMode(false)
 #endif
 {
+  assert(m_skybox);
   reloadShaders();
   assert(m_mainProgram);
   LOG("New program: %u", m_mainProgram->id());
@@ -107,6 +110,11 @@ void Scene::draw() {
   glClearColor(1, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  glm::mat4 modelViewProjection = viewProjection * m_skybox->transform();
+  glUniformMatrix4fv(m_u_transform, 1, GL_FALSE,
+                     glm::value_ptr(modelViewProjection));
+  m_skybox->draw();
+
   size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
@@ -120,7 +128,7 @@ void Scene::draw() {
     LOG("Object %zu", i);
     LOG_MATRIX("transform", object->transform());
 
-    glm::mat4 modelViewProjection = viewProjection * object->transform();
+    modelViewProjection = viewProjection * object->transform();
     glUniformMatrix4fv(m_u_transform, 1, GL_FALSE,
                        glm::value_ptr(modelViewProjection));
     object->draw();

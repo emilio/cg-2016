@@ -2,7 +2,7 @@
 #include <vector>
 
 std::unique_ptr<Skybox> Skybox::create() {
-  std::unique_ptr<Mesh> one_cube = Mesh::fromFile("res/cube.obj");
+  std::unique_ptr<Mesh> one_cube = Mesh::fromFile("res/models/cube.obj");
 
   if (!one_cube)
     return nullptr;

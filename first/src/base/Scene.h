@@ -12,6 +12,7 @@ const glm::vec3 Y_AXIS = glm::vec3(0, 1, 0);
 const glm::vec3 Z_AXIS = glm::vec3(0, 0, 1);
 
 class AutoSceneLocker;
+class Skybox;
 
 class Scene {
   friend class AutoSceneLocker;
@@ -24,6 +25,7 @@ private:
   std::unique_ptr<Program> m_mainProgram;
   std::vector<std::unique_ptr<Mesh>> m_objects;
   GLuint m_frameCount;
+  std::unique_ptr<Skybox> m_skybox;
   GLint m_u_frame;
   GLint m_u_transform;
   glm::mat4 m_projection;

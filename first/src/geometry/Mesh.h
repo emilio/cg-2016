@@ -40,6 +40,7 @@ public:
     m_vao = aOther.m_vao;
     m_vbo = aOther.m_vbo;
     m_ebo = aOther.m_ebo;
+    m_transform = aOther.m_transform;
 
     aOther.m_vao = aOther.m_vbo = aOther.m_ebo = UNINITIALIZED;
   }
