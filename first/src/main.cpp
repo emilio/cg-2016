@@ -92,6 +92,8 @@ static void dumpRenderingInfo() {
   LOG_PARAM(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
   LOG_PARAM(GL_MAX_VIEWPORT_DIMS)
   LOG_PARAM(GL_STEREO)
+
+#undef LOG_PARAM
 }
 
 // The renderer loop, executed in a second thread.

@@ -8,6 +8,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "geometry/Vertex.h"
 
+#include "tools/Optional.h"
+
 #include <vector>
 #include <memory>
 
@@ -16,6 +18,9 @@
 class Mesh {
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
+
+  // The texture we're using.
+  Optional<GLuint> m_texture;
 
   // The vertex array object.
   GLuint m_vao;
@@ -42,12 +47,16 @@ public:
     m_ebo = aOther.m_ebo;
     m_transform = aOther.m_transform;
 
+    m_texture = std::move(aOther.m_texture);
+
     aOther.m_vao = aOther.m_vbo = aOther.m_ebo = UNINITIALIZED;
   }
 
   ~Mesh();
 
-  Mesh(std::vector<Vertex>&& a_vertices, std::vector<GLuint>&& a_indices);
+  Mesh(std::vector<Vertex>&& a_vertices,
+       std::vector<GLuint>&& a_indices,
+       Optional<GLuint>&& a_texture);
 
   void draw();
 

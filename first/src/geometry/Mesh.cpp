@@ -6,9 +6,12 @@
 #include <memory>
 #include <fstream>
 
-Mesh::Mesh(std::vector<Vertex>&& a_vertices, std::vector<GLuint>&& a_indices)
-  : m_vertices(a_vertices)
-  , m_indices(a_indices)
+Mesh::Mesh(std::vector<Vertex>&& a_vertices,
+           std::vector<GLuint>&& a_indices,
+           Optional<GLuint>&& a_texture)
+  : m_vertices(std::move(a_vertices))
+  , m_indices(std::move(a_indices))
+  , m_texture(std::move(a_texture))
   , m_vao(UNINITIALIZED)
   , m_vbo(UNINITIALIZED)
   , m_ebo(UNINITIALIZED) {
@@ -129,7 +132,7 @@ Mesh::~Mesh() {
     }
   }
 
-  return std::make_unique<Mesh>(std::move(vertices), std::move(indices));
+  return std::make_unique<Mesh>(std::move(vertices), std::move(indices), None);
 }
 
 void Mesh::draw() {
