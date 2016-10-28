@@ -6,6 +6,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "geometry/DrawContext.h"
+
 /**
  * A node is an item in a scene.
  *
@@ -22,9 +24,16 @@ protected:
 public:
   Node() {}
 
-  virtual void draw() {
+  virtual ~Node() {}
+
+  virtual void draw(DrawContext& context) {
+    if (m_children.empty())
+      return;
+
+    context.pushTransform(m_transform);
     for (auto& child : m_children)
-      child->draw();
+      child->draw(context);
+    context.popTransform();
   }
 
   void addChild(std::unique_ptr<Node> a_child) {

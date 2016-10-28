@@ -63,15 +63,27 @@ Mesh::~Mesh() {
   glDeleteBuffers(1, &m_ebo);
 }
 
-void Mesh::draw() {
+void Mesh::draw(DrawContext& context) {
   AutoGLErrorChecker checker;
   assert(glIsVertexArray(m_vao));
 
   LOG("Draw: %d, %zu", m_vao, m_indices.size());
 
+  // FIXME(emilio): This duplicates code with what node does, we should probably
+  // add a beginDraw/endDraw functions.
+  //
+  // This doesn't matter in practice because the way it works right now meshes
+  // don't have children, so this doesn't incur in more gl calls.
+  //
+  // Though that means that probably the class hierarchy needs to be redesigned?
+  // :-)
+  context.pushTransform(m_transform);
+
   glBindVertexArray(m_vao);
   glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
-
   glBindVertexArray(0);
-  Node::draw();
+
+  context.popTransform();
+
+  Node::draw(context);
 }

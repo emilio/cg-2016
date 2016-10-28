@@ -50,11 +50,11 @@ public:
     aOther.m_vao = aOther.m_vbo = aOther.m_ebo = UNINITIALIZED;
   }
 
-  ~Mesh();
+  virtual ~Mesh();
 
   Mesh(std::vector<Vertex>&& a_vertices,
        std::vector<GLuint>&& a_indices,
        Optional<GLuint>&& a_texture);
 
-  virtual void draw() override;
+  virtual void draw(DrawContext&) override;
 };

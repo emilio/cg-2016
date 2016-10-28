@@ -110,10 +110,8 @@ void Scene::draw() {
   glClearColor(1, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glm::mat4 modelViewProjection = viewProjection * m_skybox->transform();
-  glUniformMatrix4fv(m_u_transform, 1, GL_FALSE,
-                     glm::value_ptr(modelViewProjection));
-  m_skybox->draw();
+  DrawContext context(m_u_transform, viewProjection);
+  m_skybox->draw(context);
 
   size_t i = 0;
   for (auto& object : m_objects) {
@@ -126,12 +124,7 @@ void Scene::draw() {
     }
 
     LOG("Object %zu", i);
-    LOG_MATRIX("transform", object->transform());
-
-    modelViewProjection = viewProjection * object->transform();
-    glUniformMatrix4fv(m_u_transform, 1, GL_FALSE,
-                       glm::value_ptr(modelViewProjection));
-    object->draw();
+    object->draw(context);
   }
 }
 

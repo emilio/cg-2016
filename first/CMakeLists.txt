@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8.5)
 project(TEST CXX)
 
+# In order to use YouCompleteMe with Vim.
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
 if(NOT CMAKE_CONFIGURATION_TYPES)
   if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Whether to build in `Debug` or `Release` mode." FORCE)
   endif()
 endif()
-
-# In order to use YouCompleteMe with Vim.
-set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 # Add this before our local stuff because assimp doesn't build with -Werror
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/assimp)

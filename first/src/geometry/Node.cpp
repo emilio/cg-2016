@@ -72,6 +72,9 @@ static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
     return nullptr;
   }
 
+  LOG("Materials: %d", scene->mNumMaterials);
+  assert(scene->mNumMaterials == 1);
+
   // Not worth to add an extra layer of indirection in the simple case.
   if (scene->mNumMeshes == 1)
     return meshFromAi(*scene->mMeshes[0]);

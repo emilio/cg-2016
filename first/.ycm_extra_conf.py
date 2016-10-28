@@ -6,7 +6,7 @@ import ycm_core
 def DirectoryOfThisScript():
   return os.path.dirname( os.path.abspath( __file__ ) )
 
-compilation_database_folder = os.path.join(DirectoryOfThisScript(), 'build')
+compilation_database_folder = os.path.join(DirectoryOfThisScript(), 'build_DBG')
 
 assert(os.path.exists(compilation_database_folder),
        "compilation database {} doesn't exist".format(compilation_database_folder))
