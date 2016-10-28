@@ -8,7 +8,8 @@ def DirectoryOfThisScript():
 
 compilation_database_folder = os.path.join(DirectoryOfThisScript(), 'build')
 
-assert os.path.exists(compilation_database_folder)
+assert(os.path.exists(compilation_database_folder),
+       "compilation database {} doesn't exist".format(compilation_database_folder))
 database = ycm_core.CompilationDatabase( compilation_database_folder )
 
 SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]

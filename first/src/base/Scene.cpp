@@ -43,7 +43,7 @@ void Scene::setupUniforms() {
   recomputeView();
 }
 
-void Scene::addObject(std::unique_ptr<Mesh>&& a_object) {
+void Scene::addObject(std::unique_ptr<Node>&& a_object) {
   assertLocked();
   m_objects.push_back(std::move(a_object));
 }

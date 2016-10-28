@@ -21,6 +21,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(WILL_RUN_TESTS ON CACHE BOOL "Run tests")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -g3 -Wall -Wextra")
+# Add -DGL_DEBUG to debug GL errors.
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Werror -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
@@ -29,6 +30,7 @@ set(GENERATED_FILES
   res/fragment.glsl
   res/models/Rmk3.obj
   res/models/suzanne.obj
+  res/models/QuestionBlock.obj
   res/models/cube.obj
   res/models/box.obj
 )
@@ -71,9 +73,13 @@ add_library(base OBJECT
   src/base/Terrain.cpp
 )
 
-add_library(geometry OBJECT src/geometry/Mesh.cpp)
+add_library(geometry OBJECT
+  src/geometry/Mesh.cpp
+  src/geometry/Node.cpp
+)
 add_executable(main src/main.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:geometry>)
 add_dependencies(main Generated)
+add_dependencies(main assimp)
 
 # Ensure we have SFML 2.x
 find_package(SFML 2 REQUIRED system window graphics)
@@ -82,7 +88,12 @@ if(SFML_FOUND)
   target_link_libraries(main ${SFML_LIBRARIES})
 endif()
 
-target_link_libraries(main -lm -lGL -lassimpd)
+target_link_libraries(main -lm -lGL)
+IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  target_link_libraries(main -lassimpd)
+ELSE(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  target_link_libraries(main -lassimp)
+ENDIF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
 include(ProcessorCount)
 ProcessorCount(N)

@@ -1,2 +1,3 @@
-build
+build_DBG
+build_REL
 *.pyc

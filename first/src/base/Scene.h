@@ -4,7 +4,9 @@
 #include <cassert>
 #include <memory>
 #include <mutex>
-#include "geometry/Mesh.h"
+#include <vector>
+
+#include "geometry/Node.h"
 #include "base/Program.h"
 
 const glm::vec3 X_AXIS = glm::vec3(1, 0, 0);
@@ -23,7 +25,7 @@ public:
 
 private:
   std::unique_ptr<Program> m_mainProgram;
-  std::vector<std::unique_ptr<Mesh>> m_objects;
+  std::vector<std::unique_ptr<Node>> m_objects;
   GLuint m_frameCount;
   std::unique_ptr<Skybox> m_skybox;
   GLint m_u_frame;
@@ -39,10 +41,7 @@ private:
   glm::vec3 m_dimension;
   std::mutex m_lock;
   bool m_locked;
-
-#ifdef DEBUG
   bool m_wireframeMode;
-#endif
 
   void assertLocked() {
     assert(m_locked);
@@ -51,7 +50,7 @@ private:
   void setupUniforms();
 
 public:
-  void addObject(std::unique_ptr<Mesh>&& a_object);
+  void addObject(std::unique_ptr<Node>&& a_object);
   void recomputeView();
 
   void setupProjection(float width, float height);

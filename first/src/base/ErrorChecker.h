@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdio>
 
+#ifdef GL_DEBUG
 static const char* GLErrorToString(GLuint error) {
   switch (error) {
     case GL_INVALID_VALUE:
@@ -23,6 +24,7 @@ static const char* GLErrorToString(GLuint error) {
   }
   return nullptr;
 }
+#endif
 
 /**
  * Simple RAAI class to ensure there are no errors in debug builds.
@@ -30,7 +32,7 @@ static const char* GLErrorToString(GLuint error) {
 class AutoGLErrorChecker {
 public:
   AutoGLErrorChecker() {
-#ifdef DEBUG
+#ifdef GL_DEBUG
     auto error = glGetError();
     if (error != GL_NO_ERROR) {
       fprintf(stderr, "ERROR: %s\n", GLErrorToString(error));
@@ -39,7 +41,7 @@ public:
 #endif
   }
   ~AutoGLErrorChecker() {
-#ifdef DEBUG
+#ifdef GL_DEBUG
     auto error = glGetError();
     if (error != GL_NO_ERROR) {
       fprintf(stderr, "ERROR: %s\n", GLErrorToString(error));

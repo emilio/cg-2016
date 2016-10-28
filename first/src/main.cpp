@@ -117,7 +117,7 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
 
-    auto firstCube = Mesh::fromFile("res/models/cube.obj");
+    auto firstCube = Node::fromFile("res/models/cube.obj");
     assert(firstCube);
     firstCube->translateX(-0.2);
     scene->addObject(std::move(firstCube));
@@ -127,7 +127,8 @@ void renderer(std::shared_ptr<sf::Window> window,
     secondCube->translateX(0.2);
     scene->addObject(std::move(secondCube));
 
-    scene->addObject(Mesh::fromFile("res/models/suzanne.obj"));
+    // scene->addObject(Mesh::fromFile("res/models/suzanne.obj"));
+    scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
   }
 
   const size_t HALF_A_FRAME_MS = 62;
