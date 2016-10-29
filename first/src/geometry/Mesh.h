@@ -56,5 +56,5 @@ public:
        std::vector<GLuint>&& a_indices,
        Optional<GLuint>&& a_texture);
 
-  virtual void draw(DrawContext&) override;
+  virtual void draw(DrawContext&) const override;
 };

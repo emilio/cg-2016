@@ -27,10 +27,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 set(GENERATED_FILES
   res/vertex.glsl
+  res/common.glsl
   res/fragment.glsl
   res/models/Rmk3.obj
   res/models/suzanne.obj
   res/models/QuestionBlock.obj
+  "res/models/Airbus A310.mtl"
+  "res/models/Airbus A310.obj"
   res/models/cube.obj
   res/models/box.obj
 )

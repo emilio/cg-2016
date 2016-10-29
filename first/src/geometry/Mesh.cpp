@@ -1,4 +1,5 @@
 #include "geometry/Mesh.h"
+#include "geometry/DrawContext.h"
 
 Mesh::Mesh(std::vector<Vertex>&& a_vertices,
            std::vector<GLuint>&& a_indices,
@@ -63,7 +64,7 @@ Mesh::~Mesh() {
   glDeleteBuffers(1, &m_ebo);
 }
 
-void Mesh::draw(DrawContext& context) {
+void Mesh::draw(DrawContext& context) const {
   AutoGLErrorChecker checker;
   assert(glIsVertexArray(m_vao));
 
@@ -76,14 +77,14 @@ void Mesh::draw(DrawContext& context) {
   // don't have children, so this doesn't incur in more gl calls.
   //
   // Though that means that probably the class hierarchy needs to be redesigned?
-  // :-)
-  context.pushTransform(m_transform);
+  // Who knows :-)
+  context.push(*this);
 
   glBindVertexArray(m_vao);
   glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 
-  context.popTransform();
+  context.pop();
 
   Node::draw(context);
 }

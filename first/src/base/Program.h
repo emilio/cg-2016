@@ -69,8 +69,10 @@ public:
     return m_fragmentShader;
   }
 
-  static std::unique_ptr<Program> fromShaderFiles(const char* a_fragmentShader,
-                                                  const char* a_vertexShader);
+  static std::unique_ptr<Program> fromShaderFiles(
+      const char* a_fragmentShader,
+      const char* a_vertexShader,
+      const char* a_commonPrefixFile = nullptr);
 
   ~Program() {
     glDeleteProgram(m_id);

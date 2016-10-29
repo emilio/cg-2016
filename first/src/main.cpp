@@ -23,14 +23,12 @@ int ROOT_WINDOW = -1;
 
 void handleText(Scene& a_scene, sf::Event::TextEvent& a_event, bool&) {
   switch (a_event.unicode) {
-#ifdef DEBUG
     case 'r':
       a_scene.reloadShaders();
       return;
     case 'w':
       a_scene.toggleWireframeMode();
       return;
-#endif
   }
 }
 
@@ -118,17 +116,18 @@ void renderer(std::shared_ptr<sf::Window> window,
     scene->setupProjection(size.x, size.y);
 
     auto firstCube = Node::fromFile("res/models/cube.obj");
-    assert(firstCube);
     firstCube->translateX(-0.2);
+    firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
     scene->addObject(std::move(firstCube));
 
-    auto secondCube = Mesh::fromFile("res/models/cube.obj");
-    assert(secondCube);
-    secondCube->translateX(0.2);
-    scene->addObject(std::move(secondCube));
+    // auto secondCube = Mesh::fromFile("res/models/cube.obj");
+    // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
+    // secondCube->setColor(glm::vec3(1.0, 1.0, 1.0));
+    // scene->addObject(std::move(secondCube));
 
     // scene->addObject(Mesh::fromFile("res/models/suzanne.obj"));
-    scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
+    // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
+    // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }
 
   const size_t HALF_A_FRAME_MS = 62;

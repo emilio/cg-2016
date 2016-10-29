@@ -6,7 +6,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "geometry/DrawContext.h"
+class DrawContext;
 
 /**
  * A node is an item in a scene.
@@ -17,31 +17,34 @@ class Node {
   std::list<std::unique_ptr<Node>> m_children;
 
 protected:
-
   // The local transform of this object.
   glm::mat4 m_transform;
 
+  glm::vec3 m_color;
+
 public:
-  Node() {}
+  Node(glm::vec3 a_color) : m_color(a_color) {}
+
+  Node() : Node(glm::vec3(0.5, 0.5, 0.5)) {}
 
   virtual ~Node() {}
 
-  virtual void draw(DrawContext& context) {
-    if (m_children.empty())
-      return;
-
-    context.pushTransform(m_transform);
-    for (auto& child : m_children)
-      child->draw(context);
-    context.popTransform();
-  }
+  virtual void draw(DrawContext& context) const;
 
   void addChild(std::unique_ptr<Node> a_child) {
     m_children.push_back(std::move(a_child));
   }
 
+  void setColor(const glm::vec3& a_color) {
+    m_color = a_color;
+  }
+
   const glm::mat4& transform() const {
     return m_transform;
+  }
+
+  const glm::vec3& color() const {
+    return m_color;
   }
 
   void translate(const glm::vec3& a_how) {

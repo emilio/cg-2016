@@ -9,6 +9,17 @@
 #include "geometry/Node.h"
 #include "geometry/Mesh.h"
 #include "geometry/Vertex.h"
+#include "geometry/DrawContext.h"
+
+void Node::draw(DrawContext& context) const {
+  if (m_children.empty())
+    return;
+
+  context.push(*this);
+  for (auto& child : m_children)
+    child->draw(context);
+  context.pop();
+}
 
 static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
   assert(mesh.HasFaces());
@@ -23,8 +34,8 @@ static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
                                   mesh.mVertices[i].z);
 
     if (mesh.HasNormals()) {
-      vertex.m_normal = glm::vec3(mesh.mNormals[i].x, mesh.mNormals[i].y,
-                                  mesh.mNormals[i].z);
+      vertex.m_normal =
+          glm::vec3(mesh.mNormals[i].x, mesh.mNormals[i].y, mesh.mNormals[i].z);
     }
 
     // TODO(emilio): uv coords, textures, ...
@@ -73,7 +84,7 @@ static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
   }
 
   LOG("Materials: %d", scene->mNumMaterials);
-  assert(scene->mNumMaterials == 1);
+  // assert(scene->mNumMaterials == 1);
 
   // Not worth to add an extra layer of indirection in the simple case.
   if (scene->mNumMeshes == 1)

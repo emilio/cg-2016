@@ -3,18 +3,34 @@
 #include "base/gl.h"
 #include "base/Skybox.h"
 
+#include "geometry/DrawContext.h"
+
 #include "glm/matrix.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+void SceneUniforms::findInProgram(GLuint a_programId) {
+#define FIND(u) u = glGetUniformLocation(a_programId, #u);
+
+  FIND(uViewProjection)
+  FIND(uModel)
+  FIND(uColor)
+  FIND(uFrame)
+  FIND(uAmbientLightColor)
+  FIND(uAmbientLightStrength)
+  FIND(uLightSourcePosition)
+  FIND(uLightSourceColor)
+  FIND(uCameraPosition)
+
+#undef FIND
+}
+
 Scene::Scene()
   : m_frameCount(0)
   , m_skybox(Skybox::create())
-  , m_u_frame(0)
-  , m_u_transform(0)
   , m_shouldPaint(true)
   , m_cameraPosition(0, 0, 3)
-  , m_dimension(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
+  , m_dimensions(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
   , m_locked(true)
 #ifdef DEBUG
   , m_wireframeMode(false)
@@ -36,8 +52,8 @@ void Scene::setupUniforms() {
   AutoGLErrorChecker checker;
   assertLocked();
 
-  m_u_frame = glGetUniformLocation(m_mainProgram->id(), "uFrame");
-  m_u_transform = glGetUniformLocation(m_mainProgram->id(), "uTransform");
+  m_uniforms.findInProgram(m_mainProgram->id());
+
   // assert(m_u_frame != -1);
   // assert(m_u_transform != -1);
   recomputeView();
@@ -56,7 +72,7 @@ void Scene::recomputeView() {
 
 void Scene::setupProjection(float width, float height) {
   const float NEAR = 0.1f;
-  const float FAR = 100.0f;
+  const float FAR = 1000.0f;
   const float FIELD_OF_VIEW = glm::radians(44.0f);
 
   const float aspectRatio = width / height;
@@ -68,8 +84,8 @@ void Scene::setupProjection(float width, float height) {
 
 void Scene::reloadShaders() {
   assertLocked();
-  m_mainProgram =
-      Program::fromShaderFiles("res/vertex.glsl", "res/fragment.glsl");
+  m_mainProgram = Program::fromShaderFiles(
+      "res/vertex.glsl", "res/fragment.glsl", "res/common.glsl");
   setupUniforms();
 }
 
@@ -90,12 +106,28 @@ void Scene::draw() {
   assertLocked();
 
   m_mainProgram->use();
-  glUniform1f(m_u_frame, glm::radians(static_cast<float>(m_frameCount++)));
 
-  // So as far as I know, m_transform ~== m_model, right?
-  // FIXME: rename uTransform, to uMVP, or similar.
+  glUniform1f(m_uniforms.uFrame, glm::radians(static_cast<float>(m_frameCount++)));
 
   glm::mat4 viewProjection = m_projection * m_view;
+  glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE, glm::value_ptr(viewProjection));
+
+  // TODO: Implement some controls for light position, but meanwhile... why not?
+  // glm::vec3 lightPosition = m_cameraPosition;
+  glm::vec3 lightPosition = glm::vec3(0., 0., 3.);
+  glUniform3fv(m_uniforms.uLightSourcePosition, 1, glm::value_ptr(lightPosition));
+
+  glm::vec3 lightColor = glm::vec3(1.0, 0.7, 0.7);
+  glUniform3fv(m_uniforms.uLightSourceColor, 1, glm::value_ptr(lightColor));
+
+  glm::vec3 ambientColor = glm::vec3(1.0, 1.0, 1.0);
+  glUniform3fv(m_uniforms.uAmbientLightColor, 1, glm::value_ptr(ambientColor));
+
+  // FIXME: Not hardcode this? Maybe make it depend on the frame, or the time...
+  float ambientStrength = 0.5f;
+  glUniform1f(m_uniforms.uAmbientLightStrength, ambientStrength);
+
+  glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(m_cameraPosition));
 
   LOG("camera: (%f %f %f)", m_cameraPosition[0], m_cameraPosition[1],
       m_cameraPosition[2]);
@@ -103,25 +135,22 @@ void Scene::draw() {
   LOG_MATRIX("view", m_view);
   LOG_MATRIX("viewProjection", viewProjection);
 
-#ifdef DEBUG
   glPolygonMode(GL_FRONT_AND_BACK, m_wireframeMode ? GL_LINE : GL_FILL);
-#endif
 
   glClearColor(1, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  DrawContext context(m_u_transform, viewProjection);
+  DrawContext context(m_uniforms.uModel, m_uniforms.uColor, glm::mat4());
   m_skybox->draw(context);
 
   size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
 
-    if (i++ % 2 == 0) {
-      object->rotateY(glm::radians(2.5f));
-    } else {
-      object->rotateX(glm::radians(4.0f));
-    }
+    // if (i++ % 2 == 0)
+    //   object->rotateY(glm::radians(2.5f));
+    // else
+    //   object->rotateX(glm::radians(4.0f));
 
     LOG("Object %zu", i);
     object->draw(context);

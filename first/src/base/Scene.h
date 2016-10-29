@@ -16,6 +16,23 @@ const glm::vec3 Z_AXIS = glm::vec3(0, 0, 1);
 class AutoSceneLocker;
 class Skybox;
 
+
+class SceneUniforms {
+  friend class Scene;
+
+  GLint uViewProjection;
+  GLint uModel;
+  GLint uColor;
+  GLint uFrame;
+  GLint uAmbientLightColor;
+  GLint uAmbientLightStrength;
+  GLint uLightSourcePosition;
+  GLint uLightSourceColor;
+  GLint uCameraPosition;
+
+  void findInProgram(GLuint a_programId);
+};
+
 class Scene {
   friend class AutoSceneLocker;
 
@@ -28,8 +45,7 @@ private:
   std::vector<std::unique_ptr<Node>> m_objects;
   GLuint m_frameCount;
   std::unique_ptr<Skybox> m_skybox;
-  GLint m_u_frame;
-  GLint m_u_transform;
+  SceneUniforms m_uniforms;
   glm::mat4 m_projection;
   glm::mat4 m_view;
   bool m_shouldPaint;
@@ -38,7 +54,7 @@ public:  // FIXME: too lazy.
   glm::vec3 m_cameraPosition;
 
 private:
-  glm::vec3 m_dimension;
+  glm::vec3 m_dimensions;
   std::mutex m_lock;
   bool m_locked;
   bool m_wireframeMode;
