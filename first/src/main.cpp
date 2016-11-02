@@ -103,8 +103,8 @@ void renderer(std::shared_ptr<sf::Window> window,
   dumpRenderingInfo();
 
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glDepthMask(GL_TRUE);
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+  // glEnable(GL_CULL_FACE);
 
   auto scene = std::make_shared<Scene>();
   *out_scene = scene;
@@ -115,17 +115,19 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
 
-    auto firstCube = Node::fromFile("res/models/cube.obj");
-    firstCube->translateX(-0.2);
-    firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
-    scene->addObject(std::move(firstCube));
+    // auto firstCube = Node::fromFile("res/models/cube.obj");
+    // firstCube->translateX(-0.2);
+    // firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
+    // scene->addObject(std::move(firstCube));
 
     // auto secondCube = Mesh::fromFile("res/models/cube.obj");
     // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
     // secondCube->setColor(glm::vec3(1.0, 1.0, 1.0));
     // scene->addObject(std::move(secondCube));
 
-    // scene->addObject(Mesh::fromFile("res/models/suzanne.obj"));
+    auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
+    suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
+    scene->addObject(std::move(suzanne));
     // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
     // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }

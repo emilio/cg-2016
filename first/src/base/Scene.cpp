@@ -32,9 +32,7 @@ Scene::Scene()
   , m_cameraPosition(0, 0, 3)
   , m_dimensions(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
   , m_locked(true)
-#ifdef DEBUG
   , m_wireframeMode(false)
-#endif
 {
   assert(m_skybox);
   reloadShaders();
@@ -105,11 +103,20 @@ void Scene::draw() {
   AutoGLErrorChecker checker;
   assertLocked();
 
+  glClearColor(1, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glm::mat4 viewProjection = m_projection * m_view;
+
+  // First draw the Skybox.
+  //
+  // TODO: We can make it faster if we draw the skybox last using the depth
+  // buffer. Not a big deal for now I guess.
+  m_skybox->draw(viewProjection);
+
   m_mainProgram->use();
 
   glUniform1f(m_uniforms.uFrame, glm::radians(static_cast<float>(m_frameCount++)));
-
-  glm::mat4 viewProjection = m_projection * m_view;
   glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE, glm::value_ptr(viewProjection));
 
   // TODO: Implement some controls for light position, but meanwhile... why not?
@@ -137,20 +144,15 @@ void Scene::draw() {
 
   glPolygonMode(GL_FRONT_AND_BACK, m_wireframeMode ? GL_LINE : GL_FILL);
 
-  glClearColor(1, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   DrawContext context(m_uniforms.uModel, m_uniforms.uColor, glm::mat4());
-  m_skybox->draw(context);
-
   size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
 
-    // if (i++ % 2 == 0)
-    //   object->rotateY(glm::radians(2.5f));
-    // else
-    //   object->rotateX(glm::radians(4.0f));
+    if (i++ % 2 == 0)
+      object->rotateY(glm::radians(2.5f));
+    else
+      object->rotateX(glm::radians(4.0f));
 
     LOG("Object %zu", i);
     object->draw(context);

@@ -28,7 +28,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(GENERATED_FILES
   res/vertex.glsl
   res/common.glsl
-  res/fragment.glsl
+  res/skybox/fragment.glsl
+  res/skybox/vertex.glsl
+  res/skybox/common.glsl
+  res/skybox/fragment.glsl
+  res/skybox/faces
   res/models/Rmk3.obj
   res/models/suzanne.obj
   res/models/QuestionBlock.obj
@@ -56,7 +60,8 @@ foreach(generated_file ${GENERATED_FILES})
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}"
                        COMMAND
                           "mkdir" "-p" "${dir}" "&&"
-                          "cp" "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}"
+                          "cp" "-r"
+                               "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}"
                                "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}"
                        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}")
   ENDIF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
