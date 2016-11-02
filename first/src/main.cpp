@@ -154,10 +154,8 @@ int main(int, char**) {
   sf::ContextSettings settings;
   settings.majorVersion = 3;
   settings.minorVersion = 1;
+  settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
-#ifdef DEBUG
-  settings.attributeFlags |= sf::ContextSettings::Debug;
-#endif
 
   sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
   auto window =
