@@ -83,6 +83,10 @@ public:
     m_transform = glm::scale(m_transform, a_times);
   }
 
+  void scale(const float a_times) {
+    scale(glm::vec3(a_times, a_times, a_times));
+  }
+
   void scaleX(float a_times) {
     scale(glm::vec3(a_times, 1.0, 1.0));
   }

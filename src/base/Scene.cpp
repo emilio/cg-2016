@@ -2,6 +2,7 @@
 #include "base/Skybox.h"
 #include "base/gl.h"
 #include "base/Skybox.h"
+#include "base/Terrain.h"
 
 #include "geometry/DrawContext.h"
 
@@ -29,14 +30,18 @@ Scene::Scene()
   : m_frameCount(0)
   , m_skybox(Skybox::create())
   , m_shouldPaint(true)
-  , m_cameraPosition(0, 0, 3)
+  , m_cameraPosition(0, 0, 5)
   , m_dimensions(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
   , m_locked(true)
-  , m_wireframeMode(false)
-{
+  , m_wireframeMode(false) {
   assert(m_skybox);
+
   reloadShaders();
   assert(m_mainProgram);
+  auto terrain = Terrain::create();
+  if (terrain)
+    addObject(std::move(terrain));
+
   LOG("New program: %u", m_mainProgram->id());
   m_mainProgram->use();
   m_locked = false;
@@ -92,12 +97,6 @@ void Scene::toggleWireframeMode() {
   m_wireframeMode = !m_wireframeMode;
 }
 
-#define LOG_MATRIX(name_, var_)                                                \
-  LOG(name_ ":\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f",       \
-      var_[0][0], var_[0][1], var_[0][2], var_[0][3], var_[1][0], var_[1][1],  \
-      var_[1][2], var_[1][3], var_[2][0], var_[2][1], var_[2][2], var_[2][3],  \
-      var_[3][0], var_[3][1], var_[3][2], var_[3][3]);
-
 void Scene::draw() {
   LOG("DisplayScene");
   AutoGLErrorChecker checker;
@@ -116,13 +115,16 @@ void Scene::draw() {
 
   m_mainProgram->use();
 
-  glUniform1f(m_uniforms.uFrame, glm::radians(static_cast<float>(m_frameCount++)));
-  glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE, glm::value_ptr(viewProjection));
+  glUniform1f(m_uniforms.uFrame,
+              glm::radians(static_cast<float>(m_frameCount++)));
+  glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
+                     glm::value_ptr(viewProjection));
 
   // TODO: Implement some controls for light position, but meanwhile... why not?
   // glm::vec3 lightPosition = m_cameraPosition;
   glm::vec3 lightPosition = glm::vec3(0., 0., 3.);
-  glUniform3fv(m_uniforms.uLightSourcePosition, 1, glm::value_ptr(lightPosition));
+  glUniform3fv(m_uniforms.uLightSourcePosition, 1,
+               glm::value_ptr(lightPosition));
 
   glm::vec3 lightColor = glm::vec3(1.0, 0.7, 0.7);
   glUniform3fv(m_uniforms.uLightSourceColor, 1, glm::value_ptr(lightColor));
@@ -149,10 +151,10 @@ void Scene::draw() {
   for (auto& object : m_objects) {
     assert(object);
 
-    if (i++ % 2 == 0)
-      object->rotateY(glm::radians(2.5f));
-    else
-      object->rotateX(glm::radians(4.0f));
+    // if (i++ % 2 == 0)
+    //   object->rotateY(glm::radians(2.5f));
+    // else
+    //   object->rotateX(glm::radians(4.0f));
 
     LOG("Object %zu", i);
     object->draw(context);

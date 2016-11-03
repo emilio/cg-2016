@@ -16,7 +16,7 @@
 
 #define UNINITIALIZED ((GLuint)-1)
 
-class Mesh final : public Node {
+class Mesh : public Node {
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 

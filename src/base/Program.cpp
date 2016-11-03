@@ -14,14 +14,14 @@ static bool createShaderFromSource(ShaderKind a_kind,
   assert(a_source);
 
   LOG("Shader: %s, %s, %s",
-      a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment",
-      a_prefix.c_str(), a_source);
+      a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment", a_prefix.c_str(),
+      a_source);
 
   a_shader = glCreateShader(GLenum(a_kind));
   if (a_prefix.empty()) {
     glShaderSource(a_shader, 1, &a_source, nullptr);
   } else {
-    const char* sources[] = { a_prefix.c_str(), a_source };
+    const char* sources[] = {a_prefix.c_str(), a_source};
     glShaderSource(a_shader, 2, sources, nullptr);
   }
   glCompileShader(a_shader);

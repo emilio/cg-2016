@@ -52,13 +52,16 @@ Mesh::Mesh(std::vector<Vertex>&& a_vertices,
 }
 
 Mesh::~Mesh() {
+  AutoGLErrorChecker checker;
+  if (m_texture.isSome())
+    glDeleteTextures(1, &m_texture.value());
+
   if (m_vao == UNINITIALIZED) {
     assert(m_vbo == UNINITIALIZED);
     assert(m_ebo == UNINITIALIZED);
     return;
   }
 
-  AutoGLErrorChecker checker;
   glDeleteVertexArrays(1, &m_vao);
   glDeleteBuffers(1, &m_vbo);
   glDeleteBuffers(1, &m_ebo);

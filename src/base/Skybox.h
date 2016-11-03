@@ -8,7 +8,7 @@ const size_t SKYBOX_HEIGHT = 2000;
 const size_t SKYBOX_DEPTH = 2000;
 
 class Skybox final {
-  Skybox(std::unique_ptr<Program> m_program);
+  Skybox(std::unique_ptr<Program>);
 
   // There's only one Skybox in here, so it's completely fine for it to own the
   // program, and this allows us to bind/unbind it when drawing without too much
@@ -30,7 +30,9 @@ public:
   void draw(const glm::mat4& a_viewProjection) const;
 
   // Could be useful if I decide to do reflection of stuff.
-  GLuint texture() const { return m_cubeMapTexture; }
+  GLuint texture() const {
+    return m_cubeMapTexture;
+  }
 
   static std::unique_ptr<Skybox> create();
 };

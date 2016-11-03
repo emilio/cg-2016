@@ -9,62 +9,33 @@
 
 // Just a cube's set of 36 vertices.
 constexpr GLfloat gSkyboxVertices[] = {
-    -1.0f,  1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
-     1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
+    -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+    1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
 
-    -1.0f, -1.0f,  1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+    -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
 
-     1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
+    1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
 
-    -1.0f, -1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f, -1.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
 
-    -1.0f,  1.0f, -1.0f,
-     1.0f,  1.0f, -1.0f,
-     1.0f,  1.0f,  1.0f,
-     1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f, -1.0f,
+    -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
 
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f,  1.0f,
-     1.0f, -1.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f,  1.0f,
-     1.0f, -1.0f,  1.0f
-};
+    -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+    1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
 // FIXME: Don't hardcode this?
 const char* const gSkyboxFaces[] = {
-  "res/skybox/faces/right.jpg",
-  "res/skybox/faces/left.jpg",
-  "res/skybox/faces/top.jpg",
-  "res/skybox/faces/bottom.jpg",
-  "res/skybox/faces/back.jpg",
-  "res/skybox/faces/front.jpg",
+    "res/skybox/faces/right.jpg", "res/skybox/faces/left.jpg",
+    "res/skybox/faces/top.jpg",   "res/skybox/faces/bottom.jpg",
+    "res/skybox/faces/back.jpg",  "res/skybox/faces/front.jpg",
 };
 
 Skybox::Skybox(std::unique_ptr<Program> a_program)
-  : m_program(std::move(a_program))
-{
+  : m_program(std::move(a_program)) {
   AutoGLErrorChecker checker;
   assert(m_program);
 
@@ -110,7 +81,7 @@ Skybox::Skybox(std::unique_ptr<Program> a_program)
 
   // Set up uniform.
   m_uniforms.uViewProjection =
-    glGetUniformLocation(m_program->id(), "uViewProjection");
+      glGetUniformLocation(m_program->id(), "uViewProjection");
   m_uniforms.uSkybox = glGetUniformLocation(m_program->id(), "uSkybox");
   glBindVertexArray(0);
 }
@@ -143,10 +114,9 @@ void Skybox::draw(const glm::mat4& a_viewProjection) const {
 }
 
 std::unique_ptr<Skybox> Skybox::create() {
-  std::unique_ptr<Program> program =
-    Program::fromShaderFiles("res/skybox/vertex.glsl",
-                             "res/skybox/fragment.glsl",
-                             "res/skybox/common.glsl");
+  std::unique_ptr<Program> program = Program::fromShaderFiles(
+      "res/skybox/vertex.glsl", "res/skybox/fragment.glsl",
+      "res/skybox/common.glsl");
 
   if (!program)
     return nullptr;

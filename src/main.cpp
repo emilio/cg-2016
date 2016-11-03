@@ -35,15 +35,7 @@ void handleText(Scene& a_scene, sf::Event::TextEvent& a_event, bool&) {
 void handleKey(Scene& a_scene,
                sf::Event::KeyEvent& a_event,
                bool& a_shouldClose) {
-  constexpr const float CAMERA_MOVEMENT = 0.05f;
-
-  float multiplier = 1.0;
-
-  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Left) {
-    multiplier = -1.0f;
-  }
-
-  float movement = multiplier * CAMERA_MOVEMENT;
+  constexpr const float CAMERA_ROTATION = glm::radians(3.f);
 
   switch (a_event.code) {
     case sf::Keyboard::Escape:
@@ -51,19 +43,29 @@ void handleKey(Scene& a_scene,
       return;
     case sf::Keyboard::Up:
     case sf::Keyboard::Down:
-      LOG("Up/Down");
-      a_scene.m_cameraPosition[2] += movement;
-      break;
     case sf::Keyboard::Left:
     case sf::Keyboard::Right:
-      LOG("Left/Right");
-      a_scene.m_cameraPosition[0] += movement;
       break;
     default:
       LOG("Unhandled special key %d", a_event.code);
       return;
   }
 
+  float multiplier = 1.0;
+  const glm::vec3* axis = &Y_AXIS;
+
+  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Left)
+    multiplier = -1.0f;
+
+  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Down)
+    axis = &X_AXIS;
+
+  // FIXME: This is probably slow-ish, and pretty crappy, but...
+  glm::mat4 mat = glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, *axis);
+
+  LOG_MATRIX("mat", mat);
+
+  a_scene.m_cameraPosition = mat * glm::vec4(a_scene.m_cameraPosition, 1.0);
   a_scene.recomputeView();
 }
 
@@ -125,10 +127,10 @@ void renderer(std::shared_ptr<sf::Window> window,
     // secondCube->setColor(glm::vec3(1.0, 1.0, 1.0));
     // scene->addObject(std::move(secondCube));
 
-    auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
-    suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
-    scene->addObject(std::move(suzanne));
-    // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
+    // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
+    // suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
+    // scene->addObject(std::move(suzanne));
+    scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
     // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }
 

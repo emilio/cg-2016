@@ -27,11 +27,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 set(GENERATED_FILES
   res/vertex.glsl
+  res/fragment.glsl
   res/common.glsl
   res/skybox/fragment.glsl
   res/skybox/vertex.glsl
   res/skybox/common.glsl
-  res/skybox/fragment.glsl
   res/skybox/faces
   res/models/Rmk3.obj
   res/models/suzanne.obj
@@ -40,6 +40,7 @@ set(GENERATED_FILES
   "res/models/Airbus A310.obj"
   res/models/cube.obj
   res/models/box.obj
+  res/terrain/heightmap.png
 )
 
 foreach(generated_file ${GENERATED_FILES})
