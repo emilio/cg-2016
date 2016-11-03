@@ -7,11 +7,11 @@
 #include <thread>
 
 #include "base/gl.h"
-#include "base/DebuggingUtils.h"
-#include "base/InputUtils.h"
 #include "base/Logging.h"
 #include "base/Program.h"
 #include "base/Scene.h"
+#include "base/DebuggingUtils.h"
+#include "base/InputUtils.h"
 
 #include "geometry/Mesh.h"
 
@@ -31,30 +31,34 @@ void handleKey(Scene& a_scene,
       a_shouldClose = true;
       return;
     case sf::Keyboard::Up:
-    case sf::Keyboard::Down:
-    case sf::Keyboard::Left:
-    case sf::Keyboard::Right:
+    case sf::Keyboard::Down: {
+      float multiplier = a_event.code == sf::Keyboard::Down ? 1.0 : -1.0;
+
+      // Get closer in the direction to the origin.
+      glm::vec3 direction =
+          glm::normalize(a_scene.m_cameraPosition - glm::vec3(0, 0, 0));
+
+      if (glm::any(glm::isnan(direction)))
+        direction = glm::vec3(0.f, 0.f, 1.0);
+
+      a_scene.m_cameraPosition += multiplier * direction * 0.5f;
       break;
+    }
+    case sf::Keyboard::Left:
+    case sf::Keyboard::Right: {
+      float multiplier = a_event.code == sf::Keyboard::Right ? 1.0 : -1.0;
+      // FIXME: This is probably slow-ish, and pretty crappy, but...
+      glm::mat4 mat =
+          glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, Y_AXIS);
+      a_scene.m_cameraPosition = mat * glm::vec4(a_scene.m_cameraPosition, 1.0);
+
+      break;
+    }
     default:
       LOG("Unhandled special key %d", a_event.code);
       return;
   }
 
-  float multiplier = 1.0;
-  const glm::vec3* axis = &Y_AXIS;
-
-  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Left)
-    multiplier = -1.0f;
-
-  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Down)
-    axis = &X_AXIS;
-
-  // FIXME: This is probably slow-ish, and pretty crappy, but...
-  glm::mat4 mat = glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, *axis);
-
-  LOG_MATRIX("mat", mat);
-
-  a_scene.m_cameraPosition = mat * glm::vec4(a_scene.m_cameraPosition, 1.0);
   a_scene.recomputeView();
 }
 
@@ -68,10 +72,10 @@ void renderer(std::shared_ptr<sf::Window> window,
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-  // glEnable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
-  auto scene = std::make_shared<Scene>(std::move(shaders));
+  auto scene = std::make_shared<Scene>(shaders, Scene::NoTerrain);
   *out_scene = scene;
 
   {
@@ -80,21 +84,9 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
 
-    // auto firstCube = Node::fromFile("res/models/cube.obj");
-    // firstCube->translateX(-0.2);
-    // firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
-    // scene->addObject(std::move(firstCube));
-
-    // auto secondCube = Mesh::fromFile("res/models/cube.obj");
-    // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
-    // secondCube->setColor(glm::vec3(1.0, 1.0, 1.0));
-    // scene->addObject(std::move(secondCube));
-
-    // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
-    // suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
-    // scene->addObject(std::move(suzanne));
-    scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
-    // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
+    auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
+    suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
+    scene->addObject(std::move(suzanne));
   }
 
   const size_t HALF_A_FRAME_MS = 62;
@@ -112,7 +104,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   }
 }
 
-int main(int, char**) {
+int main(int, const char**) {
   const size_t INITIAL_WIDTH = 2000;
   const size_t INITIAL_HEIGHT = 2000;
   const char* TITLE = "OpenGL";  // FIXME: Think of a good title
@@ -155,7 +147,7 @@ int main(int, char**) {
         break;
       case sf::Event::Resized:
         assert(!"Got resize!");
-        // FIXME: Send this event to the renderer somehow!
+        // FIXME: Send this event to the renderer thread somehow!
         // glViewport(0, 0, event.size.width, event.size.height);
         // scene->setupProjection(event.size.width, event.size.height);
         break;

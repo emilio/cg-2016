@@ -26,8 +26,10 @@ void SceneUniforms::findInProgram(GLuint a_programId) {
 #undef FIND
 }
 
-Scene::Scene()
-  : m_frameCount(0)
+Scene::Scene(ShaderSet a_shaderSet,
+             TerrainMode a_terrainMode)
+  : m_shaderSet(std::move(a_shaderSet))
+  , m_frameCount(0)
   , m_skybox(Skybox::create())
   , m_shouldPaint(true)
   , m_cameraPosition(0, 0, 5)
@@ -38,9 +40,12 @@ Scene::Scene()
 
   reloadShaders();
   assert(m_mainProgram);
-  auto terrain = Terrain::create();
-  if (terrain)
-    addObject(std::move(terrain));
+
+  if (a_terrainMode == Terrain) {
+    auto terrain = Terrain::create();
+    if (terrain)
+      addObject(std::move(terrain));
+  }
 
   LOG("New program: %u", m_mainProgram->id());
   m_mainProgram->use();
@@ -87,8 +92,7 @@ void Scene::setupProjection(float width, float height) {
 
 void Scene::reloadShaders() {
   assertLocked();
-  m_mainProgram = Program::fromShaderFiles(
-      "res/vertex.glsl", "res/fragment.glsl", "res/common.glsl");
+  m_mainProgram = Program::fromShaders(m_shaderSet);
   setupUniforms();
 }
 
@@ -102,7 +106,7 @@ void Scene::draw() {
   AutoGLErrorChecker checker;
   assertLocked();
 
-  glClearColor(1, 0, 0, 1);
+  glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glm::mat4 viewProjection = m_projection * m_view;

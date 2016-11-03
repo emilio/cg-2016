@@ -48,7 +48,7 @@ static bool createShaderFromSource(ShaderKind a_kind,
 }
 
 static bool createShaderOfKind(ShaderKind a_kind,
-                               const char* a_from,
+                               const std::string& a_from,
                                const std::string& a_prefix,
                                GLuint& a_shader) {
   std::stringstream buff;
@@ -59,31 +59,44 @@ static bool createShaderOfKind(ShaderKind a_kind,
   return createShaderFromSource(a_kind, string.c_str(), a_prefix, a_shader);
 }
 
-/* static */ std::unique_ptr<Program> Program::fromShaderFiles(
-    const char* a_vertexShader,
-    const char* a_fragmentShader,
-    const char* a_commonPrefix) {
-  GLuint vertexShaderId, fragmentShaderId;
+/* static */ std::unique_ptr<Program> Program::fromShaders(
+    const ShaderSet& a_shaderSet) {
+  GLuint vertexShaderId, fragmentShaderId, potentialGeometryShaderId;
+  Optional<GLuint> geometryShaderId;
+
+  // We need at least one of these.
+  if (a_shaderSet.m_vertex.empty() || a_shaderSet.m_fragment.empty())
+    return nullptr;
 
   std::string prefix;
   std::stringstream prefixBuff;
-  if (a_commonPrefix) {
-    std::ifstream stream(a_commonPrefix);
+  if (!a_shaderSet.m_commonHeader.empty()) {
+    std::ifstream stream(a_shaderSet.m_commonHeader);
     prefixBuff << stream.rdbuf();
     prefix = prefixBuff.str();
   }
 
-  if (!createShaderOfKind(ShaderKind::Vertex, a_vertexShader, prefix,
+  if (!createShaderOfKind(ShaderKind::Vertex, a_shaderSet.m_vertex, prefix,
                           vertexShaderId)) {
-    ERROR("Shader compilation failed: %s", a_vertexShader);
+    ERROR("Shader compilation failed: %s", a_shaderSet.m_vertex.c_str());
     return nullptr;
   }
 
-  if (!createShaderOfKind(ShaderKind::Fragment, a_fragmentShader, prefix,
+  if (!createShaderOfKind(ShaderKind::Fragment, a_shaderSet.m_fragment, prefix,
                           fragmentShaderId)) {
-    ERROR("Shader compilation failed: %s", a_fragmentShader);
+    ERROR("Shader compilation failed: %s", a_shaderSet.m_fragment.c_str());
     return nullptr;
   }
+
+  if (!a_shaderSet.m_geometry.empty()) {
+    if (!createShaderOfKind(ShaderKind::Geometry, a_shaderSet.m_geometry,
+                            prefix, potentialGeometryShaderId)) {
+      ERROR("Shader compilation failed: %s", a_shaderSet.m_geometry.c_str());
+      return nullptr;
+    }
+    geometryShaderId.set(potentialGeometryShaderId);
+  }
+
 
   GLuint id = glCreateProgram();
 
@@ -91,6 +104,9 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
   glAttachShader(id, vertexShaderId);
   glAttachShader(id, fragmentShaderId);
+
+  if (geometryShaderId)
+    glAttachShader(id, *geometryShaderId);
 
   glLinkProgram(id);
 
@@ -121,5 +137,5 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
   // NB: Not using make_unique because constructor is public.
   return std::unique_ptr<Program>(
-      new Program(id, vertexShaderId, fragmentShaderId));
+      new Program(id, vertexShaderId, fragmentShaderId, std::move(geometryShaderId)));
 }

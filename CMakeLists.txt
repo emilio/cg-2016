@@ -80,29 +80,38 @@ add_library(base OBJECT
   src/base/Scene.cpp
   src/base/Skybox.cpp
   src/base/Terrain.cpp
+  src/base/DebuggingUtils.cpp
+  src/base/InputUtils.cpp
 )
 
 add_library(geometry OBJECT
   src/geometry/Mesh.cpp
   src/geometry/Node.cpp
 )
-add_executable(main src/main.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:geometry>)
-add_dependencies(main Generated)
-add_dependencies(main assimp)
+
+set(EXECUTABLES
+  main
+  image-processing
+)
 
 # Ensure we have SFML 2.x
 find_package(SFML 2 REQUIRED system window graphics)
 if(SFML_FOUND)
   include_directories(${SFML_INCLUDE_DIR})
-  target_link_libraries(main ${SFML_LIBRARIES})
 endif()
 
-target_link_libraries(main -lm -lGL)
-IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-  target_link_libraries(main -lassimpd)
-ELSE(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-  target_link_libraries(main -lassimp)
-ENDIF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+foreach(executable ${EXECUTABLES})
+  add_executable(${executable} src/${executable}.cpp $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:geometry>)
+  add_dependencies(${executable} Generated)
+  add_dependencies(${executable} assimp)
+  target_link_libraries(${executable} -lm -lGL ${SFML_LIBRARIES})
+  if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    target_link_libraries(${executable} -lassimpd)
+  else()
+    target_link_libraries(${executable} -lassimp)
+  endif()
+endforeach()
+
 
 include(ProcessorCount)
 ProcessorCount(N)

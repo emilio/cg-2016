@@ -114,9 +114,9 @@ void Skybox::draw(const glm::mat4& a_viewProjection) const {
 }
 
 std::unique_ptr<Skybox> Skybox::create() {
-  std::unique_ptr<Program> program = Program::fromShaderFiles(
-      "res/skybox/vertex.glsl", "res/skybox/fragment.glsl",
-      "res/skybox/common.glsl");
+  ShaderSet shaders("res/skybox/common.glsl", "res/skybox/vertex.glsl",
+                    "res/skybox/fragment.glsl");
+  std::unique_ptr<Program> program = Program::fromShaders(std::move(shaders));
 
   if (!program)
     return nullptr;

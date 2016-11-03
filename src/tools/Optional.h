@@ -34,15 +34,15 @@ public:
     return *this;
   }
 
-  bool isSome() {
+  bool isSome() const {
     return m_isSome;
   }
 
-  bool isNone() {
+  bool isNone() const {
     return !isSome();
   }
 
-  explicit operator bool() {
+  explicit operator bool() const {
     return isSome();
   }
 

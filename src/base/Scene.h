@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <string>
 
 #include "geometry/Node.h"
 #include "base/Program.h"
@@ -37,10 +38,17 @@ class Scene {
   friend class AutoSceneLocker;
 
 public:
-  Scene();
+  enum TerrainMode {
+    Terrain,
+    NoTerrain,
+  };
+
+  Scene(ShaderSet, TerrainMode);
+  Scene(ShaderSet a_set) : Scene(std::move(a_set), Terrain) {};
   ~Scene();
 
 private:
+  ShaderSet m_shaderSet;
   std::unique_ptr<Program> m_mainProgram;
   std::vector<std::unique_ptr<Node>> m_objects;
   GLuint m_frameCount;
