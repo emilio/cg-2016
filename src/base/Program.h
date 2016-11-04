@@ -11,25 +11,33 @@ struct ShaderSet {
   std::string m_vertex;
   std::string m_fragment;
   std::string m_geometry;
+  std::string m_tessellation_control;
+  std::string m_tessellation_evaluation;
 
-  ShaderSet(std::string a_common, std::string a_vertex, std::string a_fragment, std::string a_geometry)
+  ShaderSet(std::string a_common,
+            std::string a_vertex,
+            std::string a_fragment,
+            std::string a_geometry)
     : m_commonHeader(std::move(a_common))
     , m_vertex(std::move(a_vertex))
     , m_fragment(std::move(a_fragment))
     , m_geometry(std::move(a_geometry)) {}
 
   ShaderSet(std::string a_common, std::string a_vertex, std::string a_fragment)
-    : ShaderSet(std::move(a_common), std::move(a_vertex), std::move(a_fragment), "") {}
+    : ShaderSet(
+          std::move(a_common), std::move(a_vertex), std::move(a_fragment), "") {
+  }
 
   ShaderSet(std::string a_vertex, std::string a_fragment)
     : ShaderSet("", std::move(a_vertex), std::move(a_fragment)) {}
 };
 
-
 enum class ShaderKind {
   Vertex = GL_VERTEX_SHADER,
   Fragment = GL_FRAGMENT_SHADER,
   Geometry = GL_GEOMETRY_SHADER,
+  TessControl = GL_TESS_CONTROL_SHADER,
+  TessEvaluation = GL_TESS_EVALUATION_SHADER,
 };
 
 class Program;
@@ -69,17 +77,25 @@ class Program {
   Shader m_vertexShader;
   Shader m_fragmentShader;
   Optional<Shader> m_geometryShader;
+  Optional<Shader> m_tessEvaluationShader;
+  Optional<Shader> m_tessControlShader;
 
   Program(GLuint a_id,
           GLuint a_vertexShaderId,
           GLuint a_fragmentShaderId,
-          Optional<GLuint> a_geometryShaderId)
+          Optional<GLuint> a_geometryShaderId,
+          Optional<GLuint> a_tessControlShaderId,
+          Optional<GLuint> a_tessEvaluationShaderId)
     : m_id(a_id)
     , m_vertexShader(a_vertexShaderId, ShaderKind::Vertex)
-    , m_fragmentShader(a_fragmentShaderId, ShaderKind::Fragment)
-    , m_geometryShader(None) {
-    if (a_geometryShaderId.isSome())
+    , m_fragmentShader(a_fragmentShaderId, ShaderKind::Fragment) {
+    if (a_geometryShaderId)
       m_geometryShader.set(*a_geometryShaderId, ShaderKind::Geometry);
+    if (a_tessControlShaderId)
+      m_tessControlShader.set(*a_tessControlShaderId, ShaderKind::TessControl);
+    if (a_tessEvaluationShaderId)
+      m_tessEvaluationShader.set(*a_tessEvaluationShaderId,
+                                 ShaderKind::TessEvaluation);
 
     assert(glIsProgram(m_id));
   }

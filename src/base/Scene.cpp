@@ -26,8 +26,7 @@ void SceneUniforms::findInProgram(GLuint a_programId) {
 #undef FIND
 }
 
-Scene::Scene(ShaderSet a_shaderSet,
-             TerrainMode a_terrainMode)
+Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
   : m_shaderSet(std::move(a_shaderSet))
   , m_frameCount(0)
   , m_skybox(Skybox::create())

@@ -3,7 +3,9 @@
 
 #include <SFML/Graphics.hpp>
 
-void InputUtils::handleText(Scene& a_scene, sf::Event::TextEvent& a_event, bool&) {
+void InputUtils::handleText(Scene& a_scene,
+                            sf::Event::TextEvent& a_event,
+                            bool&) {
   switch (a_event.unicode) {
     case 'r':
       a_scene.reloadShaders();

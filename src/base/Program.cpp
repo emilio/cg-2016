@@ -61,8 +61,10 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
 /* static */ std::unique_ptr<Program> Program::fromShaders(
     const ShaderSet& a_shaderSet) {
-  GLuint vertexShaderId, fragmentShaderId, potentialGeometryShaderId;
-  Optional<GLuint> geometryShaderId;
+  GLuint vertexShaderId, fragmentShaderId;
+  GLuint potentialOptionalShaderId;
+  Optional<GLuint> geometryShaderId, tessControlShaderId,
+      tessEvaluationShaderId;
 
   // We need at least one of these.
   if (a_shaderSet.m_vertex.empty() || a_shaderSet.m_fragment.empty())
@@ -88,15 +90,23 @@ static bool createShaderOfKind(ShaderKind a_kind,
     return nullptr;
   }
 
-  if (!a_shaderSet.m_geometry.empty()) {
-    if (!createShaderOfKind(ShaderKind::Geometry, a_shaderSet.m_geometry,
-                            prefix, potentialGeometryShaderId)) {
-      ERROR("Shader compilation failed: %s", a_shaderSet.m_geometry.c_str());
-      return nullptr;
-    }
-    geometryShaderId.set(potentialGeometryShaderId);
-  }
+#define OPTIONAL_SHADER(kind_, member_, var_)                                  \
+  do {                                                                         \
+    if (!a_shaderSet.member_.empty()) {                                        \
+      if (!createShaderOfKind(ShaderKind::kind_, a_shaderSet.member_, prefix,  \
+                              potentialOptionalShaderId)) {                    \
+        ERROR(#kind_ " shader compilation failed: %s",                         \
+              a_shaderSet.member_.c_str());                                    \
+        return nullptr;                                                        \
+      }                                                                        \
+      var_.set(potentialOptionalShaderId);                                     \
+    }                                                                          \
+  } while (0)
 
+  OPTIONAL_SHADER(Geometry, m_geometry, geometryShaderId);
+  OPTIONAL_SHADER(TessControl, m_tessellation_control, tessControlShaderId);
+  OPTIONAL_SHADER(TessEvaluation, m_tessellation_evaluation,
+                  tessEvaluationShaderId);
 
   GLuint id = glCreateProgram();
 
@@ -107,6 +117,12 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
   if (geometryShaderId)
     glAttachShader(id, *geometryShaderId);
+
+  if (tessControlShaderId)
+    glAttachShader(id, *tessControlShaderId);
+
+  if (tessEvaluationShaderId)
+    glAttachShader(id, *tessEvaluationShaderId);
 
   glLinkProgram(id);
 
@@ -131,11 +147,18 @@ static bool createShaderOfKind(ShaderKind a_kind,
     }
     glDeleteShader(vertexShaderId);
     glDeleteShader(fragmentShaderId);
+    if (geometryShaderId)
+      glDeleteShader(*geometryShaderId);
+    if (tessControlShaderId)
+      glDeleteShader(*tessControlShaderId);
+    if (tessEvaluationShaderId)
+      glDeleteShader(*tessEvaluationShaderId);
     glDeleteProgram(id);
     return nullptr;
   }
 
   // NB: Not using make_unique because constructor is public.
-  return std::unique_ptr<Program>(
-      new Program(id, vertexShaderId, fragmentShaderId, std::move(geometryShaderId)));
+  return std::unique_ptr<Program>(new Program(
+      id, vertexShaderId, fragmentShaderId, std::move(geometryShaderId),
+      std::move(tessControlShaderId), std::move(tessEvaluationShaderId)));
 }

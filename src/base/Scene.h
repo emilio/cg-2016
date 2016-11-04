@@ -44,7 +44,7 @@ public:
   };
 
   Scene(ShaderSet, TerrainMode);
-  Scene(ShaderSet a_set) : Scene(std::move(a_set), Terrain) {};
+  Scene(ShaderSet a_set) : Scene(std::move(a_set), Terrain){};
   ~Scene();
 
 private:
