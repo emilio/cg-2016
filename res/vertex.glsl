@@ -20,5 +20,6 @@ void main () {
   //
   // http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
   fNormal = normalize(vec3(uModel * vec4(vNormal, 1.0)));
+
   gl_Position = uViewProjection * uModel * vec4(vPosition, 1.0);
 }

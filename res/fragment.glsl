@@ -5,7 +5,7 @@ out vec4 oFragColor;
 in vec3 fPosition;
 in vec3 fNormal;
 
-void main () {
+void main() {
   // First, the ambient light.
   vec3 ambientColor = uAmbientLightColor * uAmbientLightStrength;
 
