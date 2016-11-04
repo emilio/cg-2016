@@ -114,8 +114,8 @@ int main(int, const char**) {
 
   // Request OpenGL 3.1
   sf::ContextSettings settings;
-  settings.majorVersion = 3;
-  settings.minorVersion = 1;
+  settings.majorVersion = 4;
+  settings.minorVersion = 0;
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
 #ifdef DEBUG
