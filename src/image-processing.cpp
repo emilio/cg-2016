@@ -75,6 +75,9 @@ void renderer(std::shared_ptr<sf::Window> window,
   glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
+  shaders.m_geometry = "res/geometry.glsl";
+  shaders.m_tessellation_control = "res/tess-control.glsl";
+  shaders.m_tessellation_evaluation = "res/tess-eval.glsl";
   auto scene = std::make_shared<Scene>(shaders, Scene::NoTerrain);
   *out_scene = scene;
 
@@ -115,6 +118,9 @@ int main(int, const char**) {
   settings.minorVersion = 1;
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
+#ifdef DEBUG
+  settings.attributeFlags |= sf::ContextSettings::Debug;
+#endif
 
   sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
   auto window =

@@ -93,7 +93,7 @@ void renderer(std::shared_ptr<sf::Window> window,
     // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
     // suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
     // scene->addObject(std::move(suzanne));
-    scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
+    // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
     // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base/gl.h"
+#include "base/Program.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -15,16 +16,21 @@ class DrawContext final {
     glm::mat4 m_transform;
   };
 
+  Program& m_program;
+
   std::stack<NodeInfo> m_stack;
 
   GLuint m_transformUniform;
   GLuint m_colorUniform;
 
 public:
-  explicit DrawContext(GLuint a_transformUniform,
+  explicit DrawContext(Program& a_program,
+                       GLuint a_transformUniform,
                        GLuint a_colorUniform,
                        glm::mat4 a_initialTransform)
-    : m_transformUniform(a_transformUniform), m_colorUniform(a_colorUniform) {
+    : m_program(a_program)
+    , m_transformUniform(a_transformUniform)
+    , m_colorUniform(a_colorUniform) {
     m_stack.push(NodeInfo{glm::vec3(0.0, 0.0, 0.0), a_initialTransform});
   }
 
@@ -42,6 +48,10 @@ public:
   void pop() {
     assert(!m_stack.empty());
     m_stack.pop();
+  }
+
+  const Program& program() const {
+    return m_program;
   }
 
 #ifdef DEBUG

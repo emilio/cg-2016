@@ -84,7 +84,12 @@ void Mesh::draw(DrawContext& context) const {
   context.push(*this);
 
   glBindVertexArray(m_vao);
-  glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+  if (context.program().tessControlShader()) {
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
+    glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+  } else {
+    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+  }
   glBindVertexArray(0);
 
   context.pop();

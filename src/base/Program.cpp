@@ -78,6 +78,16 @@ static bool createShaderOfKind(ShaderKind a_kind,
     prefix = prefixBuff.str();
   }
 
+  // We add a few defines to allow knowing which kind of pipeline we're using.
+  if (!a_shaderSet.m_geometry.empty())
+    prefix += "#define HAS_GEOMETRY_SHADER\n";
+
+  if (!a_shaderSet.m_tessellation_control.empty())
+    prefix += "#define HAS_TESS_CONTROL_SHADER\n";
+
+  if (!a_shaderSet.m_tessellation_evaluation.empty())
+    prefix += "#define HAS_TESS_EVAL_SHADER\n";
+
   if (!createShaderOfKind(ShaderKind::Vertex, a_shaderSet.m_vertex, prefix,
                           vertexShaderId)) {
     ERROR("Shader compilation failed: %s", a_shaderSet.m_vertex.c_str());
@@ -109,20 +119,30 @@ static bool createShaderOfKind(ShaderKind a_kind,
                   tessEvaluationShaderId);
 
   GLuint id = glCreateProgram();
+  LOG("Creating program: %u", id);
 
   AutoGLErrorChecker checker;
 
+  LOG(" * vertex: %u", vertexShaderId);
   glAttachShader(id, vertexShaderId);
-  glAttachShader(id, fragmentShaderId);
 
-  if (geometryShaderId)
-    glAttachShader(id, *geometryShaderId);
-
-  if (tessControlShaderId)
+  if (tessControlShaderId) {
+    LOG(" * tess control: %u", *tessControlShaderId);
     glAttachShader(id, *tessControlShaderId);
+  }
 
-  if (tessEvaluationShaderId)
+  if (tessEvaluationShaderId) {
+    LOG(" * tess eval: %u", *tessEvaluationShaderId);
     glAttachShader(id, *tessEvaluationShaderId);
+  }
+
+  if (geometryShaderId) {
+    LOG(" * geometry: %u", *geometryShaderId);
+    glAttachShader(id, *geometryShaderId);
+  }
+
+  LOG(" * fragment: %u", fragmentShaderId);
+  glAttachShader(id, fragmentShaderId);
 
   glLinkProgram(id);
 
@@ -133,6 +153,8 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
   GLint validateSuccess;
   glGetProgramiv(id, GL_VALIDATE_STATUS, &validateSuccess);
+
+  LOG("Program status: link: %d, validate: %d", linkSuccess, validateSuccess);
 
   if (!linkSuccess || !validateSuccess) {
     fprintf(stderr, linkSuccess ? "Program validation failed\n"

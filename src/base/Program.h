@@ -112,31 +112,24 @@ public:
   GLuint id() {
     return m_id;
   }
-  Shader& vertexShader() {
-    return m_vertexShader;
-  }
 
   const Shader& vertexShader() const {
     return m_vertexShader;
-  }
-
-  Shader& fragmentShader() {
-    return m_fragmentShader;
   }
 
   const Shader& fragmentShader() const {
     return m_fragmentShader;
   }
 
-  Shader* geometryShader() {
+  const Shader* geometryShader() const {
     if (m_geometryShader)
       return &*m_geometryShader;
     return nullptr;
   }
 
-  const Shader* geometryShader() const {
-    if (m_geometryShader)
-      return &*m_geometryShader;
+  const Shader* tessControlShader() const {
+    if (m_tessControlShader)
+      return &*m_tessControlShader;
     return nullptr;
   }
 

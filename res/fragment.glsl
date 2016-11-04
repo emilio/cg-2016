@@ -6,9 +6,11 @@ in vec3 fPosition;
 in vec3 fNormal;
 
 void main() {
+  // oFragColor = vec4(fNormal, 1.0);
+  // return;
+
   // First, the ambient light.
   vec3 ambientColor = uAmbientLightColor * uAmbientLightStrength;
-
 
   // Then the diffuse light.
   vec3 lightDirection = normalize(uLightSourcePosition - fPosition);
