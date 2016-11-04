@@ -28,9 +28,8 @@ void main() {
 
   // FIXME: Same problem than in the fragment shader, no proper normal matrix.
   vec3 normal = normalize(cross(A, B));
-
-  // fNormal = normalize(vec3(uModel * normalize(normal)));
   fNormal = normalize(vec3(uModel * vec4(normal, 1.0)));
+
   emitPos(gl_in[0].gl_Position);
   emitPos(gl_in[1].gl_Position);
   emitPos(gl_in[2].gl_Position);
