@@ -149,7 +149,8 @@ void Scene::draw() {
 
   glPolygonMode(GL_FRONT_AND_BACK, m_wireframeMode ? GL_LINE : GL_FILL);
 
-  DrawContext context(*m_mainProgram, m_uniforms.uModel, m_uniforms.uColor, glm::mat4());
+  DrawContext context(*m_mainProgram, m_uniforms.uModel, m_uniforms.uColor,
+                      glm::mat4());
   size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
