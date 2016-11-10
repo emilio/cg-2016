@@ -20,45 +20,44 @@
 #include "glm/matrix.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <condition_variable>
 
-void handleKey(Scene& a_scene,
+void handleKey(Scene&,
                sf::Event::KeyEvent& a_event,
+               PhysicsState& a_state,
                bool& a_shouldClose) {
-  constexpr const float CAMERA_ROTATION = glm::radians(3.f);
+  constexpr const float PLANE_ROTATION = glm::radians(3.f);
+  constexpr const float SPEED_DELTA = 0.2f;
 
   switch (a_event.code) {
     case sf::Keyboard::Escape:
       a_shouldClose = true;
-      return;
+      break;
+    case sf::Keyboard::PageUp:
+      a_state.speedUp(SPEED_DELTA);
+      break;
+    case sf::Keyboard::PageDown:
+      a_state.speedUp(-SPEED_DELTA);
+      break;
     case sf::Keyboard::Up:
+      a_state.rotate(PhysicsState::Top, PLANE_ROTATION);
+      break;
     case sf::Keyboard::Down:
-    case sf::Keyboard::Left:
+      a_state.rotate(PhysicsState::Down, PLANE_ROTATION);
+      break;
     case sf::Keyboard::Right:
+      a_state.rotate(PhysicsState::Right, PLANE_ROTATION);
+      break;
+    case sf::Keyboard::Left:
+      a_state.rotate(PhysicsState::Left, PLANE_ROTATION);
       break;
     default:
       LOG("Unhandled special key %d", a_event.code);
       return;
   }
-
-  float multiplier = 1.0;
-  const glm::vec3* axis = &Y_AXIS;
-
-  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Left)
-    multiplier = -1.0f;
-
-  if (a_event.code == sf::Keyboard::Up || a_event.code == sf::Keyboard::Down)
-    axis = &X_AXIS;
-
-  // FIXME: This is probably slow-ish, and pretty crappy, but...
-  glm::mat4 mat = glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, *axis);
-
-  LOG_MATRIX("mat", mat);
-
-  a_scene.m_cameraPosition = mat * glm::vec4(a_scene.m_cameraPosition, 1.0);
-  a_scene.recomputeView();
 }
 
 // The renderer loop, executed in a second thread.
@@ -143,7 +142,6 @@ int main(int, char**) {
   std::shared_ptr<Scene> scene(nullptr);
 
   Node* plane;
-  PhysicsState physicsState;
 
   // Start the renderer and wait for the scene to be ready.
   std::unique_ptr<std::thread> rendererThread;
@@ -157,12 +155,13 @@ int main(int, char**) {
     assert(rendererThread);
     condvar.wait(lock);
     assert(scene);
+    assert(plane);
   }
 
+  PhysicsState physicsState(*plane);
   {
     AutoSceneLocker lock(*scene);
-    scene->setPhysicsCallback(
-        [&](Scene& scene) { physicsState.tick(*plane, scene); });
+    scene->setPhysicsCallback([&](Scene& scene) { physicsState.tick(scene); });
   }
 
   bool shouldClose = false;
@@ -188,7 +187,7 @@ int main(int, char**) {
         scene->setPendingResize(event.size.width, event.size.height);
         break;
       case sf::Event::KeyPressed:
-        handleKey(*scene, event.key, shouldClose);
+        handleKey(*scene, event.key, physicsState, shouldClose);
         break;
       case sf::Event::TextEntered:
         InputUtils::handleText(*scene, event.text, shouldClose);
