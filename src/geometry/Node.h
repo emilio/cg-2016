@@ -51,6 +51,11 @@ public:
     m_transform = glm::translate(m_transform, a_how);
   }
 
+  void translate(float a_howMuch, const glm::vec3& a_direction) {
+    m_transform =
+        glm::translate(m_transform, a_howMuch * glm::normalize(a_direction));
+  }
+
   void translateX(float a_howMuch) {
     translate(glm::vec3(a_howMuch, 0, 0));
   }
