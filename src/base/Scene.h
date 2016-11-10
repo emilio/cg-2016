@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 #include <string>
+#include <functional>
 
 #include "geometry/Node.h"
 #include "base/Program.h"
@@ -33,6 +34,7 @@ class SceneUniforms {
   void findInProgram(GLuint a_programId);
 };
 
+
 class Scene {
   friend class AutoSceneLocker;
 
@@ -41,6 +43,8 @@ public:
     Terrain,
     NoTerrain,
   };
+
+  using PhysicsCallback = std::function<void(Scene&)>;
 
   Scene(ShaderSet, TerrainMode);
   Scene(ShaderSet a_set) : Scene(std::move(a_set), Terrain){};
@@ -56,6 +60,7 @@ private:
   glm::mat4 m_projection;
   glm::mat4 m_view;
   Optional<glm::u32vec2> m_pendingResize;
+  Optional<PhysicsCallback> m_physicsCallback;
   bool m_shouldPaint;
 
 public:  // FIXME: too lazy.
@@ -76,11 +81,13 @@ private:
 public:
   void addObject(std::unique_ptr<Node>&& a_object);
   void recomputeView();
+  void recomputeView(const glm::vec3& lookingAt, const glm::vec3& up);
 
   void setupProjection(float width, float height);
   void reloadShaders();
 
   void setPendingResize(uint32_t width, uint32_t height);
+  void setPhysicsCallback(PhysicsCallback);
 
   void toggleWireframeMode();
   void draw();

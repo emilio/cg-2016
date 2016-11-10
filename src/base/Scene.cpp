@@ -72,9 +72,12 @@ void Scene::addObject(std::unique_ptr<Node>&& a_object) {
 }
 
 void Scene::recomputeView() {
+  recomputeView(glm::vec3(0, 0, 0), Y_AXIS);
+}
+
+void Scene::recomputeView(const glm::vec3& lookingAt, const glm::vec3& up) {
   assertLocked();
-  // m_view = glm::translate(glm::mat4(), -m_cameraPosition);
-  m_view = glm::lookAt(m_cameraPosition, glm::vec3(0, 0, 0), Y_AXIS);
+  m_view = glm::lookAt(m_cameraPosition, lookingAt, up);
 }
 
 void Scene::setupProjection(float width, float height) {
@@ -104,6 +107,10 @@ void Scene::setPendingResize(uint32_t width, uint32_t height) {
   m_pendingResize.set(width, height);
 }
 
+void Scene::setPhysicsCallback(PhysicsCallback callback) {
+  m_physicsCallback.set(callback);
+}
+
 void Scene::draw() {
   LOG("DisplayScene");
   AutoGLErrorChecker checker;
@@ -115,6 +122,12 @@ void Scene::draw() {
     setupProjection(resize.x, resize.y);
     m_pendingResize.clear();
   }
+
+  // TODO: Probably we may want to run more/less physics than once per frame,
+  // but this is ok for now.
+  if (m_physicsCallback)
+    (*m_physicsCallback)(*this);
+
   assert(!m_pendingResize);
 
   glClearColor(1, 1, 1, 1);

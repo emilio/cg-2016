@@ -13,6 +13,7 @@
 #include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
+#include "main/PhysicsState.h"
 
 #include "geometry/Mesh.h"
 
@@ -85,7 +86,6 @@ void renderer(std::shared_ptr<sf::Window> window,
     scene->setupProjection(size.x, size.y);
 
     auto firstCube = Node::fromFile("res/models/cube.obj");
-    firstCube->translateX(-0.2);
     firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
     // Yup, for now our plane is going to be a cube, awesome, isn't it?
     *out_plane = firstCube.get();
@@ -141,7 +141,9 @@ int main(int, char**) {
   window->setVerticalSyncEnabled(true);
 
   std::shared_ptr<Scene> scene(nullptr);
+
   Node* plane;
+  PhysicsState physicsState;
 
   // Start the renderer and wait for the scene to be ready.
   std::unique_ptr<std::thread> rendererThread;
@@ -156,6 +158,14 @@ int main(int, char**) {
     condvar.wait(lock);
     assert(scene);
   }
+
+  {
+    AutoSceneLocker lock(*scene);
+    scene->setPhysicsCallback([&] (Scene& scene) {
+        physicsState.tick(*plane, scene);
+    });
+  }
+
 
   bool shouldClose = false;
   sf::Event event;
