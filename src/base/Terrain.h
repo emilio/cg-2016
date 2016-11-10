@@ -1,5 +1,4 @@
-#ifndef Terrain_h
-#define Terrain_h
+#pragma once
 
 #include "base/Program.h"
 #include "geometry/Mesh.h"
@@ -14,5 +13,3 @@ class Terrain final : public Mesh {
 public:
   static std::unique_ptr<Terrain> create();
 };
-
-#endif

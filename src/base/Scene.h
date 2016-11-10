@@ -1,5 +1,4 @@
-#ifndef Scene_h
-#define Scene_h
+#pragma once
 
 #include <cassert>
 #include <memory>
@@ -108,5 +107,3 @@ public:
 private:
   Scene& m_scene;
 };
-
-#endif

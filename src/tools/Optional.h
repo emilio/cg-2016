@@ -1,5 +1,4 @@
-#ifndef Optional_h
-#define Optional_h
+#pragma once
 
 #include <cassert>
 #include <memory>
@@ -80,5 +79,3 @@ public:
     clear();
   }
 };
-
-#endif
