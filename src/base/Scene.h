@@ -56,6 +56,7 @@ private:
   SceneUniforms m_uniforms;
   glm::mat4 m_projection;
   glm::mat4 m_view;
+  Optional<glm::u32vec2> m_pendingResize;
   bool m_shouldPaint;
 
 public:  // FIXME: too lazy.
@@ -79,6 +80,8 @@ public:
 
   void setupProjection(float width, float height);
   void reloadShaders();
+
+  void setPendingResize(uint32_t width, uint32_t height);
 
   void toggleWireframeMode();
   void draw();

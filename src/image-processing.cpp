@@ -8,6 +8,7 @@
 
 #include "base/gl.h"
 #include "base/Logging.h"
+#include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
 #include "base/DebuggingUtils.h"
@@ -112,15 +113,14 @@ int main(int, const char**) {
   const size_t INITIAL_HEIGHT = 2000;
   const char* TITLE = "OpenGL";  // FIXME: Think of a good title
 
+  Platform::init();
+
   // Request OpenGL 3.1
   sf::ContextSettings settings;
   settings.majorVersion = 4;
   settings.minorVersion = 0;
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
-#ifdef DEBUG
-  settings.attributeFlags |= sf::ContextSettings::Debug;
-#endif
 
   sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
   auto window =
@@ -152,10 +152,7 @@ int main(int, const char**) {
         shouldClose = true;
         break;
       case sf::Event::Resized:
-        assert(!"Got resize!");
-        // FIXME: Send this event to the renderer thread somehow!
-        // glViewport(0, 0, event.size.width, event.size.height);
-        // scene->setupProjection(event.size.width, event.size.height);
+        scene->setPendingResize(event.size.width, event.size.height);
         break;
       case sf::Event::KeyPressed:
         handleKey(*scene, event.key, shouldClose);
@@ -175,5 +172,6 @@ int main(int, const char**) {
   }
 
   rendererThread.join();
+  Platform::shutDown();
   return 0;
 }

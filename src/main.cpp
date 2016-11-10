@@ -10,6 +10,7 @@
 #include "base/DebuggingUtils.h"
 #include "base/InputUtils.h"
 #include "base/Logging.h"
+#include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
 
@@ -20,6 +21,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <condition_variable>
 
 void handleKey(Scene& a_scene,
                sf::Event::KeyEvent& a_event,
@@ -60,7 +62,9 @@ void handleKey(Scene& a_scene,
 
 // The renderer loop, executed in a second thread.
 void renderer(std::shared_ptr<sf::Window> window,
-              std::shared_ptr<Scene>* out_scene) {
+              std::condition_variable* condvar,
+              std::shared_ptr<Scene>* out_scene,
+              Node** out_plane) {
   window->setActive(true);
 
   // Basic debugging setup.
@@ -80,10 +84,12 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
 
-    // auto firstCube = Node::fromFile("res/models/cube.obj");
-    // firstCube->translateX(-0.2);
-    // firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
-    // scene->addObject(std::move(firstCube));
+    auto firstCube = Node::fromFile("res/models/cube.obj");
+    firstCube->translateX(-0.2);
+    firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
+    // Yup, for now our plane is going to be a cube, awesome, isn't it?
+    *out_plane = firstCube.get();
+    scene->addObject(std::move(firstCube));
 
     // auto secondCube = Mesh::fromFile("res/models/cube.obj");
     // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
@@ -96,6 +102,9 @@ void renderer(std::shared_ptr<sf::Window> window,
     // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
     // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }
+
+  // Scene is ready, ready to handle events!
+  condvar->notify_all();
 
   const size_t HALF_A_FRAME_MS = 62;
   while (true) {
@@ -117,6 +126,8 @@ int main(int, char**) {
   const size_t INITIAL_HEIGHT = 2000;
   const char* TITLE = "OpenGL";  // FIXME: Think of a good title
 
+  Platform::init();
+
   // Request OpenGL 3.1
   sf::ContextSettings settings;
   settings.majorVersion = 3;
@@ -130,9 +141,21 @@ int main(int, char**) {
   window->setVerticalSyncEnabled(true);
 
   std::shared_ptr<Scene> scene(nullptr);
-  window->setActive(false);
+  Node* plane;
 
-  std::thread rendererThread(renderer, window, &scene);
+  // Start the renderer and wait for the scene to be ready.
+  std::unique_ptr<std::thread> rendererThread;
+  {
+    window->setActive(false);
+    std::condition_variable condvar;
+    std::mutex condvar_mutex;
+    std::unique_lock<std::mutex> lock(condvar_mutex);
+    rendererThread = std::make_unique<std::thread>(renderer, window, &condvar,
+                                                   &scene, &plane);
+    assert(rendererThread);
+    condvar.wait(lock);
+    assert(scene);
+  }
 
   bool shouldClose = false;
   sf::Event event;
@@ -154,10 +177,7 @@ int main(int, char**) {
         shouldClose = true;
         break;
       case sf::Event::Resized:
-        assert(!"Got resize!");
-        // FIXME: Send this event to the renderer somehow!
-        // glViewport(0, 0, event.size.width, event.size.height);
-        // scene->setupProjection(event.size.width, event.size.height);
+        scene->setPendingResize(event.size.width, event.size.height);
         break;
       case sf::Event::KeyPressed:
         handleKey(*scene, event.key, shouldClose);
@@ -176,6 +196,8 @@ int main(int, char**) {
     scene->stopPainting();
   }
 
-  rendererThread.join();
+  rendererThread->join();
+
+  Platform::shutDown();
   return 0;
 }

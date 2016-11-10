@@ -100,10 +100,22 @@ void Scene::toggleWireframeMode() {
   m_wireframeMode = !m_wireframeMode;
 }
 
+void Scene::setPendingResize(uint32_t width, uint32_t height) {
+  m_pendingResize.set(width, height);
+}
+
 void Scene::draw() {
   LOG("DisplayScene");
   AutoGLErrorChecker checker;
   assertLocked();
+
+  if (m_pendingResize) {
+    auto& resize = *m_pendingResize;
+    glViewport(0, 0, resize.x, resize.y);
+    setupProjection(resize.x, resize.y);
+    m_pendingResize.clear();
+  }
+  assert(!m_pendingResize);
 
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

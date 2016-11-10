@@ -54,13 +54,13 @@ foreach(generated_file ${GENERATED_FILES})
 
   # In debug, just symlink the shit out of it, so developing live is easier.
   # In release, just copy them.
-  IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}"
                        COMMAND
                           "mkdir" "-p" "${dir}" "&&"
                           "ln" "-s" "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}"
                                     "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}")
-  ELSE(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  else()
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}"
                        COMMAND
                           "mkdir" "-p" "${dir}" "&&"
@@ -68,7 +68,7 @@ foreach(generated_file ${GENERATED_FILES})
                                "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}"
                                "${CMAKE_CURRENT_BINARY_DIR}/${generated_file}"
                        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${generated_file}")
-  ENDIF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  endif()
 endforeach(generated_file)
 
 add_custom_target(Generated DEPENDS ${GENERATED_FILES})
@@ -85,6 +85,7 @@ add_library(base OBJECT
   src/base/Terrain.cpp
   src/base/DebuggingUtils.cpp
   src/base/InputUtils.cpp
+  src/base/Platform.cpp
 )
 
 add_library(geometry OBJECT
@@ -115,6 +116,18 @@ foreach(executable ${EXECUTABLES})
   endif()
 endforeach()
 
+if (WIN32)
+  add_definitions(-DOS_WIN)
+elseif(APPLE)
+  add_definitions(-DOS_MAC)
+else()
+  # FIXME: Detect if SFML will use EGL or not to avoid a dumb call to
+  # XInitThreads.
+  foreach(executable ${EXECUTABLES})
+    target_link_libraries(${executable} -lX11)
+  endforeach()
+  add_definitions(-DOS_LINUX)
+endif()
 
 include(ProcessorCount)
 ProcessorCount(N)
