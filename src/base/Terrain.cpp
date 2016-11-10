@@ -89,7 +89,8 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
   auto terrain = std::unique_ptr<Terrain>(
       new Terrain(std::move(vertices), std::move(indices), None));
 
-  terrain->scale(10.0);
+  // TODO: Add collision detection boxes, shouldn't be hard.
+  terrain->scale(TERRAIN_DIMENSIONS);
 
-  return std::move(terrain);
+  return terrain;
 }
