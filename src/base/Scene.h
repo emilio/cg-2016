@@ -34,7 +34,6 @@ class SceneUniforms {
   void findInProgram(GLuint a_programId);
 };
 
-
 class Scene {
   friend class AutoSceneLocker;
 

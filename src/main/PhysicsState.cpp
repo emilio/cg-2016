@@ -15,13 +15,12 @@ void PhysicsState::tick(Node& plane, Scene& scene) {
 
   // Compute the plane position in world space, that's where we're looking.
   glm::vec3 planePosition =
-    glm::vec3(plane.transform() * glm::vec4(0, 0, 0, 1.0));
+      glm::vec3(plane.transform() * glm::vec4(0, 0, 0, 1.0));
 
   scene.m_cameraPosition = planePosition - 5.0f * m_planeDirection;
 
   // TODO: Compute the `up` axis correctly.
   scene.recomputeView(planePosition, Y_AXIS);
-
 
   m_lastPhysics = now;
 }

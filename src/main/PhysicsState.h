@@ -21,6 +21,5 @@ struct PhysicsState {
     , m_planeSpeed(5.0f)
     , m_planeDirection(0.0, 0.0, -1.0) {}
 
-
   void tick(Node& plane, Scene&);
 };

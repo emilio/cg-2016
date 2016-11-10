@@ -161,11 +161,9 @@ int main(int, char**) {
 
   {
     AutoSceneLocker lock(*scene);
-    scene->setPhysicsCallback([&] (Scene& scene) {
-        physicsState.tick(*plane, scene);
-    });
+    scene->setPhysicsCallback(
+        [&](Scene& scene) { physicsState.tick(*plane, scene); });
   }
-
 
   bool shouldClose = false;
   sf::Event event;
