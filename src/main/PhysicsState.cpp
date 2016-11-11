@@ -1,13 +1,18 @@
 #include "main/PhysicsState.h"
 
 #include "geometry/Node.h"
+#include "base/Logging.h"
 #include "base/Scene.h"
 
-// Computes the plane position in world space.
-glm::vec3 PhysicsState::planePosition() const {
-  return glm::vec3(m_plane.transform() * glm::vec4(0, 0, 0, 1.0));
+#include <cmath>
 
-}
+PhysicsState::PhysicsState(Node& a_node)
+  : m_lastPhysics(Clock::now())
+  , m_plane(a_node)
+  , m_planeSpeed(2.0f)
+  , m_direction(0.0, 0.0, -1.0)
+  , m_planeInitialTransform(m_plane.transform())
+  , m_planePosition(m_planeInitialTransform * glm::vec4(0, 0, 0, 1.0)) {}
 
 void PhysicsState::tick(Scene& scene) {
   TimePoint now = Clock::now();
@@ -15,41 +20,37 @@ void PhysicsState::tick(Scene& scene) {
 
   float distance = m_planeSpeed * diff.count() / 1000.0f;
 
-  // TODO: collision detection, changing direction...
-  // all the good stuff.
-  m_plane.translate(distance, m_planeDirection);
+  m_planePosition = m_planePosition + distance * m_direction;
 
-  glm::vec3 planePosition = this->planePosition();
+  auto planeTransform = glm::translate(glm::mat4(), m_planePosition);
+  // {
+  //   // TODO: We could cache this if the direction hasn't changed.
+  //   auto angleXY = std::atan2(m_direction.y, m_direction.x);
+  //   planeTransform = glm::rotate(planeTransform, angleXY, Z_AXIS);
 
-  scene.m_cameraPosition = planePosition - 5.0f * m_planeDirection;
+  //   auto angleZY = std::atan2(m_direction.y, m_direction.z);
+  //   planeTransform = glm::rotate(planeTransform, angleZY, X_AXIS);
 
-  // TODO: Compute the `up` axis correctly.
-  scene.recomputeView(planePosition, m_planeNormal);
+  //   auto angleZX = std::atan2(m_direction.z, m_direction.x);
+  //   planeTransform = glm::rotate(planeTransform, angleZX, Y_AXIS);
+  // }
+
+  m_plane.setTransform(planeTransform);
+
+  scene.m_cameraPosition = m_planePosition - 4.0f * m_direction;
+  scene.recomputeView(m_planePosition, Y_AXIS);
 
   m_lastPhysics = now;
 }
 
-void PhysicsState::rotate(Direction dir, float amount) {
-  bool isTopDown = false;
+void PhysicsState::rotate(Scene&, Direction dir, float amount) {
   float multiplier = 1.0;
-
-  if (dir == Direction::Top || dir == Direction::Down)
-    isTopDown = true;
+  bool isTopDown = dir == Direction::Top || dir == Direction::Down;
 
   if (dir == Direction::Down || dir == Direction::Right)
     multiplier = -1.0;
 
-  // FIXME: We probably have to account for planeNormal here too if we want to
-  // support inclination and stuff, sigh. I think the cross product of it and
-  // the axis will do.
-  //
-  // Also, this is wrong by itself.
-  const auto& axis = isTopDown ? X_AXIS : Y_AXIS;
-
-  m_plane.rotate(amount * multiplier, axis);
-
-  glm::mat4 rot = glm::rotate(glm::mat4(), amount * multiplier, axis);
-  m_planeDirection = rot * glm::vec4(m_planeDirection, 0.0);
-  if (isTopDown)
-    m_planeNormal = rot * glm::vec4(m_planeNormal, 0.0);
+  glm::vec3 axis = isTopDown ?  X_AXIS : Y_AXIS;
+  auto rot = glm::rotate(glm::mat4(), amount * multiplier, axis);
+  m_direction = rot * glm::vec4(m_direction, 0.0);
 }

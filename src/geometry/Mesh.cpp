@@ -71,7 +71,7 @@ void Mesh::draw(DrawContext& context) const {
   AutoGLErrorChecker checker;
   assert(glIsVertexArray(m_vao));
 
-  LOG("Draw: %d, %zu", m_vao, m_indices.size());
+  // LOG("Draw: %d, %zu", m_vao, m_indices.size());
 
   // FIXME(emilio): This duplicates code with what node does, we should probably
   // add a beginDraw/endDraw functions.

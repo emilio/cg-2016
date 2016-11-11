@@ -5,7 +5,7 @@ layout (location = 0) in vec3 vPosition;
 out vec4 oFragColor;
 out vec3 fPosition;
 
-const float FAR = 100.0;
+const float FAR = 1.0;
 
 void main() {
   // Proof of concept, the dimensions would be the map ones.

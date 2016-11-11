@@ -58,6 +58,7 @@ private:
   SceneUniforms m_uniforms;
   glm::mat4 m_projection;
   glm::mat4 m_view;
+  glm::mat4 m_skyboxView;
   Optional<glm::u32vec2> m_pendingResize;
   Optional<PhysicsCallback> m_physicsCallback;
   bool m_shouldPaint;

@@ -43,6 +43,10 @@ public:
     return m_transform;
   }
 
+  void setTransform(const glm::mat4& a_transform) {
+    m_transform = a_transform;
+  }
+
   const glm::vec3& color() const {
     return m_color;
   }

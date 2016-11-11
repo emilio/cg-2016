@@ -78,6 +78,10 @@ void Scene::recomputeView() {
 void Scene::recomputeView(const glm::vec3& lookingAt, const glm::vec3& up) {
   assertLocked();
   m_view = glm::lookAt(m_cameraPosition, lookingAt, up);
+  // NB: The view projection matrix from the skybox doesn't contain the camera
+  // translation.
+  m_skyboxView =
+      glm::lookAt(glm::vec3(0, 0, 0), lookingAt - m_cameraPosition, up);
 }
 
 void Scene::setupProjection(float width, float height) {
@@ -111,6 +115,8 @@ void Scene::setPhysicsCallback(PhysicsCallback callback) {
   m_physicsCallback.set(callback);
 }
 
+#undef LOG
+#define LOG(...)
 void Scene::draw() {
   LOG("DisplayScene");
   AutoGLErrorChecker checker;
@@ -133,15 +139,19 @@ void Scene::draw() {
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glm::mat4 viewProjection = m_projection * m_view;
 
   // First draw the Skybox.
-  //
-  // TODO: We can make it faster if we draw the skybox last using the depth
-  // buffer. Not a big deal for now I guess.
-  m_skybox->draw(viewProjection);
+  {
+    glm::mat4 viewProjection = m_projection * m_skyboxView;
+    //
+    // TODO: We can make it faster if we draw the skybox last using the depth
+    // buffer. Not a big deal for now I guess.
+    m_skybox->draw(viewProjection);
+  }
 
   m_mainProgram->use();
+
+  glm::mat4 viewProjection = m_projection * m_view;
 
   glUniform1f(m_uniforms.uFrame,
               glm::radians(static_cast<float>(m_frameCount++)));
@@ -149,8 +159,8 @@ void Scene::draw() {
                      glm::value_ptr(viewProjection));
 
   // TODO: Implement some controls for light position, but meanwhile... why not?
-  // glm::vec3 lightPosition = m_cameraPosition;
-  glm::vec3 lightPosition = glm::vec3(0., 0., 3.);
+  // glm::vec3 lightPosition = glm::vec3(0., 0., 3.);
+  glm::vec3 lightPosition = m_cameraPosition;
   glUniform3fv(m_uniforms.uLightSourcePosition, 1,
                glm::value_ptr(lightPosition));
 
@@ -176,7 +186,7 @@ void Scene::draw() {
 
   DrawContext context(*m_mainProgram, m_uniforms.uModel, m_uniforms.uColor,
                       glm::mat4());
-  size_t i = 0;
+  // size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
 

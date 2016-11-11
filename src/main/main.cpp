@@ -25,7 +25,7 @@
 #include <SFML/Graphics.hpp>
 #include <condition_variable>
 
-void handleKey(Scene&,
+void handleKey(Scene& scene,
                sf::Event::KeyEvent& a_event,
                PhysicsState& a_state,
                bool& a_shouldClose) {
@@ -43,16 +43,16 @@ void handleKey(Scene&,
       a_state.speedUp(-SPEED_DELTA);
       break;
     case sf::Keyboard::Up:
-      a_state.rotate(PhysicsState::Top, PLANE_ROTATION);
+      a_state.rotate(scene, PhysicsState::Top, PLANE_ROTATION);
       break;
     case sf::Keyboard::Down:
-      a_state.rotate(PhysicsState::Down, PLANE_ROTATION);
+      a_state.rotate(scene, PhysicsState::Down, PLANE_ROTATION);
       break;
     case sf::Keyboard::Right:
-      a_state.rotate(PhysicsState::Right, PLANE_ROTATION);
+      a_state.rotate(scene, PhysicsState::Right, PLANE_ROTATION);
       break;
     case sf::Keyboard::Left:
-      a_state.rotate(PhysicsState::Left, PLANE_ROTATION);
+      a_state.rotate(scene, PhysicsState::Left, PLANE_ROTATION);
       break;
     default:
       LOG("Unhandled special key %d", a_event.code);
@@ -86,6 +86,7 @@ void renderer(std::shared_ptr<sf::Window> window,
 
     auto firstCube = Node::fromFile("res/models/cube.obj");
     firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
+
     // Yup, for now our plane is going to be a cube, awesome, isn't it?
     *out_plane = firstCube.get();
     scene->addObject(std::move(firstCube));
