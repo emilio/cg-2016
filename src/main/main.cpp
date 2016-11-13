@@ -13,6 +13,7 @@
 #include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
+#include "base/Plane.h"
 #include "main/PhysicsState.h"
 
 #include "geometry/Mesh.h"
@@ -29,7 +30,7 @@ void handleKey(Scene& scene,
                sf::Event::KeyEvent& a_event,
                PhysicsState& a_state,
                bool& a_shouldClose) {
-  constexpr const float PLANE_ROTATION = glm::radians(3.f);
+  constexpr const float PLANE_ROTATION = glm::radians(1.0f);
   constexpr const float SPEED_DELTA = 0.2f;
 
   switch (a_event.code) {
@@ -64,7 +65,7 @@ void handleKey(Scene& scene,
 void renderer(std::shared_ptr<sf::Window> window,
               std::condition_variable* condvar,
               std::shared_ptr<Scene>* out_scene,
-              Node** out_plane) {
+              Plane** out_plane) {
   window->setActive(true);
 
   // Basic debugging setup.
@@ -84,12 +85,12 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
 
-    auto firstCube = Node::fromFile("res/models/cube.obj");
-    firstCube->setColor(glm::vec3(0.0, 1.0, 0.0));
+    auto plane = Plane::create();
+    plane->setColor(glm::vec3(0.0, 1.0, 0.0));
 
     // Yup, for now our plane is going to be a cube, awesome, isn't it?
-    *out_plane = firstCube.get();
-    scene->addObject(std::move(firstCube));
+    *out_plane = plane.get();
+    scene->addObject(std::move(plane));
 
     // auto secondCube = Mesh::fromFile("res/models/cube.obj");
     // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
@@ -142,7 +143,7 @@ int main(int, char**) {
 
   std::shared_ptr<Scene> scene(nullptr);
 
-  Node* plane;
+  Plane* plane;
 
   // Start the renderer and wait for the scene to be ready.
   std::unique_ptr<std::thread> rendererThread;

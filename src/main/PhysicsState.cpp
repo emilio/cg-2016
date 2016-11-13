@@ -3,54 +3,43 @@
 #include "geometry/Node.h"
 #include "base/Logging.h"
 #include "base/Scene.h"
+#include "base/Plane.h"
 
 #include <cmath>
 
-PhysicsState::PhysicsState(Node& a_node)
-  : m_lastPhysics(Clock::now())
-  , m_plane(a_node)
-  , m_planeSpeed(2.0f)
-  , m_direction(0.0, 0.0, -1.0)
-  , m_planeInitialTransform(m_plane.transform())
-  , m_planePosition(m_planeInitialTransform * glm::vec4(0, 0, 0, 1.0)) {}
+PhysicsState::PhysicsState(Plane& a_node)
+  : m_lastPhysics(Clock::now()), m_plane(a_node) {}
 
 void PhysicsState::tick(Scene& scene) {
   TimePoint now = Clock::now();
   Milliseconds diff = now - m_lastPhysics;
 
-  float distance = m_planeSpeed * diff.count() / 1000.0f;
+  m_plane.advance(diff);
 
-  m_planePosition = m_planePosition + distance * m_direction;
+  // Now we have to build a rotation matrix so it points to `m_direction`, and a
+  // translation one so the object is in m_planePosition.
+  m_plane.computeTransform();
 
-  auto planeTransform = glm::translate(glm::mat4(), m_planePosition);
-  // {
-  //   // TODO: We could cache this if the direction hasn't changed.
-  //   auto angleXY = std::atan2(m_direction.y, m_direction.x);
-  //   planeTransform = glm::rotate(planeTransform, angleXY, Z_AXIS);
+  scene.m_cameraPosition =
+      m_plane.position() - CAM_PLANE_DISTANCE * m_plane.direction();
 
-  //   auto angleZY = std::atan2(m_direction.y, m_direction.z);
-  //   planeTransform = glm::rotate(planeTransform, angleZY, X_AXIS);
-
-  //   auto angleZX = std::atan2(m_direction.z, m_direction.x);
-  //   planeTransform = glm::rotate(planeTransform, angleZX, Y_AXIS);
-  // }
-
-  m_plane.setTransform(planeTransform);
-
-  scene.m_cameraPosition = m_planePosition - 4.0f * m_direction;
-  scene.recomputeView(m_planePosition, Y_AXIS);
+  scene.recomputeView(m_plane.position(), m_plane.normal());
 
   m_lastPhysics = now;
 }
 
+void PhysicsState::speedUp(float amount) {
+  m_plane.speedUp(amount);
+}
+
 void PhysicsState::rotate(Scene&, Direction dir, float amount) {
-  float multiplier = 1.0;
   bool isTopDown = dir == Direction::Top || dir == Direction::Down;
 
-  if (dir == Direction::Down || dir == Direction::Right)
-    multiplier = -1.0;
+  if (dir == Direction::Top || dir == Direction::Left)
+    amount *= -1.0;
 
-  glm::vec3 axis = isTopDown ?  X_AXIS : Y_AXIS;
-  auto rot = glm::rotate(glm::mat4(), amount * multiplier, axis);
-  m_direction = rot * glm::vec4(m_direction, 0.0);
+  if (isTopDown)
+    m_plane.pitch(amount);
+  else
+    m_plane.roll(amount);
 }

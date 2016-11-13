@@ -4,8 +4,10 @@
 
 #include "glm/glm.hpp"
 
-class Node;
+class Plane;
 class Scene;
+
+const float CAM_PLANE_DISTANCE = 5.0f;
 
 class PhysicsState {
   using Clock = std::chrono::system_clock;
@@ -13,13 +15,7 @@ class PhysicsState {
   using Milliseconds = std::chrono::duration<float, std::ratio<1, 1000>>;
 
   TimePoint m_lastPhysics;
-  Node& m_plane;
-
-  // We track the plane position and such manually.
-  float m_planeSpeed;
-  glm::vec3 m_direction;
-  glm::mat4 m_planeInitialTransform;
-  glm::vec3 m_planePosition;
+  Plane& m_plane;
 
 public:
   enum Direction {
@@ -29,13 +25,11 @@ public:
     Left,
   };
 
-  PhysicsState(Node& a_node);
+  PhysicsState(Plane& a_node);
 
   void tick(Scene&);
 
-  void speedUp(float amount) {
-    m_planeSpeed += amount;
-  }
+  void speedUp(float amount);
 
   void rotate(Scene&, Direction, float amount);
 };

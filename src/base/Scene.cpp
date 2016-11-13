@@ -139,7 +139,6 @@ void Scene::draw() {
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
   // First draw the Skybox.
   {
     glm::mat4 viewProjection = m_projection * m_skyboxView;
@@ -184,7 +183,10 @@ void Scene::draw() {
 
   glPolygonMode(GL_FRONT_AND_BACK, m_wireframeMode ? GL_LINE : GL_FILL);
 
-  DrawContext context(*m_mainProgram, m_uniforms.uModel, m_uniforms.uColor,
+  DrawContext context(*m_mainProgram,
+                      DrawContext::Uniforms{
+                          m_uniforms.uModel, m_uniforms.uColor,
+                      },
                       glm::mat4());
   // size_t i = 0;
   for (auto& object : m_objects) {

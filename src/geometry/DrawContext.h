@@ -20,29 +20,35 @@ class DrawContext final {
 
   std::stack<NodeInfo> m_stack;
 
-  GLuint m_transformUniform;
-  GLuint m_colorUniform;
-
 public:
+  struct Uniforms {
+    GLint m_transform;
+    GLint m_color;
+  } m_uniforms;
+
   explicit DrawContext(Program& a_program,
-                       GLuint a_transformUniform,
-                       GLuint a_colorUniform,
+                       const Uniforms& a_uniforms,
                        glm::mat4 a_initialTransform)
-    : m_program(a_program)
-    , m_transformUniform(a_transformUniform)
-    , m_colorUniform(a_colorUniform) {
-    m_stack.push(NodeInfo{glm::vec3(0.0, 0.0, 0.0), a_initialTransform});
+    : m_program(a_program), m_uniforms(a_uniforms) {
+    m_stack.push(NodeInfo{glm::vec3(0.5, 0.5, 0.5), a_initialTransform});
+  }
+
+  const Uniforms& uniforms() const {
+    return m_uniforms;
   }
 
   void push(const Node& a_node) {
     assert(!m_stack.empty());
+    glm::vec3 color = m_stack.top().m_color;
+    if (const glm::vec3* nodeColor = a_node.color())
+      color = *nodeColor;
 
-    m_stack.push(NodeInfo{a_node.color(),
-                          m_stack.top().m_transform * a_node.transform()});
+    m_stack.push(
+        NodeInfo{color, m_stack.top().m_transform * a_node.transform()});
 
-    glUniformMatrix4fv(m_transformUniform, 1, GL_FALSE,
+    glUniformMatrix4fv(uniforms().m_transform, 1, GL_FALSE,
                        glm::value_ptr(m_stack.top().m_transform));
-    glUniform3fv(m_colorUniform, 1, glm::value_ptr(m_stack.top().m_color));
+    glUniform3fv(uniforms().m_color, 1, glm::value_ptr(m_stack.top().m_color));
   }
 
   void pop() {

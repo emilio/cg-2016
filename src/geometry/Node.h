@@ -6,6 +6,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "tools/Optional.h"
+
 class DrawContext;
 
 /**
@@ -20,12 +22,12 @@ protected:
   // The local transform of this object.
   glm::mat4 m_transform;
 
-  glm::vec3 m_color;
+  Optional<glm::vec3> m_color;
 
 public:
-  Node(glm::vec3 a_color) : m_color(a_color) {}
+  Node(Optional<glm::vec3> a_color) : m_color(std::move(a_color)) {}
 
-  Node() : Node(glm::vec3(0.5, 0.5, 0.5)) {}
+  Node() : Node(None) {}
 
   virtual ~Node() {}
 
@@ -36,7 +38,7 @@ public:
   }
 
   void setColor(const glm::vec3& a_color) {
-    m_color = a_color;
+    m_color.set(a_color);
   }
 
   const glm::mat4& transform() const {
@@ -47,8 +49,10 @@ public:
     m_transform = a_transform;
   }
 
-  const glm::vec3& color() const {
-    return m_color;
+  const glm::vec3* color() const {
+    if (m_color)
+      return &*m_color;
+    return nullptr;
   }
 
   void translate(const glm::vec3& a_how) {
