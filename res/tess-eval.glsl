@@ -15,7 +15,7 @@ void main() {
   vec3 A = vec3(gl_in[1].gl_Position - gl_in[0].gl_Position);
   vec3 B = vec3(gl_in[2].gl_Position - gl_in[0].gl_Position);
   vec3 normal = normalize(cross(A, B));
-  fNormal = normalize(vec3(uModel * vec4(normal, 1.0)));
+  fNormal = normalize(vec3(uModel * vec4(normal, 0.0)));
   fPosition = vec3(uModel * position);
   gl_Position = uViewProjection * uModel * position;
 #else

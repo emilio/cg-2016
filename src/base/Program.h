@@ -59,7 +59,7 @@ class Shader {
   ShaderKind m_kind;
 
 public:
-  GLuint id() {
+  GLuint id() const {
     return m_id;
   }
 
@@ -109,7 +109,7 @@ public:
     glUseProgram(m_id);
   }
 
-  GLuint id() {
+  GLuint id() const {
     return m_id;
   }
 

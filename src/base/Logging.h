@@ -18,3 +18,5 @@
       var_[3][0], var_[3][1], var_[3][2], var_[3][3]);
 #define LOG_VEC3(name_, var_)                                                  \
   LOG(name_ ": (%f, %f, %f)", var_[0], var_[1], var_[2])
+#define LOG_VEC4(name_, var_)                                                  \
+  LOG(name_ ": (%f, %f, %f, %f)", var_[0], var_[1], var_[2], var_[3])

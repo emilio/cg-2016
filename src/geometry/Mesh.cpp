@@ -3,9 +3,11 @@
 
 Mesh::Mesh(std::vector<Vertex>&& a_vertices,
            std::vector<GLuint>&& a_indices,
+           Material a_material,
            Optional<GLuint>&& a_texture)
   : m_vertices(std::move(a_vertices))
   , m_indices(std::move(a_indices))
+  , m_material(a_material)
   , m_texture(std::move(a_texture))
   , m_vao(UNINITIALIZED)
   , m_vbo(UNINITIALIZED)
@@ -82,6 +84,20 @@ void Mesh::draw(DrawContext& context) const {
   // Though that means that probably the class hierarchy needs to be redesigned?
   // Who knows :-)
   context.push(*this);
+
+  LOG("Mat shin: %f", m_material.m_shininess);
+  LOG("Mat shin %%: %f", m_material.m_shininess_percent);
+  LOG_VEC4("Mat diff", m_material.m_diffuse);
+  LOG_VEC4("Mat spec", m_material.m_specular);
+  LOG_VEC4("Mat emmi", m_material.m_emissive);
+  LOG_VEC4("Mat amb", m_material.m_ambient);
+
+  glUniform4fv(context.uniforms().m_material.m_diffuse, 1, glm::value_ptr(m_material.m_diffuse));
+  glUniform4fv(context.uniforms().m_material.m_ambient, 1, glm::value_ptr(m_material.m_ambient));
+  glUniform4fv(context.uniforms().m_material.m_emissive, 1, glm::value_ptr(m_material.m_emissive));
+  glUniform4fv(context.uniforms().m_material.m_specular, 1, glm::value_ptr(m_material.m_specular));
+  glUniform1f(context.uniforms().m_material.m_shininess, m_material.m_shininess);
+  glUniform1f(context.uniforms().m_material.m_shininess_percent, m_material.m_shininess_percent);
 
   glBindVertexArray(m_vao);
   if (context.program().tessControlShader()) {

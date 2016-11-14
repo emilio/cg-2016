@@ -11,8 +11,9 @@ static inline float mapToHeight(uint8_t byte) {
 
 Terrain::Terrain(std::vector<Vertex>&& vertices,
                  std::vector<GLuint>&& indices,
+                 Material material,
                  Optional<GLuint> texture)
-  : Mesh(std::move(vertices), std::move(indices), std::move(texture)) {}
+  : Mesh(std::move(vertices), std::move(indices), material, std::move(texture)) {}
 
 /* static */ std::unique_ptr<Terrain> Terrain::create() {
   sf::Image heightMap;
@@ -65,12 +66,12 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
     for (uint32_t y = 0; y < size.y - 1; ++y) {
       uint32_t i = (y * size.x) + x;
       indices.push_back(i);
-      indices.push_back(i + size.x + 1);
       indices.push_back(i + 1);
+      indices.push_back(i + size.x + 1);
 
       indices.push_back(i);
-      indices.push_back(i + size.x);
       indices.push_back(i + size.x + 1);
+      indices.push_back(i + size.x);
     }
   }
 
@@ -85,9 +86,14 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
                        vertices[i_3].m_position - vertices[i_1].m_position));
   }
 
-  // FIXME: Texture!
+  // FIXME: Proper material!
+  Material mat;
+  mat.m_diffuse = glm::vec4(0.5, 0.5, 4.0, 1.0);
+  mat.m_diffuse = glm::vec4(140.0, 96.0, 43.0, 255.0f) / glm::vec4(255.0f);
+  mat.m_ambient = glm::vec4(0.5, 0.5, 0.5, 1.0);
+
   auto terrain = std::unique_ptr<Terrain>(
-      new Terrain(std::move(vertices), std::move(indices), None));
+      new Terrain(std::move(vertices), std::move(indices), mat, None));
 
   // TODO: Add collision detection boxes, shouldn't be hard.
   terrain->scale(TERRAIN_DIMENSIONS);

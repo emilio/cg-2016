@@ -15,7 +15,12 @@ void SceneUniforms::findInProgram(GLuint a_programId) {
 
   FIND(uViewProjection)
   FIND(uModel)
-  FIND(uColor)
+  FIND(uMaterial.m_diffuse)
+  FIND(uMaterial.m_specular)
+  FIND(uMaterial.m_ambient)
+  FIND(uMaterial.m_emissive)
+  FIND(uMaterial.m_shininess)
+  FIND(uMaterial.m_shininess_percent)
   FIND(uFrame)
   FIND(uAmbientLightColor)
   FIND(uAmbientLightStrength)
@@ -90,7 +95,7 @@ void Scene::recomputeView(const glm::vec3& lookingAt, const glm::vec3& up) {
 
 void Scene::setupProjection(float width, float height) {
   const float NEAR = 0.1f;
-  const float FAR = 1000.0f;
+  const float FAR = 100.0f;
   const float FIELD_OF_VIEW = glm::radians(44.0f);
 
   const float aspectRatio = width / height;
@@ -164,7 +169,7 @@ void Scene::draw() {
   glUniform3fv(m_uniforms.uLightSourcePosition, 1,
                glm::value_ptr(m_lightSourcePosition));
 
-  glm::vec3 lightColor = glm::vec3(1.0, 0.7, 0.7);
+  glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
   glUniform3fv(m_uniforms.uLightSourceColor, 1, glm::value_ptr(lightColor));
 
   glm::vec3 ambientColor = glm::vec3(1.0, 1.0, 1.0);
@@ -186,7 +191,7 @@ void Scene::draw() {
 
   DrawContext context(*m_mainProgram,
                       DrawContext::Uniforms{
-                          m_uniforms.uModel, m_uniforms.uColor,
+                          m_uniforms.uModel, m_uniforms.uMaterial,
                       },
                       glm::mat4());
   // size_t i = 0;

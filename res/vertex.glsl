@@ -25,7 +25,7 @@ void main () {
   // http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
 #if !defined(HAS_GEOMETRY_SHADER) && !defined(HAS_TESS_CONTROL_SHADER)
   fPosition = vec3(uModel * vec4(vPosition, 1.0));
-  fNormal = normalize(vec3(uModel * vec4(vNormal, 1.0)));
+  fNormal = normalize(vec3(uModel * vec4(vNormal, 0.0)));
   gl_Position = uViewProjection * uModel * vec4(vPosition, 1.0);
 #else
   // The geometry or tesellation shader takes care of the normals, and transformations.

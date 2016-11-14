@@ -76,6 +76,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   // glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
+  // shaders.m_geometry = "res/geometry.glsl";
   auto scene = std::make_shared<Scene>(std::move(shaders));
   *out_scene = scene;
 
@@ -86,7 +87,7 @@ void renderer(std::shared_ptr<sf::Window> window,
     scene->setupProjection(size.x, size.y);
 
     auto plane = Plane::create();
-    plane->setColor(glm::vec3(0.0, 1.0, 0.0));
+    // plane->setColor(glm::vec3(0.0, 1.0, 0.0));
 
     // Yup, for now our plane is going to be a cube, awesome, isn't it?
     *out_plane = plane.get();
@@ -164,23 +165,12 @@ int main(int, char**) {
   {
     AutoSceneLocker lock(*scene);
     scene->setPhysicsCallback([&](Scene& scene) { physicsState.tick(scene); });
-    scene->setLightSourcePosition(glm::vec3(10.0f, 100.0f, 10.0f));
+    scene->setLightSourcePosition(glm::vec3(10.0f, 10.0f, 10.0f));
   }
 
   bool shouldClose = false;
   sf::Event event;
   while (!shouldClose && window->waitEvent(event)) {
-    // Renderer hasn't still setup the scene.
-    //
-    // FIXME: This is (technically) potentially thread-unsafe, since pointer
-    // stores are not guaranteed to be atomic (even though shared_ptr itself
-    // is).
-    //
-    // But in practice this holds. If it doesn't I'd just use a lock or a
-    // condvar, but it seems overkill for this specific case.
-    if (!scene)
-      continue;
-
     AutoSceneLocker lock(*scene);
     switch (event.type) {
       case sf::Event::Closed:

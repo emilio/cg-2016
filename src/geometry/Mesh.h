@@ -8,6 +8,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "geometry/Node.h"
 #include "geometry/Vertex.h"
+#include "geometry/Material.h"
 
 #include "tools/Optional.h"
 
@@ -19,6 +20,8 @@
 class Mesh : public Node {
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
+
+  Material m_material;
 
   // The texture we're using.
   Optional<GLuint> m_texture;
@@ -40,6 +43,7 @@ public:
     m_vertices.swap(aOther.m_vertices);
     m_indices.swap(aOther.m_indices);
 
+    m_material = aOther.m_material;
     m_vao = aOther.m_vao;
     m_vbo = aOther.m_vbo;
     m_ebo = aOther.m_ebo;
@@ -54,6 +58,7 @@ public:
 
   Mesh(std::vector<Vertex>&& a_vertices,
        std::vector<GLuint>&& a_indices,
+       Material a_material,
        Optional<GLuint>&& a_texture);
 
   virtual void draw(DrawContext&) const override;

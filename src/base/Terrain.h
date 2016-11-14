@@ -8,6 +8,7 @@ const float TERRAIN_DIMENSIONS = 100.0f;
 class Terrain final : public Mesh {
   Terrain(std::vector<Vertex>&& vertices,
           std::vector<GLuint>&& indices,
+          Material material,
           Optional<GLuint> texture);
 
 public:

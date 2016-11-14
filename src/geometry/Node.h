@@ -22,12 +22,8 @@ protected:
   // The local transform of this object.
   glm::mat4 m_transform;
 
-  Optional<glm::vec3> m_color;
-
 public:
-  Node(Optional<glm::vec3> a_color) : m_color(std::move(a_color)) {}
-
-  Node() : Node(None) {}
+  Node() {}
 
   virtual ~Node() {}
 
@@ -37,22 +33,12 @@ public:
     m_children.push_back(std::move(a_child));
   }
 
-  void setColor(const glm::vec3& a_color) {
-    m_color.set(a_color);
-  }
-
   const glm::mat4& transform() const {
     return m_transform;
   }
 
   void setTransform(const glm::mat4& a_transform) {
     m_transform = a_transform;
-  }
-
-  const glm::vec3* color() const {
-    if (m_color)
-      return &*m_color;
-    return nullptr;
   }
 
   void translate(const glm::vec3& a_how) {

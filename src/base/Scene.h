@@ -7,6 +7,7 @@
 #include <string>
 #include <functional>
 
+#include "geometry/Material.h"
 #include "geometry/Node.h"
 #include "base/Program.h"
 
@@ -23,7 +24,7 @@ class SceneUniforms {
 
   GLint uViewProjection;
   GLint uModel;
-  GLint uColor;
+  MaterialUniforms uMaterial;
   GLint uFrame;
   GLint uAmbientLightColor;
   GLint uAmbientLightStrength;

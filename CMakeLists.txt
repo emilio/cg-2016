@@ -38,9 +38,11 @@ set(GENERATED_FILES
   res/skybox/faces
   res/models/Rmk3.obj
   res/models/suzanne.obj
+  res/models/suzanne.mtl
   res/models/QuestionBlock.obj
-  "res/models/Airbus A310.mtl"
-  "res/models/Airbus A310.obj"
+  res/models/QuestionBlock.mtl
+  "res/models/AirbusA310.mtl"
+  "res/models/AirbusA310.obj"
   res/models/cube.obj
   res/models/box.obj
   res/terrain/heightmap.png

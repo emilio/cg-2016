@@ -6,12 +6,17 @@ uniform mat4 uViewProjection;
 /** The model transform */
 uniform mat4 uModel;
 
-/**
- * The plain color of this model, used for lightning.
- *
- * FIXME: Use proper material properties, this sort of sucks.
- */
-uniform vec3 uColor;
+/** The model material */
+struct Material {
+  vec4 m_diffuse;
+  vec4 m_specular;
+  vec4 m_ambient;
+  vec4 m_emissive;
+  float m_shininess;
+  float m_shininess_percent;
+};
+
+uniform Material uMaterial;
 
 /**
  * The current frame we're in, currently just to do fancy stuff because I'm to

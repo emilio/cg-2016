@@ -89,9 +89,11 @@ void renderer(std::shared_ptr<sf::Window> window,
 
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
-    scene->setLightSourcePosition(glm::vec3(0.0f, 10.0f, 0.0f));
+    scene->setLightSourcePosition(glm::vec3(0.0f, 10.0f, 5.0f));
 
-    auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
+    // auto suzanne = Mesh::fromFile("res/models/AirbusA310.obj");
+    auto suzanne = Mesh::fromFile("res/models/QuestionBlock.obj");
+    // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
     suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
     scene->addObject(std::move(suzanne));
   }

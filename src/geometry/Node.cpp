@@ -5,6 +5,7 @@
 
 #include "base/Logging.h"
 #include "base/gl.h"
+#include "tools/ArrayView.h"
 
 #include "geometry/Node.h"
 #include "geometry/Mesh.h"
@@ -45,9 +46,36 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
   }
 
   // We only do diffuse textures for now.
-  const aiMaterial& material = *scene.mMaterials[mesh.mMaterialIndex];
-  uint32_t count = material.GetTextureCount(aiTextureType_DIFFUSE);
-  assert(!count && "Todo!");
+  const aiMaterial& ai_material = *scene.mMaterials[mesh.mMaterialIndex];
+  Material material;
+
+  aiColor4D color;
+  if (!ai_material.Get(AI_MATKEY_COLOR_DIFFUSE, color))
+    material.m_diffuse = glm::vec4(color.r, color.g, color.b, color.a);
+
+  if (!ai_material.Get(AI_MATKEY_COLOR_SPECULAR, color))
+    material.m_specular = glm::vec4(color.r, color.g, color.b, color.a);
+  else
+    material.m_specular = material.m_diffuse;
+
+  if (!ai_material.Get(AI_MATKEY_COLOR_AMBIENT, color))
+    material.m_ambient = glm::vec4(color.r, color.g, color.b, color.a);
+  else
+    material.m_ambient = material.m_diffuse;
+
+  if (!ai_material.Get(AI_MATKEY_COLOR_EMISSIVE, color))
+    material.m_emissive = glm::vec4(color.r, color.g, color.b, color.a);
+
+  float floatVal;
+  if (!ai_material.Get(AI_MATKEY_SHININESS, floatVal))
+    material.m_shininess = floatVal;
+
+  if (!ai_material.Get(AI_MATKEY_SHININESS_STRENGTH, floatVal))
+    material.m_shininess_percent = floatVal;
+
+  uint32_t count = ai_material.GetTextureCount(aiTextureType_DIFFUSE);
+  if (count)
+    LOG("Missing textures, TODO");
 
   // We assume these are triangulated.
   std::vector<GLuint> indices;
@@ -73,7 +101,7 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
     }
   }
 
-  return std::make_unique<Mesh>(std::move(vertices), std::move(indices), None);
+  return std::make_unique<Mesh>(std::move(vertices), std::move(indices), material, None);
 }
 
 /* static */ std::unique_ptr<Node> Node::fromFile(const char* a_modelPath) {
