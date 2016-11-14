@@ -85,13 +85,6 @@ void Mesh::draw(DrawContext& context) const {
   // Who knows :-)
   context.push(*this);
 
-  LOG("Mat shin: %f", m_material.m_shininess);
-  LOG("Mat shin %%: %f", m_material.m_shininess_percent);
-  LOG_VEC4("Mat diff", m_material.m_diffuse);
-  LOG_VEC4("Mat spec", m_material.m_specular);
-  LOG_VEC4("Mat emmi", m_material.m_emissive);
-  LOG_VEC4("Mat amb", m_material.m_ambient);
-
   glUniform4fv(context.uniforms().m_material.m_diffuse, 1, glm::value_ptr(m_material.m_diffuse));
   glUniform4fv(context.uniforms().m_material.m_ambient, 1, glm::value_ptr(m_material.m_ambient));
   glUniform4fv(context.uniforms().m_material.m_emissive, 1, glm::value_ptr(m_material.m_emissive));
