@@ -5,6 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 
 #include "base/gl.h"
 #include "base/DebuggingUtils.h"
@@ -24,7 +25,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <SFML/Graphics.hpp>
-#include <condition_variable>
 
 void handleKey(Scene& scene,
                sf::Event::KeyEvent& a_event,
@@ -164,6 +164,7 @@ int main(int, char**) {
   {
     AutoSceneLocker lock(*scene);
     scene->setPhysicsCallback([&](Scene& scene) { physicsState.tick(scene); });
+    scene->setLightSourcePosition(glm::vec3(10.0f, 100.0f, 10.0f));
   }
 
   bool shouldClose = false;

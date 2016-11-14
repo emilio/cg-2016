@@ -5,6 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 
 #include "base/gl.h"
 #include "base/Logging.h"
@@ -65,6 +66,7 @@ void handleKey(Scene& a_scene,
 
 // The renderer loop, executed in a second thread.
 void renderer(std::shared_ptr<sf::Window> window,
+              std::condition_variable* condvar,
               std::shared_ptr<Scene>* out_scene) {
   window->setActive(true);
 
@@ -87,11 +89,14 @@ void renderer(std::shared_ptr<sf::Window> window,
 
     auto size = window->getSize();
     scene->setupProjection(size.x, size.y);
+    scene->setLightSourcePosition(glm::vec3(0.0f, 10.0f, 0.0f));
 
     auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
     suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
     scene->addObject(std::move(suzanne));
   }
+
+  condvar->notify_all();
 
   const size_t HALF_A_FRAME_MS = 62;
   while (true) {
@@ -130,22 +135,21 @@ int main(int, const char**) {
   std::shared_ptr<Scene> scene(nullptr);
   window->setActive(false);
 
-  std::thread rendererThread(renderer, window, &scene);
+  std::unique_ptr<std::thread> rendererThread;
+
+  {
+    std::condition_variable condvar;
+    std::mutex condvar_mutex;
+    std::unique_lock<std::mutex> lock(condvar_mutex);
+    rendererThread =
+        std::make_unique<std::thread>(renderer, window, &condvar, &scene);
+    condvar.wait(lock);
+    assert(scene);
+  }
 
   bool shouldClose = false;
   sf::Event event;
   while (!shouldClose && window->waitEvent(event)) {
-    // Renderer hasn't still setup the scene.
-    //
-    // FIXME: This is (technically) potentially thread-unsafe, since pointer
-    // stores are not guaranteed to be atomic (even though shared_ptr itself
-    // is).
-    //
-    // But in practice this holds. If it doesn't I'd just use a lock or a
-    // condvar, but it seems overkill for this specific case.
-    if (!scene)
-      continue;
-
     AutoSceneLocker lock(*scene);
     switch (event.type) {
       case sf::Event::Closed:
@@ -171,7 +175,7 @@ int main(int, const char**) {
     scene->stopPainting();
   }
 
-  rendererThread.join();
+  rendererThread->join();
   Platform::shutDown();
   return 0;
 }

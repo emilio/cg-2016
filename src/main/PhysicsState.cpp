@@ -13,7 +13,6 @@ static glm::vec3 interpolateVectors(const glm::vec3& one,
   return one + (other - one) * amount;
 }
 
-
 glm::vec3 PhysicsState::normal() const {
   return m_orientation * Y_AXIS;
 }
@@ -39,9 +38,11 @@ void PhysicsState::tick(Scene& scene) {
   auto targetCameraPos =
       m_plane.position() - CAM_PLANE_DISTANCE * m_plane.direction();
 
-  m_orientation = glm::slerp(m_orientation, m_plane.orientation(), INTERPOLATION_FACTOR);
+  m_orientation =
+      glm::slerp(m_orientation, m_plane.orientation(), INTERPOLATION_FACTOR);
 
-  scene.m_cameraPosition = interpolateVectors(oldCameraPos, targetCameraPos, INTERPOLATION_FACTOR);
+  scene.m_cameraPosition =
+      interpolateVectors(oldCameraPos, targetCameraPos, INTERPOLATION_FACTOR);
 
   scene.recomputeView(newPlanePos, normal());
 

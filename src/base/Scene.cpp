@@ -66,6 +66,10 @@ void Scene::setupUniforms() {
   recomputeView();
 }
 
+void Scene::setLightSourcePosition(const glm::vec3& position) {
+  m_lightSourcePosition = position;
+}
+
 void Scene::addObject(std::unique_ptr<Node>&& a_object) {
   assertLocked();
   m_objects.push_back(std::move(a_object));
@@ -157,11 +161,8 @@ void Scene::draw() {
   glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
                      glm::value_ptr(viewProjection));
 
-  // TODO: Implement some controls for light position, but meanwhile... why not?
-  // glm::vec3 lightPosition = glm::vec3(0., 0., 3.);
-  glm::vec3 lightPosition = m_cameraPosition;
   glUniform3fv(m_uniforms.uLightSourcePosition, 1,
-               glm::value_ptr(lightPosition));
+               glm::value_ptr(m_lightSourcePosition));
 
   glm::vec3 lightColor = glm::vec3(1.0, 0.7, 0.7);
   glUniform3fv(m_uniforms.uLightSourceColor, 1, glm::value_ptr(lightColor));

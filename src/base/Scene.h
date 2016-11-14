@@ -63,6 +63,8 @@ private:
   Optional<PhysicsCallback> m_physicsCallback;
   bool m_shouldPaint;
 
+  glm::vec3 m_lightSourcePosition;
+
 public:  // FIXME: too lazy.
   glm::vec3 m_cameraPosition;
 
@@ -88,6 +90,8 @@ public:
 
   void setPendingResize(uint32_t width, uint32_t height);
   void setPhysicsCallback(PhysicsCallback);
+
+  void setLightSourcePosition(const glm::vec3&);
 
   void toggleWireframeMode();
   void draw();
