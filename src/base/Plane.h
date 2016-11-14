@@ -20,6 +20,10 @@ class Plane final : public Node {
 public:
   using Milliseconds = std::chrono::duration<float, std::ratio<1, 1000>>;
 
+  const glm::quat& orientation() {
+    return m_orientation;
+  }
+
   const glm::vec3 direction() const {
     return m_orientation * glm::vec3(0.0, 0.0, -1.0);
   }
@@ -38,7 +42,7 @@ public:
   }
 
   void speedUp(float amount) {
-    m_speed += amount;
+    m_speed = glm::max(0.0f, m_speed + amount);
   }
 
   void advance(const Milliseconds& a_howMany) {

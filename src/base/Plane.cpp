@@ -5,7 +5,11 @@
 #include "glm/gtx/rotate_vector.hpp"
 
 Plane::Plane() : m_speed(2.0f) {
+#ifdef DEBUG
+  addChild(Node::fromFile("res/models/suzanne.obj"));
+#else
   addChild(Node::fromFile("res/models/Airbus A310.obj"));
+#endif
 }
 
 void Plane::pitch(float amount) {
