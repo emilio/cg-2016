@@ -21,9 +21,11 @@ void Node::draw(DrawContext& context) const {
   context.pop();
 }
 
-static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
+static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
+                                        const aiMesh& mesh) {
   assert(mesh.HasFaces());
   assert(mesh.HasPositions());
+
 
   std::vector<Vertex> vertices;
   vertices.reserve(mesh.mNumVertices);
@@ -41,6 +43,11 @@ static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
     // TODO(emilio): uv coords, textures, ...
     vertices.push_back(vertex);
   }
+
+  // We only do diffuse textures for now.
+  const aiMaterial& material = *scene.mMaterials[mesh.mMaterialIndex];
+  uint32_t count = material.GetTextureCount(aiTextureType_DIFFUSE);
+  assert(!count && "Todo!");
 
   // We assume these are triangulated.
   std::vector<GLuint> indices;
@@ -84,17 +91,16 @@ static std::unique_ptr<Node> meshFromAi(const aiMesh& mesh) {
   }
 
   LOG("Materials: %d", scene->mNumMaterials);
-  // assert(scene->mNumMaterials == 1);
 
   // Not worth to add an extra layer of indirection in the simple case.
   if (scene->mNumMeshes == 1)
-    return meshFromAi(*scene->mMeshes[0]);
+    return meshFromAi(*scene, *scene->mMeshes[0]);
 
   auto ret = std::make_unique<Node>();
 
   for (size_t i = 0; i < scene->mNumMeshes; ++i) {
     assert(scene->mMeshes[i]);
-    ret->addChild(meshFromAi(*scene->mMeshes[i]));
+    ret->addChild(meshFromAi(*scene, *scene->mMeshes[i]));
   }
 
   return ret;
