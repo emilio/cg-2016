@@ -56,7 +56,7 @@ Mesh::Mesh(std::vector<Vertex>&& a_vertices,
 Mesh::~Mesh() {
   AutoGLErrorChecker checker;
   if (m_texture.isSome())
-    glDeleteTextures(1, &m_texture.value());
+    glDeleteTextures(1, &*m_texture);
 
   if (m_vao == UNINITIALIZED) {
     assert(m_vbo == UNINITIALIZED);

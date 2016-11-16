@@ -12,6 +12,10 @@
 #include "geometry/Vertex.h"
 #include "geometry/DrawContext.h"
 
+#include "tools/Path.h"
+#include <SFML/Graphics.hpp>
+
+
 void Node::draw(DrawContext& context) const {
   if (m_children.empty())
     return;
@@ -22,7 +26,8 @@ void Node::draw(DrawContext& context) const {
   context.pop();
 }
 
-static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
+static std::unique_ptr<Node> meshFromAi(const Path& basePath,
+                                        const aiScene& scene,
                                         const aiMesh& mesh) {
   assert(mesh.HasFaces());
   assert(mesh.HasPositions());
@@ -72,9 +77,44 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
   if (!ai_material.Get(AI_MATKEY_SHININESS_STRENGTH, floatVal))
     material.m_shininess_percent = floatVal;
 
+  // TODO: This can load a bunch of textures from the same file, build a cache,
+  // and refcount, and all that stuff.
+  Optional<GLuint> texture;
+
   uint32_t count = ai_material.GetTextureCount(aiTextureType_DIFFUSE);
-  if (count)
-    LOG("Missing textures, TODO");
+  if (count) {
+    LOG("Loading 1/%u textures, TODO", count);
+    aiString path;
+    // TODO: Right now only load one, be better at this!
+    for (uint32_t i = 0; i < 1; ++i) {
+      AutoGLErrorChecker checker;
+      aiReturn ret = ai_material.GetTexture(aiTextureType_DIFFUSE, i, &path, nullptr, nullptr, nullptr, nullptr, nullptr);
+      assert(ret == AI_SUCCESS);
+      Path texturePath(basePath);
+      texturePath.push(path.C_Str());
+
+      LOG(" - %u: %s", i, texturePath.c_str());
+      sf::Image textureImporter;
+      if (!textureImporter.loadFromFile(texturePath.as_str())) {
+        WARN("Loading texture failed: %s", texturePath.c_str());
+        continue;
+      }
+
+      auto size = textureImporter.getSize();
+      texture.set(0);
+      glGenTextures(1, &*texture);
+      glBindTexture(GL_TEXTURE_2D, *texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA,
+          GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
+
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glBindTexture(GL_TEXTURE_2D, 0);
+    }
+  }
 
   // We assume these are triangulated.
   std::vector<GLuint> indices;
@@ -101,7 +141,7 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
   }
 
   return std::make_unique<Mesh>(std::move(vertices), std::move(indices),
-                                material, None);
+                                material, std::move(texture));
 }
 
 /* static */ std::unique_ptr<Node> Node::fromFile(const char* a_modelPath) {
@@ -120,15 +160,18 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
 
   LOG("Materials: %d", scene->mNumMaterials);
 
+  Path basePath(a_modelPath);
+  basePath.pop();
+
   // Not worth to add an extra layer of indirection in the simple case.
   if (scene->mNumMeshes == 1)
-    return meshFromAi(*scene, *scene->mMeshes[0]);
+    return meshFromAi(basePath, *scene, *scene->mMeshes[0]);
 
   auto ret = std::make_unique<Node>();
 
   for (size_t i = 0; i < scene->mNumMeshes; ++i) {
     assert(scene->mMeshes[i]);
-    ret->addChild(meshFromAi(*scene, *scene->mMeshes[i]));
+    ret->addChild(meshFromAi(basePath, *scene, *scene->mMeshes[i]));
   }
 
   return ret;

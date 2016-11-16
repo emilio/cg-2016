@@ -6,6 +6,7 @@ add_executable(main main.cpp
   $<TARGET_OBJECTS:mainlib>
   $<TARGET_OBJECTS:base>
   $<TARGET_OBJECTS:geometry>
+  $<TARGET_OBJECTS:tools>
 )
 
 add_dependencies(main Generated assimp)

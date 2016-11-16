@@ -6,6 +6,7 @@ add_executable(image-processing image-processing.cpp
   #  $<TARGET_OBJECTS:image-processinglib>
   $<TARGET_OBJECTS:base>
   $<TARGET_OBJECTS:geometry>
+  $<TARGET_OBJECTS:tools>
 )
 
 add_dependencies(image-processing Generated assimp)

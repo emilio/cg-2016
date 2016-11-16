@@ -36,6 +36,7 @@ set(GENERATED_FILES
   res/skybox/vertex.glsl
   res/skybox/common.glsl
   res/skybox/faces
+  res/models/helicopter
   res/models/Rmk3.obj
   res/models/suzanne.obj
   res/models/suzanne.mtl
@@ -89,6 +90,10 @@ add_library(base OBJECT
   src/base/DebuggingUtils.cpp
   src/base/InputUtils.cpp
   src/base/Platform.cpp
+)
+
+add_library(tools OBJECT
+  src/tools/Path.cpp
 )
 
 add_library(geometry OBJECT
