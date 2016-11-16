@@ -36,7 +36,7 @@ void PhysicsState::tick(Scene& scene) {
 
   auto oldCameraPos = scene.m_cameraPosition;
   auto targetCameraPos =
-      m_plane.position() - CAM_PLANE_DISTANCE * m_plane.direction();
+      m_plane.position() - m_plane.optimalCameraDistance() * m_plane.direction();
 
   m_orientation =
       glm::slerp(m_orientation, m_plane.orientation(), INTERPOLATION_FACTOR);

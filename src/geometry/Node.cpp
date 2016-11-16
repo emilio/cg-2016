@@ -27,7 +27,6 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
   assert(mesh.HasFaces());
   assert(mesh.HasPositions());
 
-
   std::vector<Vertex> vertices;
   vertices.reserve(mesh.mNumVertices);
 
@@ -101,7 +100,8 @@ static std::unique_ptr<Node> meshFromAi(const aiScene& scene,
     }
   }
 
-  return std::make_unique<Mesh>(std::move(vertices), std::move(indices), material, None);
+  return std::make_unique<Mesh>(std::move(vertices), std::move(indices),
+                                material, None);
 }
 
 /* static */ std::unique_ptr<Node> Node::fromFile(const char* a_modelPath) {

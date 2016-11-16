@@ -85,12 +85,18 @@ void Mesh::draw(DrawContext& context) const {
   // Who knows :-)
   context.push(*this);
 
-  glUniform4fv(context.uniforms().m_material.m_diffuse, 1, glm::value_ptr(m_material.m_diffuse));
-  glUniform4fv(context.uniforms().m_material.m_ambient, 1, glm::value_ptr(m_material.m_ambient));
-  glUniform4fv(context.uniforms().m_material.m_emissive, 1, glm::value_ptr(m_material.m_emissive));
-  glUniform4fv(context.uniforms().m_material.m_specular, 1, glm::value_ptr(m_material.m_specular));
-  glUniform1f(context.uniforms().m_material.m_shininess, m_material.m_shininess);
-  glUniform1f(context.uniforms().m_material.m_shininess_percent, m_material.m_shininess_percent);
+  glUniform4fv(context.uniforms().m_material.m_diffuse, 1,
+               glm::value_ptr(m_material.m_diffuse));
+  glUniform4fv(context.uniforms().m_material.m_ambient, 1,
+               glm::value_ptr(m_material.m_ambient));
+  glUniform4fv(context.uniforms().m_material.m_emissive, 1,
+               glm::value_ptr(m_material.m_emissive));
+  glUniform4fv(context.uniforms().m_material.m_specular, 1,
+               glm::value_ptr(m_material.m_specular));
+  glUniform1f(context.uniforms().m_material.m_shininess,
+              m_material.m_shininess);
+  glUniform1f(context.uniforms().m_material.m_shininess_percent,
+              m_material.m_shininess_percent);
 
   glBindVertexArray(m_vao);
   if (context.program().tessControlShader()) {

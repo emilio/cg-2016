@@ -20,12 +20,14 @@ class Plane final : public Node {
 public:
   using Milliseconds = std::chrono::duration<float, std::ratio<1, 1000>>;
 
+  float optimalCameraDistance() const;
+
   const glm::quat& orientation() {
     return m_orientation;
   }
 
   const glm::vec3 direction() const {
-    return m_orientation * glm::vec3(0.0, 0.0, -1.0);
+    return m_orientation * glm::vec3(0.0, 0.0, 1.0);
   }
 
   const glm::vec3& position() const {

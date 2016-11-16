@@ -5,6 +5,8 @@
 #include "glm/gtx/rotate_vector.hpp"
 
 Plane::Plane() : m_speed(2.0f) {
+  m_orientation =
+      glm::rotate(glm::quat(), glm::radians(180.0f), glm::vec3(0, 1, 0));
 #ifdef DEBUG
   addChild(Node::fromFile("res/models/suzanne.obj"));
 #else
@@ -26,6 +28,14 @@ void Plane::roll(float amount) {
 
 std::unique_ptr<Plane> Plane::create() {
   return std::unique_ptr<Plane>(new Plane());
+}
+
+float Plane::optimalCameraDistance() const {
+#ifdef DEBUG
+  return 5.0f;
+#else
+  return 10.0f;
+#endif
 }
 
 void Plane::computeTransform() {

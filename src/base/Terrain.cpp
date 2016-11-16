@@ -13,7 +13,9 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
                  std::vector<GLuint>&& indices,
                  Material material,
                  Optional<GLuint> texture)
-  : Mesh(std::move(vertices), std::move(indices), material, std::move(texture)) {}
+  : Mesh(
+        std::move(vertices), std::move(indices), material, std::move(texture)) {
+}
 
 /* static */ std::unique_ptr<Terrain> Terrain::create() {
   sf::Image heightMap;
