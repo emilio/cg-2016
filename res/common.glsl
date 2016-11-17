@@ -6,6 +6,12 @@ uniform mat4 uViewProjection;
 /** The model transform */
 uniform mat4 uModel;
 
+/** The texture for UV mapping */
+uniform bool uUsesTexture;
+
+/** The texture for UV mapping */
+uniform sampler2D uTexture;
+
 /** The model material */
 struct Material {
   vec4 m_diffuse;

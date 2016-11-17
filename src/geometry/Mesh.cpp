@@ -97,6 +97,15 @@ void Mesh::draw(DrawContext& context) const {
               m_material.m_shininess);
   glUniform1f(context.uniforms().m_material.m_shininess_percent,
               m_material.m_shininess_percent);
+  glUniform1i(context.uniforms().m_usesTexture, m_texture.isSome());
+
+  if (m_texture) {
+    // TODO: We should be able to avoid this glUniform1i call and do the
+    // glActiveTexture call just once, but anyway.
+    glUniform1i(context.uniforms().m_texture, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, *m_texture);
+  }
 
   glBindVertexArray(m_vao);
   if (context.program().tessControlShader()) {

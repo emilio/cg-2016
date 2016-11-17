@@ -76,7 +76,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   // glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
-  // shaders.m_geometry = "res/geometry.glsl";
+  shaders.m_geometry = "res/geometry.glsl";
   auto scene = std::make_shared<Scene>(std::move(shaders));
   *out_scene = scene;
 

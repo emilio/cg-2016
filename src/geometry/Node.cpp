@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
 #include "base/Logging.h"
@@ -45,7 +46,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
           glm::vec3(mesh.mNormals[i].x, mesh.mNormals[i].y, mesh.mNormals[i].z);
     }
 
-    // TODO(emilio): uv coords, textures, ...
+    // NB: The uv texture coordinates are loaded afterwards.
     vertices.push_back(vertex);
   }
 
@@ -88,12 +89,27 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
     // TODO: Right now only load one, be better at this!
     for (uint32_t i = 0; i < 1; ++i) {
       AutoGLErrorChecker checker;
-      aiReturn ret = ai_material.GetTexture(aiTextureType_DIFFUSE, i, &path, nullptr, nullptr, nullptr, nullptr, nullptr);
+      aiTextureMapping mapping;
+      aiReturn ret = ai_material.GetTexture(aiTextureType_DIFFUSE, i, &path, &mapping);
       assert(ret == AI_SUCCESS);
+
+      if (mapping != aiTextureMapping_UV) {
+        LOG("Texture mapping mode for %s is not uv, skipping", path.C_Str());
+        continue;
+      }
+
+      assert(mesh.mTextureCoords[0]);
+      for (uint32_t i = 0; i < vertices.size(); ++i) {
+        vertices[i].m_uv = glm::vec2(mesh.mTextureCoords[0][i].x,
+                                     mesh.mTextureCoords[0][i].y);
+      }
+
       Path texturePath(basePath);
       texturePath.push(path.C_Str());
 
       LOG(" - %u: %s", i, texturePath.c_str());
+
+
       sf::Image textureImporter;
       if (!textureImporter.loadFromFile(texturePath.as_str())) {
         WARN("Loading texture failed: %s", texturePath.c_str());
@@ -146,7 +162,8 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
 
 /* static */ std::unique_ptr<Node> Node::fromFile(const char* a_modelPath) {
   Assimp::Importer importer;
-  const aiScene* scene = importer.ReadFile(a_modelPath, 0);
+  // NB: We flip the UV coordinates here instead of somewhere else.
+  const aiScene* scene = importer.ReadFile(a_modelPath, aiProcess_FlipUVs);
 
   if (!scene) {
     LOG("Assimp failed to read the scene");

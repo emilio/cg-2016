@@ -13,6 +13,12 @@ out vec3 fPosition;
 
 /** The fragment normal position, given to the fragment shader. */
 out vec3 fNormal;
+
+/** The fragment uv coordinates. */
+out vec2 fUv;
+#else
+/** The fragment uv coordinates. */
+out vec2 fUvFromVertex;
 #endif
 
 void main () {
@@ -26,8 +32,10 @@ void main () {
 #if !defined(HAS_GEOMETRY_SHADER) && !defined(HAS_TESS_CONTROL_SHADER)
   fPosition = vec3(uModel * vec4(vPosition, 1.0));
   fNormal = normalize(vec3(uModel * vec4(vNormal, 0.0)));
+  fUv = vUv;
   gl_Position = uViewProjection * uModel * vec4(vPosition, 1.0);
 #else
+  fUvFromVertex = vUv;
   // The geometry or tesellation shader takes care of the normals, and transformations.
   gl_Position = vec4(vPosition, 1.0);
 #endif

@@ -18,6 +18,8 @@ class DrawContext final {
 public:
   struct Uniforms {
     GLint m_transform;
+    GLint m_usesTexture;
+    GLint m_texture;
     MaterialUniforms m_material;
   } m_uniforms;
 

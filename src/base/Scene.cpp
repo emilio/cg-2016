@@ -15,6 +15,8 @@ void SceneUniforms::findInProgram(GLuint a_programId) {
 
   FIND(uViewProjection)
   FIND(uModel)
+  FIND(uUsesTexture)
+  FIND(uTexture)
   FIND(uMaterial.m_diffuse)
   FIND(uMaterial.m_specular)
   FIND(uMaterial.m_ambient)
@@ -191,7 +193,8 @@ void Scene::draw() {
 
   DrawContext context(*m_mainProgram,
                       DrawContext::Uniforms{
-                          m_uniforms.uModel, m_uniforms.uMaterial,
+                          m_uniforms.uModel, m_uniforms.uUsesTexture,
+                          m_uniforms.uTexture, m_uniforms.uMaterial,
                       },
                       glm::mat4());
   // size_t i = 0;

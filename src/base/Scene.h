@@ -24,6 +24,8 @@ class SceneUniforms {
 
   GLint uViewProjection;
   GLint uModel;
+  GLint uUsesTexture;
+  GLint uTexture;
   MaterialUniforms uMaterial;
   GLint uFrame;
   GLint uAmbientLightColor;
