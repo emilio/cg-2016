@@ -76,7 +76,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   // glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
-  shaders.m_geometry = "res/geometry.glsl";
+  // shaders.m_geometry = "res/geometry.glsl";
   auto scene = std::make_shared<Scene>(std::move(shaders));
   *out_scene = scene;
 
@@ -130,10 +130,10 @@ int main(int, char**) {
 
   Platform::init();
 
-  // Request OpenGL 3.1
+  // TODO: Request OpenGL 3.1, should be trivial, but...
   sf::ContextSettings settings;
-  settings.majorVersion = 3;
-  settings.minorVersion = 1;
+  settings.majorVersion = 4;
+  settings.minorVersion = 0;
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
 

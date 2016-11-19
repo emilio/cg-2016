@@ -79,3 +79,10 @@ public:
     clear();
   }
 };
+
+template<typename T>
+Optional<T> Some(T value) {
+  Optional<T> ret;
+  ret.set(std::move(value));
+  return std::move(ret);
+}

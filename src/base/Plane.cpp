@@ -8,7 +8,8 @@ Plane::Plane() : m_speed(2.0f) {
   m_orientation =
       glm::rotate(glm::quat(), glm::radians(180.0f), glm::vec3(0, 1, 0));
 #ifdef DEBUG
-  addChild(Node::fromFile("res/models/helicopter/uh60.obj"));
+  // addChild(Node::fromFile("res/models/helicopter/uh60.obj"));
+  addChild(Node::fromFile("res/models/suzanne.obj"));
 #else
   addChild(Node::fromFile("res/models/Airbus A310.obj"));
 #endif

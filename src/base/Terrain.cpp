@@ -1,5 +1,6 @@
 #include "base/Terrain.h"
 #include "base/Logging.h"
+#include "tools/Optional.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -19,7 +20,7 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
 
 /* static */ std::unique_ptr<Terrain> Terrain::create() {
   sf::Image heightMap;
-  sf::Image texture;
+  sf::Image textureImporter;
 
   // FIXME: Stop hardcoding, the usual stuff.
   if (!heightMap.loadFromFile("res/terrain/heightmap.png")) {
@@ -27,13 +28,30 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
     return nullptr;
   }
 
-  // if (!texture.loadFromFile("res/terrain/texture.png")) {
-  //   ERROR("Error loading terrain texture");
-  //   return nullptr;
-  // }
+  if (!textureImporter.loadFromFile("res/terrain/cover.png")) {
+     ERROR("Error loading terrain texture");
+     return nullptr;
+  }
+
+  auto textureSize = textureImporter.getSize();
+  LOG("Loading terrain cover of %dx%d", textureSize.x, textureSize.y);
+
+  GLuint texture;
+  {
+    AutoGLErrorChecker checker;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSize.x, textureSize.y, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
 
   auto size = heightMap.getSize();
-  auto textureSize = texture.getSize();
   std::vector<Vertex> vertices;
   vertices.reserve(size.x * size.y);
 
@@ -46,13 +64,10 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
 
       auto pixel = heightMap.getPixel(x, y);
       float height = mapToHeight(pixel.r);
-      // LOG("%u %u %u %u", pixel.r, pixel.g, pixel.b, pixel.a);
 
       Vertex vertex;
       vertex.m_position = glm::vec3(posX - 0.5, height, posY - 0.5);
-      // FIXME: This is a smell, we're interpolating manually here when we
-      // probably shouldn't.
-      vertex.m_uv = glm::vec2(posX * textureSize.x, posY * textureSize.y);
+      vertex.m_uv = glm::vec2(posY, posX);
       vertices.push_back(vertex);
     }
   }
@@ -88,14 +103,15 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
                        vertices[i_3].m_position - vertices[i_1].m_position));
   }
 
-  // FIXME: Proper material!
+  // FIXME: Nor this!
   Material mat;
-  mat.m_diffuse = glm::vec4(0.5, 0.5, 4.0, 1.0);
   mat.m_diffuse = glm::vec4(140.0, 96.0, 43.0, 255.0f) / glm::vec4(255.0f);
-  mat.m_ambient = glm::vec4(0.5, 0.5, 0.5, 1.0);
+  mat.m_ambient = glm::vec4(1.0, 1.0, 1.0, 1.0);
+  mat.m_shininess_percent = 0.1;
+
 
   auto terrain = std::unique_ptr<Terrain>(
-      new Terrain(std::move(vertices), std::move(indices), mat, None));
+      new Terrain(std::move(vertices), std::move(indices), mat, Some(texture)));
 
   // TODO: Add collision detection boxes, shouldn't be hard.
   terrain->scale(TERRAIN_DIMENSIONS);

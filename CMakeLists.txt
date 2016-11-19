@@ -47,6 +47,7 @@ set(GENERATED_FILES
   res/models/cube.obj
   res/models/box.obj
   res/terrain/heightmap.png
+  res/terrain/cover.png
 )
 
 foreach(generated_file ${GENERATED_FILES})
