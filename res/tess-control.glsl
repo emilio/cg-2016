@@ -1,7 +1,7 @@
 layout (vertices = 3) out;
 
-in vec2 fUvFromVertex[gl_MaxPatchVertices];
-out vec2 fUvFromControl[3];
+in vec2 fUvFromVertex[];
+out vec2 fUvFromControl[];
 
 float chooseTessLevel() {
   // We always put the object at the origin so it's a bit pointless to

@@ -1,11 +1,11 @@
 layout(triangles, equal_spacing, ccw) in;
 
-in vec2 fUvFromControl[gl_MaxPatchVertices];
+in vec2 fUvFromControl[];
 
 #if !defined(HAS_GEOMETRY_SHADER)
 out vec3 fNormal;
 out vec3 fPosition;
-out vec3 fUv;
+out vec2 fUv;
 #define OUT_UV fUv
 #else
 out vec2 fUvFromTess;
