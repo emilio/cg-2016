@@ -46,5 +46,5 @@ uniform vec3 uLightSourcePosition;
 /** The color of the light source */
 uniform vec3 uLightSourceColor;
 
-/** The camera position */
+/** The camera position, in world space */
 uniform vec3 uCameraPosition;

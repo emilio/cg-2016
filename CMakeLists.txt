@@ -36,6 +36,7 @@ set(GENERATED_FILES
   res/skybox/vertex.glsl
   res/skybox/common.glsl
   res/skybox/faces
+  res/quad-terrain
   res/models/helicopter
   res/models/Rmk3.obj
   res/models/suzanne.obj
@@ -48,6 +49,7 @@ set(GENERATED_FILES
   res/models/box.obj
   res/terrain/heightmap.png
   res/terrain/cover.png
+  res/terrain/maribor.png
 )
 
 foreach(generated_file ${GENERATED_FILES})

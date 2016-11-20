@@ -21,7 +21,7 @@ class QuadTerrain final : public Node {
 
   // A vector with the vertices divided in quads. Note that we calculate the
   // height of the terrain dynamically in the vertex shader.
-  std::vector<glm::vec2> m_quads;
+  std::vector<glm::vec2> m_vertices;
 
   QuadTerrain(std::unique_ptr<Program>, GLuint, GLuint, std::vector<glm::vec2>);
 
@@ -33,4 +33,9 @@ class QuadTerrain final : public Node {
 public:
   virtual ~QuadTerrain();
   static std::unique_ptr<QuadTerrain> create();
+
+  void drawTerrain(const glm::mat4& viewProjection, const glm::vec3& cameraPos) const;
+  void draw(DrawContext&) const override {
+    assert(false && "not implemented! use drawTerrain instead!");
+  }
 };

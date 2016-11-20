@@ -3,6 +3,7 @@
 #include "base/gl.h"
 #include "base/Skybox.h"
 #include "base/Terrain.h"
+#include "base/QuadTerrain.h"
 
 #include "geometry/DrawContext.h"
 
@@ -47,10 +48,18 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
   reloadShaders();
   assert(m_mainProgram);
 
-  if (a_terrainMode == Terrain) {
-    auto terrain = Terrain::create();
-    if (terrain)
-      addObject(std::move(terrain));
+  switch (a_terrainMode) {
+    case Terrain: {
+      auto terrain = Terrain::create();
+      if (terrain)
+        addObject(std::move(terrain));
+      break;
+    }
+    case QuadTerrain:
+      m_quadTerrain = QuadTerrain::create();
+      assert(m_quadTerrain);
+      break;
+    case NoTerrain: break;
   }
 
   LOG("New program: %u", m_mainProgram->id());
@@ -159,9 +168,12 @@ void Scene::draw() {
     m_skybox->draw(viewProjection);
   }
 
-  m_mainProgram->use();
-
   glm::mat4 viewProjection = m_projection * m_view;
+
+  if (m_quadTerrain)
+    m_quadTerrain->drawTerrain(viewProjection, m_cameraPosition);
+
+  m_mainProgram->use();
 
   glUniform1f(m_uniforms.uFrame,
               glm::radians(static_cast<float>(m_frameCount++)));

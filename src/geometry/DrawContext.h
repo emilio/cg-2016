@@ -12,7 +12,7 @@
 #include <stack>
 
 class DrawContext final {
-  Program& m_program;
+  const Program& m_program;
   std::stack<glm::mat4> m_stack;
 
 public:
@@ -23,7 +23,7 @@ public:
     MaterialUniforms m_material;
   } m_uniforms;
 
-  explicit DrawContext(Program& a_program,
+  explicit DrawContext(const Program& a_program,
                        const Uniforms& a_uniforms,
                        glm::mat4 a_initialTransform)
     : m_program(a_program), m_uniforms(a_uniforms) {

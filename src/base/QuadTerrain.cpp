@@ -1,9 +1,11 @@
 #include "QuadTerrain.h"
 #include "base/Logging.h"
+#include "geometry/DrawContext.h"
 
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+// TODO: Share this among terrains, possibly converting this to a EBO.
 std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
   std::vector<glm::vec2> ret;
   ret.reserve(width * height * 4);
@@ -11,25 +13,32 @@ std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
   float frac_x = 1.0f / width;
   float frac_y = 1.0f / height;
 
+#define AT(x, y) (glm::vec2((frac_x * (x) - 0.5), (frac_y * (y) - 0.5)))
+
+  // TODO: Could we send quads and just split those?
   for (size_t x = 0; x < width; ++x) {
     for (size_t y = 0; y < height; ++y) {
-      ret.push_back(glm::vec2(frac_x * x, frac_y * y));
-      ret.push_back(glm::vec2((frac_x + 1) * x, frac_y * y));
-      ret.push_back(glm::vec2((frac_x + 1) * x, (frac_y + 1) * y));
-      ret.push_back(glm::vec2(frac_x * x, (frac_y + 1) * y));
+      ret.push_back(AT(x, y));
+      ret.push_back(AT(x + 1, y));
+      ret.push_back(AT(x, y + 1));
+      ret.push_back(AT(x + 1, y));
+      ret.push_back(AT(x, y + 1));
+      ret.push_back(AT(x + 1, y + 1));
     }
   }
+
+#undef AT
 
   return ret;
 }
 
 QuadTerrain::QuadTerrain(std::unique_ptr<Program> a_program,
                          GLuint a_cover, GLuint a_heightmap,
-                         std::vector<glm::vec2> a_quads)
+                         std::vector<glm::vec2> a_vertices)
   : m_program(std::move(a_program))
   , m_coverTexture(a_cover)
   , m_heightmapTexture(a_heightmap)
-  , m_quads(std::move(a_quads))
+  , m_vertices(std::move(a_vertices))
 {
   AutoGLErrorChecker checker;
   glGenVertexArrays(1, &m_vao);
@@ -38,8 +47,8 @@ QuadTerrain::QuadTerrain(std::unique_ptr<Program> a_program,
   glGenBuffers(1, &m_vbo);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * m_quads.size(),
-               m_quads.data(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * m_vertices.size(),
+               m_vertices.data(), GL_STATIC_DRAW);
 
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
@@ -72,7 +81,6 @@ std::unique_ptr<QuadTerrain> QuadTerrain::create() {
   ShaderSet shaders("res/quad-terrain/common.glsl",
                     "res/quad-terrain/vertex.glsl",
                     "res/quad-terrain/fragment.glsl");
-
   shaders.m_tessellation_control = "res/quad-terrain/tess-control.glsl";
   shaders.m_tessellation_evaluation = "res/quad-terrain/tess-eval.glsl";
 
@@ -89,7 +97,7 @@ std::unique_ptr<QuadTerrain> QuadTerrain::create() {
     return nullptr;
   }
 
-  if (!coverImporter.loadFromFile("res/terrain/cover.png")) {
+  if (!coverImporter.loadFromFile("res/terrain/maribor.png")) {
     ERROR("Error loading cover");
     return nullptr;
   }
@@ -97,8 +105,11 @@ std::unique_ptr<QuadTerrain> QuadTerrain::create() {
   GLuint cover = textureFromImage(coverImporter);
   GLuint heightmap = textureFromImage(heightMapImporter);
 
-  return std::unique_ptr<QuadTerrain>(
+  auto ret = std::unique_ptr<QuadTerrain>(
       new QuadTerrain(std::move(program), cover, heightmap, makePlane(100, 100)));
+
+  ret->scale(100);
+  return ret;
 }
 
 QuadTerrain::~QuadTerrain() {
@@ -107,4 +118,34 @@ QuadTerrain::~QuadTerrain() {
 
   glDeleteBuffers(1, &m_vbo);
   glDeleteVertexArrays(1, &m_vao);
+}
+
+void QuadTerrain::drawTerrain(const glm::mat4& viewProjection,
+                              const glm::vec3& cameraPos) const {
+  m_program->use();
+  glBindVertexArray(m_vao);
+  glUniform3fv(glGetUniformLocation(m_program->id(), "uCameraPosition"),
+               1, glm::value_ptr(cameraPos));
+  glUniformMatrix4fv(glGetUniformLocation(m_program->id(), "uViewProjection"),
+                     1, GL_FALSE, glm::value_ptr(viewProjection));
+  glUniformMatrix4fv(glGetUniformLocation(m_program->id(), "uModel"),
+                     1, GL_FALSE, glm::value_ptr(transform()));
+
+  glUniform1i(glGetUniformLocation(m_program->id(), "uTexture"), 0);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_coverTexture);
+
+  glUniform1i(glGetUniformLocation(m_program->id(), "uHeightMap"), 1);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, m_heightmapTexture);
+
+  if (m_program->tessControlShader()) {
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
+    glDrawArrays(GL_PATCHES, 0, m_vertices.size());
+  } else {
+    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+  }
+
+  glBindVertexArray(0);
+  glUseProgram(0);
 }

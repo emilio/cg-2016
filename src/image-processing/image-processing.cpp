@@ -81,7 +81,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   shaders.m_geometry = "res/geometry.glsl";
   shaders.m_tessellation_control = "res/tess-control.glsl";
   shaders.m_tessellation_evaluation = "res/tess-eval.glsl";
-  auto scene = std::make_shared<Scene>(shaders, Scene::NoTerrain);
+  auto scene = std::make_shared<Scene>(shaders, Scene::QuadTerrain);
   *out_scene = scene;
 
   {
@@ -93,10 +93,10 @@ void renderer(std::shared_ptr<sf::Window> window,
 
     // auto suzanne = Mesh::fromFile("res/models/AirbusA310.obj");
     // auto suzanne = Mesh::fromFile("res/models/QuestionBlock.obj");
-    auto suzanne = Mesh::fromFile("res/models/helicopter/uh60.obj");
+    // auto suzanne = Mesh::fromFile("res/models/helicopter/uh60.obj");
     // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
-    suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
-    scene->addObject(std::move(suzanne));
+    // suzanne->scale(0.5f);
+    // scene->addObject(std::move(suzanne));
   }
 
   condvar->notify_all();
