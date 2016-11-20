@@ -81,7 +81,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   shaders.m_geometry = "res/geometry.glsl";
   shaders.m_tessellation_control = "res/tess-control.glsl";
   shaders.m_tessellation_evaluation = "res/tess-eval.glsl";
-  auto scene = std::make_shared<Scene>(shaders, Scene::QuadTerrain);
+  auto scene = std::make_shared<Scene>(shaders, Scene::DynTerrain);
   *out_scene = scene;
 
   {

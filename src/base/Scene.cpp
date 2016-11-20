@@ -3,7 +3,7 @@
 #include "base/gl.h"
 #include "base/Skybox.h"
 #include "base/Terrain.h"
-#include "base/QuadTerrain.h"
+#include "base/DynTerrain.h"
 
 #include "geometry/DrawContext.h"
 
@@ -55,8 +55,8 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
         addObject(std::move(terrain));
       break;
     }
-    case QuadTerrain:
-      m_quadTerrain = QuadTerrain::create();
+    case DynTerrain:
+      m_quadTerrain = DynTerrain::create();
       assert(m_quadTerrain);
       break;
     case NoTerrain: break;

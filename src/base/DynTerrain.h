@@ -10,7 +10,7 @@
  * instead of triangles, that will allow me to use fancy tessellation shaders
  * with bezier interpolation.
  */
-class QuadTerrain final : public Node {
+class DynTerrain final : public Node {
   std::unique_ptr<Program> m_program;
 
   GLuint m_coverTexture;
@@ -23,7 +23,7 @@ class QuadTerrain final : public Node {
   // height of the terrain dynamically in the vertex shader.
   std::vector<glm::vec2> m_vertices;
 
-  QuadTerrain(std::unique_ptr<Program>, GLuint, GLuint, std::vector<glm::vec2>);
+  DynTerrain(std::unique_ptr<Program>, GLuint, GLuint, std::vector<glm::vec2>);
 
   GLuint m_vao;
   // TODO: We could maybe optimize the memory representation of the quads using
@@ -31,8 +31,8 @@ class QuadTerrain final : public Node {
   GLuint m_vbo;
 
 public:
-  virtual ~QuadTerrain();
-  static std::unique_ptr<QuadTerrain> create();
+  virtual ~DynTerrain();
+  static std::unique_ptr<DynTerrain> create();
 
   void drawTerrain(const glm::mat4& viewProjection, const glm::vec3& cameraPos) const;
   void draw(DrawContext&) const override {

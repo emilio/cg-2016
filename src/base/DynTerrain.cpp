@@ -1,4 +1,4 @@
-#include "QuadTerrain.h"
+#include "DynTerrain.h"
 #include "base/Logging.h"
 #include "geometry/DrawContext.h"
 
@@ -32,7 +32,7 @@ std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
   return ret;
 }
 
-QuadTerrain::QuadTerrain(std::unique_ptr<Program> a_program,
+DynTerrain::DynTerrain(std::unique_ptr<Program> a_program,
                          GLuint a_cover, GLuint a_heightmap,
                          std::vector<glm::vec2> a_vertices)
   : m_program(std::move(a_program))
@@ -77,12 +77,12 @@ GLuint textureFromImage(const sf::Image& image) {
   return ret;
 }
 
-std::unique_ptr<QuadTerrain> QuadTerrain::create() {
-  ShaderSet shaders("res/quad-terrain/common.glsl",
-                    "res/quad-terrain/vertex.glsl",
-                    "res/quad-terrain/fragment.glsl");
-  shaders.m_tessellation_control = "res/quad-terrain/tess-control.glsl";
-  shaders.m_tessellation_evaluation = "res/quad-terrain/tess-eval.glsl";
+std::unique_ptr<DynTerrain> DynTerrain::create() {
+  ShaderSet shaders("res/dyn-terrain/common.glsl",
+                    "res/dyn-terrain/vertex.glsl",
+                    "res/dyn-terrain/fragment.glsl");
+  shaders.m_tessellation_control = "res/dyn-terrain/tess-control.glsl";
+  shaders.m_tessellation_evaluation = "res/dyn-terrain/tess-eval.glsl";
 
   auto program = Program::fromShaders(shaders);
   if (!program) {
@@ -105,14 +105,14 @@ std::unique_ptr<QuadTerrain> QuadTerrain::create() {
   GLuint cover = textureFromImage(coverImporter);
   GLuint heightmap = textureFromImage(heightMapImporter);
 
-  auto ret = std::unique_ptr<QuadTerrain>(
-      new QuadTerrain(std::move(program), cover, heightmap, makePlane(100, 100)));
+  auto ret = std::unique_ptr<DynTerrain>(
+      new DynTerrain(std::move(program), cover, heightmap, makePlane(100, 100)));
 
   ret->scale(100);
   return ret;
 }
 
-QuadTerrain::~QuadTerrain() {
+DynTerrain::~DynTerrain() {
   glDeleteTextures(1, &m_coverTexture);
   glDeleteTextures(1, &m_heightmapTexture);
 
@@ -120,7 +120,7 @@ QuadTerrain::~QuadTerrain() {
   glDeleteVertexArrays(1, &m_vao);
 }
 
-void QuadTerrain::drawTerrain(const glm::mat4& viewProjection,
+void DynTerrain::drawTerrain(const glm::mat4& viewProjection,
                               const glm::vec3& cameraPos) const {
   m_program->use();
   glBindVertexArray(m_vao);

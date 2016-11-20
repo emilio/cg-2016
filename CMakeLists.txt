@@ -36,7 +36,7 @@ set(GENERATED_FILES
   res/skybox/vertex.glsl
   res/skybox/common.glsl
   res/skybox/faces
-  res/quad-terrain
+  res/dyn-terrain
   res/models/helicopter
   res/models/Rmk3.obj
   res/models/suzanne.obj
@@ -89,7 +89,7 @@ add_library(base OBJECT
   src/base/Scene.cpp
   src/base/Skybox.cpp
   src/base/Terrain.cpp
-  src/base/QuadTerrain.cpp
+  src/base/DynTerrain.cpp
   src/base/Plane.cpp
   src/base/DebuggingUtils.cpp
   src/base/InputUtils.cpp
