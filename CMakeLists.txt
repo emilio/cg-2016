@@ -87,6 +87,7 @@ add_library(base OBJECT
   src/base/Scene.cpp
   src/base/Skybox.cpp
   src/base/Terrain.cpp
+  src/base/QuadTerrain.cpp
   src/base/Plane.cpp
   src/base/DebuggingUtils.cpp
   src/base/InputUtils.cpp
