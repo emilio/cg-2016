@@ -16,7 +16,6 @@
 #include "tools/Path.h"
 #include <SFML/Graphics.hpp>
 
-
 void Node::draw(DrawContext& context) const {
   if (m_children.empty())
     return;
@@ -90,7 +89,8 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
     for (uint32_t i = 0; i < 1; ++i) {
       AutoGLErrorChecker checker;
       aiTextureMapping mapping;
-      aiReturn ret = ai_material.GetTexture(aiTextureType_DIFFUSE, i, &path, &mapping);
+      aiReturn ret =
+          ai_material.GetTexture(aiTextureType_DIFFUSE, i, &path, &mapping);
       assert(ret == AI_SUCCESS);
 
       if (mapping != aiTextureMapping_UV) {
@@ -100,15 +100,14 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
 
       assert(mesh.mTextureCoords[0]);
       for (uint32_t i = 0; i < vertices.size(); ++i) {
-        vertices[i].m_uv = glm::vec2(mesh.mTextureCoords[0][i].x,
-                                     mesh.mTextureCoords[0][i].y);
+        vertices[i].m_uv =
+            glm::vec2(mesh.mTextureCoords[0][i].x, mesh.mTextureCoords[0][i].y);
       }
 
       Path texturePath(basePath);
       texturePath.push(path.C_Str());
 
       LOG(" - %u: %s", i, texturePath.c_str());
-
 
       sf::Image textureImporter;
       if (!textureImporter.loadFromFile(texturePath.as_str())) {
@@ -121,7 +120,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
       glGenTextures(1, &*texture);
       glBindTexture(GL_TEXTURE_2D, *texture);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA,
-          GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
+                   GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
 
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

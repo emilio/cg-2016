@@ -24,13 +24,14 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
 
   // FIXME: Stop hardcoding, the usual stuff.
   if (!heightMap.loadFromFile("res/terrain/heightmap.png")) {
+    // if (!heightMap.loadFromFile("res/terrain/maribor.png")) {
     ERROR("Error loading heightmap");
     return nullptr;
   }
 
   if (!textureImporter.loadFromFile("res/terrain/cover.png")) {
-     ERROR("Error loading terrain texture");
-     return nullptr;
+    ERROR("Error loading terrain texture");
+    return nullptr;
   }
 
   auto textureSize = textureImporter.getSize();
@@ -42,7 +43,7 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSize.x, textureSize.y, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
+                 GL_RGBA, GL_UNSIGNED_BYTE, textureImporter.getPixelsPtr());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -108,7 +109,6 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
   mat.m_diffuse = glm::vec4(140.0, 96.0, 43.0, 255.0f) / glm::vec4(255.0f);
   mat.m_ambient = glm::vec4(1.0, 1.0, 1.0, 1.0);
   mat.m_shininess_percent = 0.1;
-
 
   auto terrain = std::unique_ptr<Terrain>(
       new Terrain(std::move(vertices), std::move(indices), mat, Some(texture)));

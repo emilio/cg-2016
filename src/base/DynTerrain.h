@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base/Program.h"
+#include "base/Program.h"
 #include "geometry/Node.h"
 #include <memory>
 #include <vector>
@@ -23,6 +24,17 @@ class DynTerrain final : public Node {
   // height of the terrain dynamically in the vertex shader.
   std::vector<glm::vec2> m_vertices;
 
+  struct {
+    GLint uCameraPosition;
+    GLint uViewProjection;
+    GLint uModel;
+    GLint uCover;
+    GLint uHeightMap;
+    GLint uDimension;
+  } m_uniforms;
+
+  void queryUniforms();
+
   DynTerrain(std::unique_ptr<Program>, GLuint, GLuint, std::vector<glm::vec2>);
 
   GLuint m_vao;
@@ -34,7 +46,8 @@ public:
   virtual ~DynTerrain();
   static std::unique_ptr<DynTerrain> create();
 
-  void drawTerrain(const glm::mat4& viewProjection, const glm::vec3& cameraPos) const;
+  void drawTerrain(const glm::mat4& viewProjection,
+                   const glm::vec3& cameraPos) const;
   void draw(DrawContext&) const override {
     assert(false && "not implemented! use drawTerrain instead!");
   }

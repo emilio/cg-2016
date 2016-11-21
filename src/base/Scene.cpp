@@ -59,7 +59,8 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
       m_quadTerrain = DynTerrain::create();
       assert(m_quadTerrain);
       break;
-    case NoTerrain: break;
+    case NoTerrain:
+      break;
   }
 
   LOG("New program: %u", m_mainProgram->id());

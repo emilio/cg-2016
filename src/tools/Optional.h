@@ -80,7 +80,7 @@ public:
   }
 };
 
-template<typename T>
+template <typename T>
 Optional<T> Some(T value) {
   Optional<T> ret;
   ret.set(std::move(value));

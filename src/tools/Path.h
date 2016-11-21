@@ -4,6 +4,7 @@
 
 class Path final {
   std::string m_inner;
+
 public:
 #ifdef OS_WINDOWS
   const char DELIMITER = '\\';

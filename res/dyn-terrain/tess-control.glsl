@@ -4,7 +4,7 @@ layout (vertices = 3) out;
 float chooseTessLevel() {
   // TODO: The extra texture fetch kinda sucks.
   vec3 pos = vec3(gl_in[gl_InvocationID].gl_Position);
-  pos.y = texture2D(uHeightMap, vec2(pos.x, pos.z)).r;
+  pos.y = getHeight(vec2(pos.x, pos.z));
 
   // To world coords.
   pos = vec3(uModel * vec4(pos, 1.0));
