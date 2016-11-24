@@ -37,6 +37,7 @@ set(GENERATED_FILES
   res/skybox/common.glsl
   res/skybox/faces
   res/dyn-terrain
+  res/bezier-terrain
   res/models/helicopter
   res/models/Rmk3.obj
   res/models/suzanne.obj
@@ -90,6 +91,7 @@ add_library(base OBJECT
   src/base/Skybox.cpp
   src/base/Terrain.cpp
   src/base/DynTerrain.cpp
+  src/base/BezierTerrain.cpp
   src/base/Plane.cpp
   src/base/DebuggingUtils.cpp
   src/base/InputUtils.cpp

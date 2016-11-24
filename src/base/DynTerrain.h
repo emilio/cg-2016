@@ -2,16 +2,23 @@
 
 #include "base/Program.h"
 #include "base/Program.h"
+#include "base/ITerrain.h"
 #include "geometry/Node.h"
 #include <memory>
 #include <vector>
+
+namespace sf {
+class Image;
+}
 
 /**
  * This is intended to be an alternative terrain representation using quads
  * instead of triangles, that will allow me to use fancy tessellation shaders
  * with bezier interpolation.
  */
-class DynTerrain final : public Node {
+class DynTerrain final : public Node,
+                         public ITerrain
+{
   std::unique_ptr<Program> m_program;
 
   GLuint m_coverTexture;
@@ -45,9 +52,10 @@ class DynTerrain final : public Node {
 public:
   virtual ~DynTerrain();
   static std::unique_ptr<DynTerrain> create();
+  static GLuint textureFromImage(const sf::Image& image, bool a_mipmaps);
 
-  void drawTerrain(const glm::mat4& viewProjection,
-                   const glm::vec3& cameraPos) const;
+  virtual void drawTerrain(const glm::mat4& viewProjection,
+                           const glm::vec3& cameraPos) const override;
   void draw(DrawContext&) const override {
     assert(false && "not implemented! use drawTerrain instead!");
   }

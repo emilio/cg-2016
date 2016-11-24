@@ -77,7 +77,8 @@ void renderer(std::shared_ptr<sf::Window> window,
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
   // shaders.m_geometry = "res/geometry.glsl";
-  auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
+  // auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
+  auto scene = std::make_shared<Scene>(std::move(shaders), Scene::BezierTerrain);
   *out_scene = scene;
 
   {

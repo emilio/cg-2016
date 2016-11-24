@@ -4,6 +4,7 @@
 #include "base/Skybox.h"
 #include "base/Terrain.h"
 #include "base/DynTerrain.h"
+#include "base/BezierTerrain.h"
 
 #include "geometry/DrawContext.h"
 
@@ -55,9 +56,13 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
         addObject(std::move(terrain));
       break;
     }
+    case BezierTerrain:
+      m_terrain = BezierTerrain::create();
+      assert(m_terrain);
+      break;
     case DynTerrain:
-      m_quadTerrain = DynTerrain::create();
-      assert(m_quadTerrain);
+      m_terrain = DynTerrain::create();
+      assert(m_terrain);
       break;
     case NoTerrain:
       break;
@@ -171,8 +176,8 @@ void Scene::draw() {
 
   glm::mat4 viewProjection = m_projection * m_view;
 
-  if (m_quadTerrain)
-    m_quadTerrain->drawTerrain(viewProjection, m_cameraPosition);
+  if (m_terrain)
+    m_terrain->drawTerrain(viewProjection, m_cameraPosition);
 
   m_mainProgram->use();
 

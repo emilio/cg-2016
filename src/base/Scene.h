@@ -18,7 +18,7 @@ const float CAMERA_DISTANCE = 20.0f;
 
 class AutoSceneLocker;
 class Skybox;
-class DynTerrain;
+class ITerrain;
 
 class SceneUniforms {
   friend class Scene;
@@ -45,6 +45,7 @@ public:
   enum TerrainMode {
     Terrain,
     DynTerrain,
+    BezierTerrain,
     NoTerrain,
   };
 
@@ -60,7 +61,7 @@ private:
   std::vector<std::unique_ptr<Node>> m_objects;
   GLuint m_frameCount;
   std::unique_ptr<Skybox> m_skybox;
-  std::unique_ptr<::DynTerrain> m_quadTerrain;
+  std::unique_ptr<ITerrain> m_terrain;
   SceneUniforms m_uniforms;
   glm::mat4 m_projection;
   glm::mat4 m_view;

@@ -4,6 +4,7 @@ in vec2 fUvFromVertex[];
 out vec2 fUvFromControl[];
 
 float chooseTessLevel() {
+  return 1.0;
   // We always put the object at the origin so it's a bit pointless to
   // transform it, but we could.
   if (length(uCameraPosition) < 2)

@@ -60,7 +60,7 @@ DynTerrain::DynTerrain(std::unique_ptr<Program> a_program,
 }
 
 // FIXME: This should live in a common place to avoid all the duplicated code.
-GLuint textureFromImage(const sf::Image& image, bool a_mipmaps) {
+GLuint DynTerrain::textureFromImage(const sf::Image& image, bool a_mipmaps) {
   GLuint ret;
 
   auto size = image.getSize();
@@ -102,7 +102,7 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
 
   auto program = Program::fromShaders(shaders);
   if (!program) {
-    ERROR("Failed to create quad terrain program");
+    ERROR("Failed to create DynTerrain program");
     return nullptr;
   }
   sf::Image heightMapImporter;
