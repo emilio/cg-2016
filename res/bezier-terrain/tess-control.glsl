@@ -6,8 +6,8 @@ float chooseTessLevel() {
   pos = vec3(uModel * vec4(pos, 1.0));
 
   float d = abs(distance(uCameraPosition, pos));
-  if (d > 40.0)
-    return 2.0;
+  if (d > 50.0)
+    return 1.0;
 
   if (d > 10.0)
     return 4.0;

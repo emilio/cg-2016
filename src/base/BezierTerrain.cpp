@@ -178,7 +178,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
 
   std::vector<glm::vec3> vertices;
   std::vector<GLuint> indices;
-  makePlane<31>(heightMap, vertices, indices);
+  makePlane<139>(heightMap, vertices, indices);
 
   auto terrain = std::unique_ptr<BezierTerrain>(
       new BezierTerrain(std::move(program), coverTexture, vertices, indices));
