@@ -6,6 +6,7 @@
 #include "base/Logging.h"
 #include "base/Program.h"
 #include "base/ErrorChecker.h"
+#include "base/Scene.h"
 #include "glm/gtc/type_ptr.hpp"
 
 
@@ -123,9 +124,12 @@ void BezierTerrain::queryUniforms() {
   QUERY(uModel);
   QUERY(uCover);
   QUERY(uDimension);
+  QUERY(uLodEnabled);
+  QUERY(uLodLevel);
 }
 
-void BezierTerrain::drawTerrain(const glm::mat4& viewProjection,
+void BezierTerrain::drawTerrain(Scene& scene,
+                                const glm::mat4& viewProjection,
                                 const glm::vec3& cameraPos) const {
   m_program->use();
   glBindVertexArray(m_vao);
@@ -137,6 +141,10 @@ void BezierTerrain::drawTerrain(const glm::mat4& viewProjection,
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_coverTexture);
+
+  glUniform1i(m_uniforms.uLodEnabled, scene.dynamicTessellationEnabled());
+  glUniform1f(m_uniforms.uLodLevel, scene.tessLevel());
+
 
   // These should be constant.
   glUniform1i(m_uniforms.uCover, 0);

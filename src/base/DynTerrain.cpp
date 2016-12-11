@@ -152,7 +152,8 @@ void DynTerrain::queryUniforms() {
   QUERY(uDimension);
 }
 
-void DynTerrain::drawTerrain(const glm::mat4& viewProjection,
+void DynTerrain::drawTerrain(Scene&,
+                             const glm::mat4& viewProjection,
                              const glm::vec3& cameraPos) const {
   m_program->use();
   glBindVertexArray(m_vao);

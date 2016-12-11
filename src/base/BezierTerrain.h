@@ -7,6 +7,7 @@
 #include <vector>
 
 class Program;
+class Scene;
 
 class BezierTerrain final : public Node,
                             public ITerrain
@@ -21,6 +22,8 @@ class BezierTerrain final : public Node,
   size_t m_indicesCount;
 
   struct {
+    GLint uLodEnabled;
+    GLint uLodLevel;
     GLint uCameraPosition;
     GLint uViewProjection;
     GLint uModel;
@@ -40,7 +43,7 @@ class BezierTerrain final : public Node,
   void queryUniforms();
 
 public:
-  virtual void drawTerrain(const glm::mat4& viewProjection,
+  virtual void drawTerrain(Scene&, const glm::mat4& viewProjection,
                            const glm::vec3& cameraPos) const override;
   virtual ~BezierTerrain();
 

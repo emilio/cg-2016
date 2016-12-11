@@ -39,11 +39,13 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
   : m_shaderSet(std::move(a_shaderSet))
   , m_frameCount(0)
   , m_skybox(Skybox::create())
+  , m_tessLevel(1)
   , m_shouldPaint(true)
   , m_cameraPosition(0, 0, 5)
   , m_dimensions(SKYBOX_WIDTH, SKYBOX_HEIGHT, SKYBOX_DEPTH)
   , m_locked(true)
-  , m_wireframeMode(false) {
+  , m_wireframeMode(false)
+  , m_lodTessellationEnabled(false) {
   assert(m_skybox);
 
   reloadShaders();
@@ -177,7 +179,7 @@ void Scene::draw() {
   glm::mat4 viewProjection = m_projection * m_view;
 
   if (m_terrain)
-    m_terrain->drawTerrain(viewProjection, m_cameraPosition);
+    m_terrain->drawTerrain(*this, viewProjection, m_cameraPosition);
 
   m_mainProgram->use();
 

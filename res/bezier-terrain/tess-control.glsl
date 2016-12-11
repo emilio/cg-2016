@@ -2,6 +2,9 @@ layout (vertices = 16) out;
 
 // TODO: Be better at this.
 float chooseTessLevel() {
+  if (!uLodEnabled)
+    return uLodLevel;
+
   vec3 pos = vec3(gl_in[gl_InvocationID].gl_Position);
   pos = vec3(uModel * vec4(pos, 1.0));
 

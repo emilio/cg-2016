@@ -9,3 +9,9 @@ uniform vec3 uCameraPosition;
 uniform sampler2D uCover;
 
 uniform float uDimension;
+
+/** Whether dynamic tessellation is enabled */
+uniform bool uLodEnabled;
+
+/** The level of detail hard-coded if uLodEnabled is false. */
+uniform float uLodLevel;

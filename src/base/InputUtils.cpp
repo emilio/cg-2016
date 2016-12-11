@@ -13,5 +13,14 @@ void InputUtils::handleText(Scene& a_scene,
     case 'w':
       a_scene.toggleWireframeMode();
       return;
+    case 'j':
+      a_scene.modifyTessLevel(1);
+      return;
+    case 'k':
+      a_scene.modifyTessLevel(-1);
+      return;
+    case 'p':
+      a_scene.toggleDynamicTessellation();
+      return;
   }
 }

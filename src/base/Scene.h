@@ -68,6 +68,7 @@ private:
   glm::mat4 m_skyboxView;
   Optional<glm::u32vec2> m_pendingResize;
   Optional<PhysicsCallback> m_physicsCallback;
+  int32_t m_tessLevel;
   bool m_shouldPaint;
 
   glm::vec3 m_lightSourcePosition;
@@ -80,6 +81,7 @@ private:
   std::mutex m_lock;
   bool m_locked;
   bool m_wireframeMode;
+  bool m_lodTessellationEnabled;
 
   void assertLocked() {
     assert(m_locked);
@@ -104,6 +106,23 @@ public:
   void draw();
   bool shouldPaint();
   void stopPainting();
+
+  void modifyTessLevel(int32_t howMuch) {
+    m_tessLevel = std::max(1, m_tessLevel + howMuch);
+  }
+
+  uint32_t tessLevel() {
+    assert(m_tessLevel >= 0);
+    return m_tessLevel;
+  }
+
+  bool dynamicTessellationEnabled() {
+    return m_lodTessellationEnabled;
+  }
+
+  void toggleDynamicTessellation() {
+    m_lodTessellationEnabled = !m_lodTessellationEnabled;
+  }
 };
 
 class AutoSceneLocker {
