@@ -207,9 +207,9 @@ void Scene::draw() {
 
     assert(terrainShadowMap);
     // We copy the cached terrain FBO.
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
                       m_shadowMapFramebufferAndTexture->first);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
     glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
                       SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     drawObjects(true);
@@ -272,7 +272,7 @@ void Scene::drawObjects(bool forShadowMap) {
   glUniform3fv(m_uniforms.uAmbientLightColor, 1, glm::value_ptr(ambientColor));
 
   // FIXME: Not hardcode this? Maybe make it depend on the frame, or the time...
-  float ambientStrength = 0.5f;
+  float ambientStrength = 7.0;
   glUniform1f(m_uniforms.uAmbientLightStrength, ambientStrength);
 
   glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
