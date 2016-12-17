@@ -18,7 +18,7 @@ float getShadow() {
   vec2 uv = properCoords.xy / 2.0 + vec2(0.5, 0.5);
   float depth = texture(uShadowMap, uv).r;
   if (depth < gl_FragCoord.z)
-    return 0.5;
+    return 1. - (gl_FragCoord.z - depth) / gl_FragCoord.z;
   return 1.0;
 }
 
