@@ -1,6 +1,7 @@
 layout(quads) in;
 
 out vec2 fUv;
+out vec3 fPosition;
 
 void basisFunctions(out float[4] b, out float[4] db, float t) {
   float t1 = (1.0 - t);
@@ -53,6 +54,7 @@ void main() {
                 p30 * bu[3] * bv[0] + p31 * bu[3] * bv[1] + p32 * bu[3] * bv[2] + p33 * bu[3] * bv[3];
 
   fUv = vec2(gl_Position.x, gl_Position.z);
+  fPosition = vec3(gl_Position);
 
   // vec4 a = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, u);
   // vec4 b = mix(gl_in[12].gl_Position, gl_in[15].gl_Position, u);

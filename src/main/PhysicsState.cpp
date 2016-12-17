@@ -34,15 +34,15 @@ void PhysicsState::tick(Scene& scene) {
   // translation one so the object is in m_planePosition.
   m_plane.computeTransform();
 
-  auto oldCameraPos = scene.m_cameraPosition;
+  auto oldCameraPos = scene.cameraPosition();
   auto targetCameraPos = m_plane.position() -
                          m_plane.optimalCameraDistance() * m_plane.direction();
 
   m_orientation =
       glm::slerp(m_orientation, m_plane.orientation(), INTERPOLATION_FACTOR);
 
-  scene.m_cameraPosition =
-      interpolateVectors(oldCameraPos, targetCameraPos, INTERPOLATION_FACTOR);
+  scene.setCameraPosition(
+      interpolateVectors(oldCameraPos, targetCameraPos, INTERPOLATION_FACTOR));
 
   scene.recomputeView(newPlanePos, normal());
 

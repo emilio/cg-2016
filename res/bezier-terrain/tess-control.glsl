@@ -1,7 +1,12 @@
 layout (vertices = 16) out;
 
+#define MAX_TESS_LEVEL 7.0
+
 // TODO: Be better at this.
 float chooseTessLevel() {
+  if (uDrawingForShadowMap)
+    return MAX_TESS_LEVEL;
+
   if (!uLodEnabled)
     return uLodLevel;
 
@@ -15,7 +20,7 @@ float chooseTessLevel() {
   if (d > 10.0)
     return 4.0;
 
-  return 7.0;
+  return MAX_TESS_LEVEL;
 }
 
 void main() {

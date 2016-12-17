@@ -12,6 +12,9 @@ uniform bool uUsesTexture;
 /** The texture for UV mapping */
 uniform sampler2D uTexture;
 
+/** The shadow map */
+uniform sampler2D uShadowMap;
+
 /** The model material */
 struct Material {
   vec4 m_diffuse;
@@ -48,3 +51,9 @@ uniform vec3 uLightSourceColor;
 
 /** The camera position, in world space */
 uniform vec3 uCameraPosition;
+
+/** Whether we're doing a shadow map pass */
+uniform bool uDrawingForShadowMap;
+
+/** The matrix to transform to light space */
+uniform mat4 uShadowMapViewProjection;

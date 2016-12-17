@@ -29,9 +29,6 @@ set(GENERATED_FILES
   res/vertex.glsl
   res/fragment.glsl
   res/common.glsl
-  res/tess-control.glsl
-  res/tess-eval.glsl
-  res/geometry.glsl
   res/skybox/fragment.glsl
   res/skybox/vertex.glsl
   res/skybox/common.glsl

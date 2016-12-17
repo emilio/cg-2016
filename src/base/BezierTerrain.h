@@ -28,12 +28,18 @@ class BezierTerrain final : public Node,
     GLint uViewProjection;
     GLint uModel;
     GLint uCover;
+    GLint uShadowMap;
     GLint uDimension;
+    GLint uDrawingForShadowMap;
+    GLint uShadowMapViewProjection;
   } m_uniforms;
 
   GLuint m_vao;
   GLuint m_ebo;
   GLuint m_vbo;
+
+  GLuint m_shadowMapFB;
+  GLuint m_shadowMapTexture;
 
   BezierTerrain(std::unique_ptr<Program>,
                 GLuint,
@@ -43,11 +49,16 @@ class BezierTerrain final : public Node,
   void queryUniforms();
 
 public:
-  virtual void drawTerrain(Scene&, const glm::mat4& viewProjection,
-                           const glm::vec3& cameraPos) const override;
+  virtual void drawTerrain(const Scene&) const override;
+  void drawTerrainInternal(const Scene&, const glm::mat4& viewProjection, const
+                           glm::vec3& cameraPos, bool forShadowMap) const;
+
   virtual ~BezierTerrain();
 
   static std::unique_ptr<BezierTerrain> create();
+
+  virtual void recomputeShadowMap(const Scene&) override;
+  virtual Optional<GLuint> shadowMapFBO() const override;
 
   virtual void draw(DrawContext&) const override {
     assert(false && "call drawTerrain instead!");
