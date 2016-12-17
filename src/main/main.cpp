@@ -76,7 +76,6 @@ void renderer(std::shared_ptr<sf::Window> window,
   // glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
-  // shaders.m_geometry = "res/geometry.glsl";
   // auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
   auto scene = std::make_shared<Scene>(std::move(shaders), Scene::BezierTerrain);
   *out_scene = scene;
@@ -85,7 +84,7 @@ void renderer(std::shared_ptr<sf::Window> window,
     AutoSceneLocker lock(*scene);
 
     auto size = window->getSize();
-    scene->setupProjection(size.x, size.y);
+    scene->resize(size.x, size.y);
 
     auto plane = Plane::create();
     // plane->setColor(glm::vec3(0.0, 1.0, 0.0));

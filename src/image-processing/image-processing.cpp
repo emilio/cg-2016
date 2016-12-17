@@ -38,12 +38,13 @@ void handleKey(Scene& a_scene,
 
       // Get closer in the direction to the origin.
       glm::vec3 direction =
-          glm::normalize(a_scene.m_cameraPosition - glm::vec3(0, 0, 0));
+          glm::normalize(a_scene.cameraPosition() - glm::vec3(0, 0, 0));
 
       if (glm::any(glm::isnan(direction)))
         direction = glm::vec3(0.f, 0.f, 1.0);
 
-      a_scene.m_cameraPosition += multiplier * direction * 0.5f;
+      a_scene.setCameraPosition(
+          a_scene.cameraPosition() + multiplier * direction * 0.5f);
       break;
     }
     case sf::Keyboard::Left:
@@ -52,7 +53,7 @@ void handleKey(Scene& a_scene,
       // FIXME: This is probably slow-ish, and pretty crappy, but...
       glm::mat4 mat =
           glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, Y_AXIS);
-      a_scene.m_cameraPosition = mat * glm::vec4(a_scene.m_cameraPosition, 1.0);
+      a_scene.setCameraPosition(mat * glm::vec4(a_scene.cameraPosition(), 1.0));
 
       break;
     }
@@ -88,7 +89,7 @@ void renderer(std::shared_ptr<sf::Window> window,
     AutoSceneLocker lock(*scene);
 
     auto size = window->getSize();
-    scene->setupProjection(size.x, size.y);
+    scene->resize(size.x, size.y);
     scene->setLightSourcePosition(glm::vec3(0.0f, 10.0f, 5.0f));
 
     // auto suzanne = Mesh::fromFile("res/models/AirbusA310.obj");

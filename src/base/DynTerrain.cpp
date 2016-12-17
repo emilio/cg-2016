@@ -1,5 +1,6 @@
 #include "DynTerrain.h"
 #include "base/Logging.h"
+#include "base/Scene.h"
 #include "base/Terrain.h"
 #include "geometry/DrawContext.h"
 
@@ -79,13 +80,15 @@ GLuint DynTerrain::textureFromImage(const sf::Image& image, bool a_mipmaps) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   if (a_mipmaps) {
+    AutoGLErrorChecker checker;
+
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1.0f);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     float maxAnisotropy;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
     float val = std::max(4.0f, maxAnisotropy);
-    glTexParameterf(GL_TEXTURE_2D, GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, val);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, val);
   }
 
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -152,12 +155,13 @@ void DynTerrain::queryUniforms() {
   QUERY(uDimension);
 }
 
-void DynTerrain::drawTerrain(Scene&,
-                             const glm::mat4& viewProjection,
-                             const glm::vec3& cameraPos) const {
+void DynTerrain::drawTerrain(const Scene& scene) const {
   m_program->use();
   glBindVertexArray(m_vao);
-  glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
+
+  glm::mat4 viewProjection = scene.viewProjection();
+  glUniform3fv(m_uniforms.uCameraPosition, 1,
+               glm::value_ptr(scene.cameraPosition()));
   glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
                      glm::value_ptr(viewProjection));
   glUniformMatrix4fv(m_uniforms.uModel, 1, GL_FALSE,

@@ -54,9 +54,7 @@ public:
   static std::unique_ptr<DynTerrain> create();
   static GLuint textureFromImage(const sf::Image& image, bool a_mipmaps);
 
-  virtual void drawTerrain(Scene&,
-                           const glm::mat4& viewProjection,
-                           const glm::vec3& cameraPos) const override;
+  virtual void drawTerrain(const Scene&) const override;
   void draw(DrawContext&) const override {
     assert(false && "not implemented! use drawTerrain instead!");
   }

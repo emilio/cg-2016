@@ -62,6 +62,14 @@ public:
     return value();
   }
 
+  T* operator->() {
+    return &value();
+  }
+
+  const T* operator->() const {
+    return &value();
+  }
+
   template <typename... Args>
   void set(Args&&... aArgs) {
     m_isSome = true;
