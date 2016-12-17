@@ -9,7 +9,7 @@ class Scene;
 class ITerrain {
 public:
   virtual void drawTerrain(const Scene&) const = 0;
-  virtual void recomputeShadowMap(const Scene&) {};
+  virtual void recomputeShadowMap(const Scene&){};
   /**
    * The contract with this function is that the FBO is immutable and only used
    * for reading.

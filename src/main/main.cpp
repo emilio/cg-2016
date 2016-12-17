@@ -71,13 +71,15 @@ void renderer(std::shared_ptr<sf::Window> window,
   // Basic debugging setup.
   DebuggingUtils::dumpRenderingInfo();
 
+  glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-  // glEnable(GL_CULL_FACE);
 
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
-  // auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
-  auto scene = std::make_shared<Scene>(std::move(shaders), Scene::BezierTerrain);
+  // auto scene = std::make_shared<Scene>(std::move(shaders),
+  // Scene::DynTerrain);
+  auto scene =
+      std::make_shared<Scene>(std::move(shaders), Scene::BezierTerrain);
   *out_scene = scene;
 
   {
@@ -165,7 +167,7 @@ int main(int, char**) {
   {
     AutoSceneLocker lock(*scene);
     scene->setPhysicsCallback([&](Scene& scene) { physicsState.tick(scene); });
-    scene->setLightSourcePosition(glm::vec3(10.0f, 10.0f, 10.0f));
+    scene->setLightSourcePosition(glm::vec3(10.0f, 40.0f, 10.0f));
   }
 
   bool shouldClose = false;

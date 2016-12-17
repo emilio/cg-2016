@@ -1,7 +1,9 @@
 layout(quads) in;
 
+#if !defined(FOR_SHADOW_MAP)
 out vec2 fUv;
-out vec3 fPosition;
+out vec4 fPosition;
+#endif
 
 void basisFunctions(out float[4] b, out float[4] db, float t) {
   float t1 = (1.0 - t);
@@ -44,7 +46,7 @@ void main() {
   vec4 p33 = gl_in[15].gl_Position;
 
   float bu[4], bv[4]; // Basis functions for u and v
-  float dbu[4], dbv[4]; // Derivitives for u and v
+  float dbu[4], dbv[4]; // Derivatives for u and v
   basisFunctions(bu, dbu, u);
   basisFunctions(bv, dbv, v);
 
@@ -53,12 +55,11 @@ void main() {
                 p20 * bu[2] * bv[0] + p21 * bu[2] * bv[1] + p22 * bu[2] * bv[2] + p23 * bu[2] * bv[3] +
                 p30 * bu[3] * bv[0] + p31 * bu[3] * bv[1] + p32 * bu[3] * bv[2] + p33 * bu[3] * bv[3];
 
+#if defined(FOR_SHADOW_MAP)
+  gl_Position = uShadowMapViewProjection * uModel * gl_Position;
+#else
   fUv = vec2(gl_Position.x, gl_Position.z);
-  fPosition = vec3(gl_Position);
-
-  // vec4 a = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, u);
-  // vec4 b = mix(gl_in[12].gl_Position, gl_in[15].gl_Position, u);
-  // gl_Position = mix(a, b, v);
-
+  fPosition = gl_Position;
   gl_Position = uViewProjection * uModel * gl_Position;
+#endif
 }

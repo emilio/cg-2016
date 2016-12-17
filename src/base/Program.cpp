@@ -7,23 +7,32 @@
 
 static bool createShaderFromSource(ShaderKind a_kind,
                                    const char* a_source,
-                                   const std::string& a_prefix,
+                                   const std::string& a_version,
+                                   const std::string& a_raw_prefix,
+                                   const std::string& a_prefix_from_file,
                                    GLuint& a_shader) {
   AutoGLErrorChecker checker;
 
   assert(a_source);
 
-  LOG("Shader: %s, %s, %s",
-      a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment", a_prefix.c_str(),
-      a_source);
+  LOG("Shader: %s, #version %s\n%s, %s, %s",
+      a_kind == ShaderKind::Vertex ? "Vertex" : "Fragment", a_version.c_str(),
+      a_raw_prefix.c_str(), a_prefix_from_file.c_str(), a_source);
 
   a_shader = glCreateShader(GLenum(a_kind));
-  if (a_prefix.empty()) {
-    glShaderSource(a_shader, 1, &a_source, nullptr);
-  } else {
-    const char* sources[] = {a_prefix.c_str(), a_source};
-    glShaderSource(a_shader, 2, sources, nullptr);
-  }
+
+  const char* sources[7] = {nullptr};
+  size_t size = 0;
+  sources[size++] = "#version ";
+  sources[size++] = a_version.c_str();
+  sources[size++] = "\n";
+  if (!a_raw_prefix.empty())
+    sources[size++] = a_raw_prefix.c_str();
+  if (!a_prefix_from_file.empty())
+    sources[size++] = a_prefix_from_file.c_str();
+  sources[size++] = a_source;
+
+  glShaderSource(a_shader, size, sources, nullptr);
   glCompileShader(a_shader);
 
   GLint success;
@@ -49,14 +58,17 @@ static bool createShaderFromSource(ShaderKind a_kind,
 
 static bool createShaderOfKind(ShaderKind a_kind,
                                const std::string& a_from,
-                               const std::string& a_prefix,
+                               const std::string& a_version,
+                               const std::string& a_raw_prefix,
+                               const std::string& a_prefix_from_file,
                                GLuint& a_shader) {
   std::stringstream buff;
   std::ifstream stream(a_from);
   buff << stream.rdbuf();
 
   std::string string = buff.str();
-  return createShaderFromSource(a_kind, string.c_str(), a_prefix, a_shader);
+  return createShaderFromSource(a_kind, string.c_str(), a_version, a_raw_prefix,
+                                a_prefix_from_file, a_shader);
 }
 
 /* static */ std::unique_ptr<Program> Program::fromShaders(
@@ -70,6 +82,7 @@ static bool createShaderOfKind(ShaderKind a_kind,
   if (a_shaderSet.m_vertex.empty() || a_shaderSet.m_fragment.empty())
     return nullptr;
 
+  std::string raw_prefix = a_shaderSet.m_raw_prefix;
   std::string prefix;
   std::stringstream prefixBuff;
   if (!a_shaderSet.m_commonHeader.empty()) {
@@ -80,21 +93,23 @@ static bool createShaderOfKind(ShaderKind a_kind,
 
   // We add a few defines to allow knowing which kind of pipeline we're using.
   if (!a_shaderSet.m_geometry.empty())
-    prefix += "#define HAS_GEOMETRY_SHADER\n";
+    raw_prefix += "#define HAS_GEOMETRY_SHADER\n";
 
   if (!a_shaderSet.m_tessellation_control.empty())
-    prefix += "#define HAS_TESS_CONTROL_SHADER\n";
+    raw_prefix += "#define HAS_TESS_CONTROL_SHADER\n";
 
   if (!a_shaderSet.m_tessellation_evaluation.empty())
-    prefix += "#define HAS_TESS_EVAL_SHADER\n";
+    raw_prefix += "#define HAS_TESS_EVAL_SHADER\n";
 
-  if (!createShaderOfKind(ShaderKind::Vertex, a_shaderSet.m_vertex, prefix,
+  if (!createShaderOfKind(ShaderKind::Vertex, a_shaderSet.m_vertex,
+                          a_shaderSet.m_version, raw_prefix, prefix,
                           vertexShaderId)) {
     ERROR("Shader compilation failed: %s", a_shaderSet.m_vertex.c_str());
     return nullptr;
   }
 
-  if (!createShaderOfKind(ShaderKind::Fragment, a_shaderSet.m_fragment, prefix,
+  if (!createShaderOfKind(ShaderKind::Fragment, a_shaderSet.m_fragment,
+                          a_shaderSet.m_version, raw_prefix, prefix,
                           fragmentShaderId)) {
     ERROR("Shader compilation failed: %s", a_shaderSet.m_fragment.c_str());
     return nullptr;
@@ -103,7 +118,8 @@ static bool createShaderOfKind(ShaderKind a_kind,
 #define OPTIONAL_SHADER(kind_, member_, var_)                                  \
   do {                                                                         \
     if (!a_shaderSet.member_.empty()) {                                        \
-      if (!createShaderOfKind(ShaderKind::kind_, a_shaderSet.member_, prefix,  \
+      if (!createShaderOfKind(ShaderKind::kind_, a_shaderSet.member_,          \
+                              a_shaderSet.m_version, raw_prefix, prefix,       \
                               potentialOptionalShaderId)) {                    \
         ERROR(#kind_ " shader compilation failed: %s",                         \
               a_shaderSet.member_.c_str());                                    \
@@ -157,8 +173,9 @@ static bool createShaderOfKind(ShaderKind a_kind,
   LOG("Program status: link: %d, validate: %d", linkSuccess, validateSuccess);
 
   if (!linkSuccess || !validateSuccess) {
-    fprintf(stderr, linkSuccess ? "Program validation failed\n"
-                                : "Program failed to link\n");
+    fprintf(stderr,
+            linkSuccess ? "Program validation failed\n"
+                        : "Program failed to link\n");
     GLint logSize;
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logSize);
     assert(logSize >= 0);

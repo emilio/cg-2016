@@ -1,8 +1,10 @@
-#version 400
+uniform mat4 uModel;
+uniform mat4 uShadowMapViewProjection;
 
+#if !defined(FOR_SHADOW_MAP)
 /** Same meaning as the ones in ../common.glsl. */
 uniform mat4 uViewProjection;
-uniform mat4 uModel;
+
 uniform vec3 uCameraPosition;
 
 /** The texture for UV mapping */
@@ -18,12 +20,4 @@ uniform bool uLodEnabled;
 
 /** The level of detail hard-coded if uLodEnabled is false. */
 uniform float uLodLevel;
-
-/** Whether we're doing a shadow map pass */
-uniform bool uDrawingForShadowMap;
-
-/**
- * The transformation to convert to light space, that should only be used when
- * _not_ rendering to a shadow map.
- */
-uniform mat4 uShadowMapViewProjection;
+#endif

@@ -9,7 +9,6 @@
 #include "base/Scene.h"
 #include "glm/gtc/type_ptr.hpp"
 
-
 #include <SFML/Graphics.hpp>
 
 static inline float mapToHeight(uint8_t byte) {
@@ -73,13 +72,14 @@ static void makePlane(const sf::Image& heightMap,
 }
 
 BezierTerrain::BezierTerrain(std::unique_ptr<Program> program,
+                             std::unique_ptr<Program> programForShadowMap,
                              GLuint texture,
                              const std::vector<glm::vec3>& vertices,
                              const std::vector<GLuint>& indices)
   : m_program(std::move(program))
+  , m_programForShadowMap(std::move(programForShadowMap))
   , m_coverTexture(texture)
-  , m_indicesCount(indices.size())
-{
+  , m_indicesCount(indices.size()) {
   AutoGLErrorChecker checker;
 
   glGenVertexArrays(1, &m_vao);
@@ -104,8 +104,8 @@ BezierTerrain::BezierTerrain(std::unique_ptr<Program> program,
 
   // Create the proper depth map and attach it to our shadowmap framebuffer.
   glBindTexture(GL_TEXTURE_2D, m_shadowMapTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-               SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
+               SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -115,7 +115,8 @@ BezierTerrain::BezierTerrain(std::unique_ptr<Program> program,
   glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFB);
   glReadBuffer(GL_NONE);
   glDrawBuffer(GL_NONE);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMapTexture, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         m_shadowMapTexture, 0);
 
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -134,64 +135,80 @@ BezierTerrain::~BezierTerrain() {
   glDeleteBuffers(1, &m_ebo);
 }
 
-void BezierTerrain::queryUniforms() {
 #define QUERY(u)                                                               \
   do {                                                                         \
-    m_uniforms.u = glGetUniformLocation(m_program->id(), #u);                  \
-    /* assert(m_uniforms.u != -1); */                                                \
+    u = glGetUniformLocation(program.id(), #u);                                \
+    /* assert(u != -1); */                                                     \
   } while (0)
 
-  QUERY(uCameraPosition);
-  QUERY(uViewProjection);
+void BezierTerrainUniformsForShadowMap::query(const Program& program) {
   QUERY(uModel);
+  QUERY(uShadowMapViewProjection);
+}
+
+void BezierTerrainUniforms::query(const Program& program) {
+  BezierTerrainUniformsForShadowMap::query(program);
+  QUERY(uCameraPosition);
+  QUERY(uLodLevel);
+  QUERY(uViewProjection);
   QUERY(uCover);
   QUERY(uShadowMap);
   QUERY(uDimension);
   QUERY(uLodEnabled);
-  QUERY(uLodLevel);
-  QUERY(uDrawingForShadowMap);
-  QUERY(uShadowMapViewProjection);
+}
+
+void BezierTerrain::queryUniforms() {
+  m_uniformsForShadowMap.query(*m_programForShadowMap);
+  m_uniforms.query(*m_program);
 }
 
 void BezierTerrain::drawTerrain(const Scene& scene) const {
   assert(scene.shadowMap());
-  drawTerrainInternal(scene, scene.viewProjection(), scene.cameraPosition(), false);
+  drawTerrainInternal(scene, false);
 }
 
 void BezierTerrain::drawTerrainInternal(const Scene& scene,
-                                        const glm::mat4& viewProjection,
-                                        const glm::vec3& cameraPos,
                                         bool forShadowMap) const {
   AutoGLErrorChecker checker;
-  m_program->use();
-  glBindVertexArray(m_vao);
-  glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
-  glUniform1i(m_uniforms.uDrawingForShadowMap, forShadowMap);
-  glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
-                     glm::value_ptr(viewProjection));
-  glUniformMatrix4fv(m_uniforms.uModel, 1, GL_FALSE,
-                     glm::value_ptr(transform()));
+  glCullFace(forShadowMap ? GL_BACK : GL_FRONT);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_coverTexture);
+  Program& applicableProgram =
+      forShadowMap ? *m_programForShadowMap : *m_program;
+  const BezierTerrainUniformsForShadowMap& applicableUniforms =
+      forShadowMap ? m_uniformsForShadowMap : m_uniforms;
+
+  applicableProgram.use();
+  glBindVertexArray(m_vao);
+  glUniformMatrix4fv(applicableUniforms.uModel, 1, GL_FALSE,
+                     glm::value_ptr(transform()));
+  glUniformMatrix4fv(applicableUniforms.uShadowMapViewProjection, 1, GL_FALSE,
+                     glm::value_ptr(scene.shadowMapViewProjection()));
+
   if (!forShadowMap) {
+    const glm::vec3& cameraPos = scene.cameraPosition();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_coverTexture);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, *scene.shadowMap());
-    glUniformMatrix4fv(m_uniforms.uShadowMapViewProjection, 1, GL_FALSE,
-        glm::value_ptr(scene.shadowMapViewProjection()));
+    glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
+                       glm::value_ptr(scene.viewProjection()));
+
+    glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
+    glUniform1i(m_uniforms.uLodEnabled, scene.dynamicTessellationEnabled());
+    glUniform1f(m_uniforms.uLodLevel, scene.tessLevel());
+
+    // These should be constant.
+    glUniform1i(m_uniforms.uCover, 0);
+    glUniform1i(m_uniforms.uShadowMap, 1);
+    glUniform1f(m_uniforms.uDimension, TERRAIN_DIMENSIONS);
   }
-
-  glUniform1i(m_uniforms.uLodEnabled, scene.dynamicTessellationEnabled());
-  glUniform1f(m_uniforms.uLodLevel, scene.tessLevel());
-
-  // These should be constant.
-  glUniform1i(m_uniforms.uCover, 0);
-  glUniform1i(m_uniforms.uShadowMap, 1);
-  glUniform1f(m_uniforms.uDimension, TERRAIN_DIMENSIONS);
 
   glPatchParameteri(GL_PATCH_VERTICES, 16);
   glDrawElements(GL_PATCHES, m_indicesCount, GL_UNSIGNED_INT, nullptr);
 
+  glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
 }
@@ -205,6 +222,13 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
 
   auto program = Program::fromShaders(shaders);
   if (!program) {
+    ERROR("Failed to create quad BezierTerrain program");
+    return nullptr;
+  }
+
+  shaders.m_raw_prefix = "#define FOR_SHADOW_MAP\n";
+  auto shadowMapProgram = Program::fromShaders(shaders);
+  if (!shadowMapProgram) {
     ERROR("Failed to create quad BezierTerrain program");
     return nullptr;
   }
@@ -228,7 +252,8 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
   makePlane<139>(heightMap, vertices, indices);
 
   auto terrain = std::unique_ptr<BezierTerrain>(
-      new BezierTerrain(std::move(program), coverTexture, vertices, indices));
+      new BezierTerrain(std::move(program), std::move(shadowMapProgram),
+                        coverTexture, vertices, indices));
 
   terrain->scale(TERRAIN_DIMENSIONS);
 
@@ -242,8 +267,7 @@ void BezierTerrain::recomputeShadowMap(const Scene& scene) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFB);
   glClear(GL_DEPTH_BUFFER_BIT);
 
-  drawTerrainInternal(scene,
-      scene.shadowMapViewProjection(), scene.lightSourcePosition(), true);
+  drawTerrainInternal(scene, true);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

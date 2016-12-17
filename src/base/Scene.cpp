@@ -78,9 +78,8 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
     glGenFramebuffers(1, &m_shadowMapFramebufferAndTexture->first);
     glGenTextures(1, &m_shadowMapFramebufferAndTexture->second);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapFramebufferAndTexture->second);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
-                 nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
+                 SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -90,10 +89,8 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
     glReadBuffer(GL_NONE);
     glDrawBuffer(GL_NONE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-        m_shadowMapFramebufferAndTexture->second, 0);
-    assert(
-        glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-        GL_FRAMEBUFFER_COMPLETE);
+                           m_shadowMapFramebufferAndTexture->second, 0);
+    assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -121,6 +118,11 @@ void Scene::setupUniforms() {
 
 void Scene::setLightSourcePosition(const glm::vec3& position) {
   m_lightSourcePosition = position;
+
+  m_shadowMapView =
+      glm::lookAt(m_lightSourcePosition, glm::vec3(0.0, 0.0, 0.0), Y_AXIS);
+  if (m_terrain)
+    m_terrain->recomputeShadowMap(*this);
 }
 
 void Scene::addObject(std::unique_ptr<Node>&& a_object) {
@@ -135,8 +137,6 @@ void Scene::recomputeView() {
 void Scene::recomputeView(const glm::vec3& lookingAt, const glm::vec3& up) {
   assertLocked();
   m_view = glm::lookAt(m_cameraPosition, lookingAt, up);
-
-  m_shadowMapView = glm::lookAt(m_lightSourcePosition, glm::vec3(0.0, 0.0, 0.0), Y_AXIS);
   // NB: The view projection matrix from the skybox doesn't contain the camera
   // translation.
   m_skyboxView =
@@ -161,8 +161,8 @@ void Scene::setupProjection(float width, float height) {
   assertLocked();
   m_projection = glm::perspective(FIELD_OF_VIEW, aspectRatio, NEAR, FAR);
   const float SHADOW_PROJ = TERRAIN_DIMENSIONS / 2;
-  m_shadowMapProjection = glm::ortho<float>(-SHADOW_PROJ, SHADOW_PROJ,
-      -SHADOW_PROJ, SHADOW_PROJ, NEAR, FAR);
+  m_shadowMapProjection = glm::ortho<float>(
+      -SHADOW_PROJ, SHADOW_PROJ, -SHADOW_PROJ, SHADOW_PROJ, NEAR, FAR);
 }
 
 void Scene::reloadShaders() {
@@ -202,16 +202,16 @@ void Scene::draw() {
   }
 
   if (m_shadowMapFramebufferAndTexture) {
-    Optional<GLuint> terrainShadowMap = m_terrain ?
-      m_terrain->shadowMapFBO() : None;
+    Optional<GLuint> terrainShadowMap =
+        m_terrain ? m_terrain->shadowMapFBO() : None;
 
     assert(terrainShadowMap);
     // We copy the cached terrain FBO.
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_shadowMapFramebufferAndTexture->first);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                      m_shadowMapFramebufferAndTexture->first);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
-    glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT,
-                      0, 0, SHADOW_WIDTH, SHADOW_HEIGHT,
-                      GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
+                      SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     drawObjects(true);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
@@ -244,11 +244,12 @@ void Scene::draw() {
 }
 
 void Scene::drawObjects(bool forShadowMap) {
-  glm::mat4 viewProjection = forShadowMap ?
-    shadowMapViewProjection() : this->viewProjection();
-  const glm::vec3& cameraPos = forShadowMap ?
-    lightSourcePosition() : cameraPosition();
+  glm::mat4 viewProjection =
+      forShadowMap ? shadowMapViewProjection() : this->viewProjection();
+  const glm::vec3& cameraPos =
+      forShadowMap ? lightSourcePosition() : cameraPosition();
 
+  glCullFace(forShadowMap ? GL_FRONT : GL_BACK);
 
   m_mainProgram->use();
 
@@ -262,7 +263,7 @@ void Scene::drawObjects(bool forShadowMap) {
                      glm::value_ptr(viewProjection));
 
   glUniform3fv(m_uniforms.uLightSourcePosition, 1,
-               glm::value_ptr(m_lightSourcePosition));
+               glm::value_ptr(lightSourcePosition()));
 
   glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
   glUniform3fv(m_uniforms.uLightSourceColor, 1, glm::value_ptr(lightColor));
@@ -279,7 +280,7 @@ void Scene::drawObjects(bool forShadowMap) {
   // Use slot number 1 for the shadow map.
   if (!forShadowMap && m_shadowMapFramebufferAndTexture) {
     glUniformMatrix4fv(m_uniforms.uShadowMapViewProjection, 1, GL_FALSE,
-        glm::value_ptr(shadowMapViewProjection()));
+                       glm::value_ptr(shadowMapViewProjection()));
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapFramebufferAndTexture->second);
   }
