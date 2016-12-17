@@ -7,6 +7,8 @@
 #include "tools/Optional.h"
 
 struct ShaderSet {
+  std::string m_version;
+  std::string m_raw_prefix;
   std::string m_commonHeader;
   std::string m_vertex;
   std::string m_fragment;
@@ -18,7 +20,8 @@ struct ShaderSet {
             std::string a_vertex,
             std::string a_fragment,
             std::string a_geometry)
-    : m_commonHeader(std::move(a_common))
+    : m_version("400")
+    , m_commonHeader(std::move(a_common))
     , m_vertex(std::move(a_vertex))
     , m_fragment(std::move(a_fragment))
     , m_geometry(std::move(a_geometry)) {}

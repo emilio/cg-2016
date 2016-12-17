@@ -43,8 +43,8 @@ void handleKey(Scene& a_scene,
       if (glm::any(glm::isnan(direction)))
         direction = glm::vec3(0.f, 0.f, 1.0);
 
-      a_scene.setCameraPosition(
-          a_scene.cameraPosition() + multiplier * direction * 0.5f);
+      a_scene.setCameraPosition(a_scene.cameraPosition() +
+                                multiplier * direction * 0.5f);
       break;
     }
     case sf::Keyboard::Left:

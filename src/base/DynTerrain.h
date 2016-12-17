@@ -16,9 +16,7 @@ class Image;
  * instead of triangles, that will allow me to use fancy tessellation shaders
  * with bezier interpolation.
  */
-class DynTerrain final : public Node,
-                         public ITerrain
-{
+class DynTerrain final : public Node, public ITerrain {
   std::unique_ptr<Program> m_program;
 
   GLuint m_coverTexture;

@@ -9,10 +9,31 @@
 class Program;
 class Scene;
 
-class BezierTerrain final : public Node,
-                            public ITerrain
-{
+struct BezierTerrainUniformsForShadowMap {
+  GLint uModel;
+  GLint uShadowMapViewProjection;
+
+  void query(const Program&);
+};
+
+struct BezierTerrainUniforms : public BezierTerrainUniformsForShadowMap {
+  GLint uCameraPosition;
+  GLint uLodEnabled;
+  GLint uLodLevel;
+  GLint uCover;
+  GLint uShadowMap;
+  GLint uDimension;
+  GLint uViewProjection;
+
+  void query(const Program&);
+  void update(const Scene&) const;
+};
+
+class BezierTerrain final : public Node, public ITerrain {
   std::unique_ptr<Program> m_program;
+  BezierTerrainUniforms m_uniforms;
+  std::unique_ptr<Program> m_programForShadowMap;
+  BezierTerrainUniformsForShadowMap m_uniformsForShadowMap;
 
   GLuint m_coverTexture;
 
@@ -20,19 +41,6 @@ class BezierTerrain final : public Node,
   // std::vector<glm::vec3> m_vertices;
   // std::vector<GLuint> m_indices;
   size_t m_indicesCount;
-
-  struct {
-    GLint uLodEnabled;
-    GLint uLodLevel;
-    GLint uCameraPosition;
-    GLint uViewProjection;
-    GLint uModel;
-    GLint uCover;
-    GLint uShadowMap;
-    GLint uDimension;
-    GLint uDrawingForShadowMap;
-    GLint uShadowMapViewProjection;
-  } m_uniforms;
 
   GLuint m_vao;
   GLuint m_ebo;
@@ -42,6 +50,7 @@ class BezierTerrain final : public Node,
   GLuint m_shadowMapTexture;
 
   BezierTerrain(std::unique_ptr<Program>,
+                std::unique_ptr<Program>,
                 GLuint,
                 const std::vector<glm::vec3>&,
                 const std::vector<GLuint>&);
@@ -50,8 +59,7 @@ class BezierTerrain final : public Node,
 
 public:
   virtual void drawTerrain(const Scene&) const override;
-  void drawTerrainInternal(const Scene&, const glm::mat4& viewProjection, const
-                           glm::vec3& cameraPos, bool forShadowMap) const;
+  void drawTerrainInternal(const Scene&, bool forShadowMap) const;
 
   virtual ~BezierTerrain();
 

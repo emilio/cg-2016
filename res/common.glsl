@@ -1,5 +1,3 @@
-#version 400
-
 /** The view-projection transform to use. */
 uniform mat4 uViewProjection;
 

@@ -1,5 +1,3 @@
-#version 400
-
 /** Same meaning as the ones in ../common.glsl. */
 uniform mat4 uViewProjection;
 uniform mat4 uModel;

@@ -115,8 +115,9 @@ public:
   }
 
   Optional<GLuint> shadowMap() const {
-    return m_shadowMapFramebufferAndTexture ?
-      Some(m_shadowMapFramebufferAndTexture->second) : None;
+    return m_shadowMapFramebufferAndTexture
+               ? Some(m_shadowMapFramebufferAndTexture->second)
+               : None;
   }
 
   const glm::mat4& projectionMatrix() const {
