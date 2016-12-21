@@ -20,12 +20,12 @@ std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
   // TODO: Could we send quads and just split those?
   for (size_t x = 0; x < width; ++x) {
     for (size_t y = 0; y < height; ++y) {
+      ret.push_back(AT(x, y + 1));
+      ret.push_back(AT(x + 1, y));
       ret.push_back(AT(x, y));
-      ret.push_back(AT(x + 1, y));
-      ret.push_back(AT(x, y + 1));
-      ret.push_back(AT(x + 1, y));
-      ret.push_back(AT(x, y + 1));
       ret.push_back(AT(x + 1, y + 1));
+      ret.push_back(AT(x + 1, y));
+      ret.push_back(AT(x, y + 1));
     }
   }
 
@@ -100,6 +100,7 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
   ShaderSet shaders("res/dyn-terrain/common.glsl",
                     "res/dyn-terrain/vertex.glsl",
                     "res/dyn-terrain/fragment.glsl");
+  shaders.m_geometry = "res/dyn-terrain/geometry.glsl";
   shaders.m_tessellation_control = "res/dyn-terrain/tess-control.glsl";
   shaders.m_tessellation_evaluation = "res/dyn-terrain/tess-eval.glsl";
 
@@ -144,26 +145,35 @@ void DynTerrain::queryUniforms() {
 #define QUERY(u)                                                               \
   do {                                                                         \
     m_uniforms.u = glGetUniformLocation(m_program->id(), #u);                  \
-    assert(m_uniforms.u != -1);                                                \
+    /* assert(m_uniforms.u != -1); */                                          \
   } while (0)
 
   QUERY(uCameraPosition);
+  QUERY(uLightSourcePosition);
   QUERY(uViewProjection);
+  QUERY(uShadowMapViewProjection);
   QUERY(uModel);
   QUERY(uCover);
   QUERY(uHeightMap);
-  QUERY(uDimension);
+  QUERY(uShadowMap);
+  // QUERY(uDimension);
 }
 
 void DynTerrain::drawTerrain(const Scene& scene) const {
   m_program->use();
+  glDisable(GL_CULL_FACE);
+  // glCullFace(GL_BACK);
   glBindVertexArray(m_vao);
 
   glm::mat4 viewProjection = scene.viewProjection();
   glUniform3fv(m_uniforms.uCameraPosition, 1,
                glm::value_ptr(scene.cameraPosition()));
+  glUniform3fv(m_uniforms.uLightSourcePosition, 1,
+               glm::value_ptr(scene.lightSourcePosition()));
   glUniformMatrix4fv(m_uniforms.uViewProjection, 1, GL_FALSE,
                      glm::value_ptr(viewProjection));
+  glUniformMatrix4fv(m_uniforms.uShadowMapViewProjection, 1, GL_FALSE,
+                     glm::value_ptr(scene.shadowMapViewProjection()));
   glUniformMatrix4fv(m_uniforms.uModel, 1, GL_FALSE,
                      glm::value_ptr(transform()));
 
@@ -173,9 +183,15 @@ void DynTerrain::drawTerrain(const Scene& scene) const {
   glActiveTexture(GL_TEXTURE0 + 1);
   glBindTexture(GL_TEXTURE_2D, m_heightmapTexture);
 
+  if (scene.shadowMap()) {
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, *scene.shadowMap());
+  }
+
   // These should be constant.
   glUniform1i(m_uniforms.uCover, 0);
   glUniform1i(m_uniforms.uHeightMap, 1);
+  glUniform1i(m_uniforms.uShadowMap, 2);
   glUniform1f(m_uniforms.uDimension, TERRAIN_DIMENSIONS);
 
   if (m_program->tessControlShader()) {
@@ -187,4 +203,5 @@ void DynTerrain::drawTerrain(const Scene& scene) const {
 
   glBindVertexArray(0);
   glUseProgram(0);
+  glEnable(GL_CULL_FACE);
 }

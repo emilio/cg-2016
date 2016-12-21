@@ -58,8 +58,6 @@ void main() {
 #if defined(FOR_SHADOW_MAP)
   gl_Position = uShadowMapViewProjection * uModel * gl_Position;
 #else
-  fUv = vec2(gl_Position.x, gl_Position.z);
-  fPosition = gl_Position;
-  gl_Position = uViewProjection * uModel * gl_Position;
+  // Geometry takes care of it.
 #endif
 }

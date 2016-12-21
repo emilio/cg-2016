@@ -18,6 +18,7 @@ struct BezierTerrainUniformsForShadowMap {
 
 struct BezierTerrainUniforms : public BezierTerrainUniformsForShadowMap {
   GLint uCameraPosition;
+  GLint uLightSourcePosition;
   GLint uLodEnabled;
   GLint uLodLevel;
   GLint uCover;

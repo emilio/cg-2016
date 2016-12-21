@@ -73,7 +73,7 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
       break;
   }
 
-  if (m_terrain && m_terrain->shadowMapFBO()) {
+  if (m_terrain && m_terrain->wantsShadowMap()) {
     m_shadowMapFramebufferAndTexture.set(std::make_pair(0, 0));
     glGenFramebuffers(1, &m_shadowMapFramebufferAndTexture->first);
     glGenTextures(1, &m_shadowMapFramebufferAndTexture->second);
@@ -201,6 +201,7 @@ void Scene::draw() {
       m_terrain->recomputeShadowMap(*this);
   }
 
+#if 0
   if (m_shadowMapFramebufferAndTexture) {
     Optional<GLuint> terrainShadowMap =
         m_terrain ? m_terrain->shadowMapFBO() : None;
@@ -212,6 +213,14 @@ void Scene::draw() {
                       m_shadowMapFramebufferAndTexture->first);
     glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
                       SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    drawObjects(true);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+#endif
+  if (m_shadowMapFramebufferAndTexture) {
+    glBindFramebuffer(GL_FRAMEBUFFER,
+                      m_shadowMapFramebufferAndTexture->first);
+    glClear(GL_DEPTH_BUFFER_BIT);
     drawObjects(true);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }

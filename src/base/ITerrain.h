@@ -21,5 +21,9 @@ public:
     return None;
   };
 
+  virtual bool wantsShadowMap() const {
+    return true;
+  };
+
   virtual ~ITerrain() {}
 };
