@@ -7,6 +7,8 @@ uniform mat4 uViewProjection;
 
 uniform vec3 uCameraPosition;
 
+uniform vec3 uLightSourcePosition;
+
 /** The texture for UV mapping */
 uniform sampler2D uCover;
 

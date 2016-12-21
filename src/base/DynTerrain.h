@@ -31,11 +31,14 @@ class DynTerrain final : public Node, public ITerrain {
 
   struct {
     GLint uCameraPosition;
+    GLint uLightSourcePosition;
     GLint uViewProjection;
+    GLint uShadowMapViewProjection;
     GLint uModel;
     GLint uCover;
     GLint uHeightMap;
     GLint uDimension;
+    GLint uShadowMap;
   } m_uniforms;
 
   void queryUniforms();

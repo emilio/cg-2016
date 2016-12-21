@@ -2,6 +2,9 @@ layout (vertices = 3) out;
 
 // TODO: Be better at this.
 float chooseTessLevel() {
+  // if (!uLodEnabled)
+  //   return uLodLevel;
+
   // TODO: The extra texture fetch kinda sucks.
   vec3 pos = vec3(gl_in[gl_InvocationID].gl_Position);
   pos.y = getHeight(vec2(pos.x, pos.z));
@@ -10,7 +13,7 @@ float chooseTessLevel() {
   pos = vec3(uModel * vec4(pos, 1.0));
 
   float d = abs(distance(uCameraPosition, pos));
-  if (d > 40.0)
+  if (d > 50.0)
     return 2.0;
 
   if (d > 10.0)

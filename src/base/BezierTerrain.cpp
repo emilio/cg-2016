@@ -11,10 +11,11 @@
 
 #include <SFML/Graphics.hpp>
 
+// Map byte from 255 to 0, to +0.25/-0.25
 static inline float mapToHeight(uint8_t byte) {
-  // Map byte from 255 to 0, to +0.25/-0.25
-  float portion = ((float)byte) / 255;
-  return (portion - 0.5) / 3;
+  float portion = ((float)byte) / 255.0;
+  // Map [1..0] to [0.5..0], then substract a quarter.
+  return (portion * 0.5) - 0.25;
 }
 
 // We use each nine squares' limits as a control point for a bezier surface:
@@ -149,6 +150,7 @@ void BezierTerrainUniformsForShadowMap::query(const Program& program) {
 void BezierTerrainUniforms::query(const Program& program) {
   BezierTerrainUniformsForShadowMap::query(program);
   QUERY(uCameraPosition);
+  QUERY(uLightSourcePosition);
   QUERY(uLodLevel);
   QUERY(uViewProjection);
   QUERY(uCover);
@@ -196,6 +198,8 @@ void BezierTerrain::drawTerrainInternal(const Scene& scene,
                        glm::value_ptr(scene.viewProjection()));
 
     glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
+    glUniform3fv(m_uniforms.uLightSourcePosition, 1,
+        glm::value_ptr(scene.lightSourcePosition()));
     glUniform1i(m_uniforms.uLodEnabled, scene.dynamicTessellationEnabled());
     glUniform1f(m_uniforms.uLodLevel, scene.tessLevel());
 
@@ -219,6 +223,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
                     "res/bezier-terrain/fragment.glsl");
   shaders.m_tessellation_control = "res/bezier-terrain/tess-control.glsl";
   shaders.m_tessellation_evaluation = "res/bezier-terrain/tess-eval.glsl";
+  shaders.m_geometry = "res/bezier-terrain/geometry.glsl";
 
   auto program = Program::fromShaders(shaders);
   if (!program) {
@@ -227,6 +232,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
   }
 
   shaders.m_raw_prefix = "#define FOR_SHADOW_MAP\n";
+  shaders.m_geometry.clear();
   auto shadowMapProgram = Program::fromShaders(shaders);
   if (!shadowMapProgram) {
     ERROR("Failed to create quad BezierTerrain program");
@@ -249,7 +255,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
 
   std::vector<glm::vec3> vertices;
   std::vector<GLuint> indices;
-  makePlane<139>(heightMap, vertices, indices);
+  makePlane<400 * 3 + 4>(heightMap, vertices, indices);
 
   auto terrain = std::unique_ptr<BezierTerrain>(
       new BezierTerrain(std::move(program), std::move(shadowMapProgram),
