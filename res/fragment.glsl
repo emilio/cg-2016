@@ -6,16 +6,6 @@ in vec3 fPosition;
 in vec3 fNormal;
 in vec2 fUv;
 
-float getShadow() {
-  vec4 posLightSpace = uShadowMapViewProjection * uModel * vec4(fPosition, 1.0);
-  vec3 proper = posLightSpace.xyz / posLightSpace.w;
-  vec2 uv = proper.xy / 2.0 + vec2(0.5, 0.5);
-  float depth = texture(uShadowMap, uv).r;
-  if (depth < gl_FragCoord.z)
-    return 0.5;
-  return 1.0;
-}
-
 void main() {
   if (uDrawingForShadowMap)
     return;
@@ -49,7 +39,5 @@ void main() {
                uMaterial.m_shininess);
 
   vec4 specular = uMaterial.m_specular * spec * vec4(uLightSourceColor, 1.0);
-
-  float oneMinusShadowImpact = getShadow();
-  oFragColor = diffuse * oneMinusShadowImpact + ambient + specular * oneMinusShadowImpact;
+  oFragColor = diffuse + ambient + specular;
 }

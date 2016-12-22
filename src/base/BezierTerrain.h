@@ -72,4 +72,9 @@ public:
   virtual void draw(DrawContext&) const override {
     assert(false && "call drawTerrain instead!");
   }
+
+  virtual float heightAt(float, float) const override {
+    assert(false && "Unimplemented!");
+    return 0.0;
+  }
 };

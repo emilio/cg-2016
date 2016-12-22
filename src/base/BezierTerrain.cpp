@@ -199,7 +199,7 @@ void BezierTerrain::drawTerrainInternal(const Scene& scene,
 
     glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
     glUniform3fv(m_uniforms.uLightSourcePosition, 1,
-        glm::value_ptr(scene.lightSourcePosition()));
+                 glm::value_ptr(scene.lightSourcePosition()));
     glUniform1i(m_uniforms.uLodEnabled, scene.dynamicTessellationEnabled());
     glUniform1f(m_uniforms.uLodLevel, scene.tessLevel());
 

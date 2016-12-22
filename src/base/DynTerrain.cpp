@@ -35,12 +35,14 @@ std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
 }
 
 DynTerrain::DynTerrain(std::unique_ptr<Program> a_program,
+                       sf::Image&& a_image,
                        GLuint a_cover,
                        GLuint a_heightmap,
                        std::vector<glm::vec2> a_vertices)
   : m_program(std::move(a_program))
   , m_coverTexture(a_cover)
   , m_heightmapTexture(a_heightmap)
+  , m_heightmap(std::move(a_image))
   , m_vertices(std::move(a_vertices)) {
   AutoGLErrorChecker checker;
   glGenVertexArrays(1, &m_vao);
@@ -126,8 +128,9 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
   GLuint cover = textureFromImage(coverImporter, true);
   GLuint heightmap = textureFromImage(heightMapImporter, false);
 
-  auto ret = std::unique_ptr<DynTerrain>(new DynTerrain(
-      std::move(program), cover, heightmap, makePlane(100, 100)));
+  auto ret = std::unique_ptr<DynTerrain>(
+      new DynTerrain(std::move(program), std::move(heightMapImporter), cover,
+        heightmap, makePlane(TERRAIN_DIMENSIONS, TERRAIN_DIMENSIONS)));
 
   ret->scale(TERRAIN_DIMENSIONS);
   return ret;
@@ -156,7 +159,7 @@ void DynTerrain::queryUniforms() {
   QUERY(uCover);
   QUERY(uHeightMap);
   QUERY(uShadowMap);
-  // QUERY(uDimension);
+  QUERY(uDimension);
 }
 
 void DynTerrain::drawTerrain(const Scene& scene) const {
@@ -204,4 +207,17 @@ void DynTerrain::drawTerrain(const Scene& scene) const {
   glBindVertexArray(0);
   glUseProgram(0);
   glEnable(GL_CULL_FACE);
+}
+
+float DynTerrain::heightAt(float x, float y) const {
+  assert(x < TERRAIN_DIMENSIONS);
+  assert(y < TERRAIN_DIMENSIONS);
+  float x_ = x / TERRAIN_DIMENSIONS;
+  float y_ = y / TERRAIN_DIMENSIONS;
+  auto size = m_heightmap.getSize();
+
+  // This is kind of fiddly, because we're duplicating the stuff that is in the
+  // fragment shader, but oh well.
+  float v = m_heightmap.getPixel(x_ * size.x, y_ * size.y).g /  255.0f;
+  return (v - 0.5) / 3.0 * TERRAIN_DIMENSIONS;
 }

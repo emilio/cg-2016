@@ -10,6 +10,7 @@ class ITerrain {
 public:
   virtual void drawTerrain(const Scene&) const = 0;
   virtual void recomputeShadowMap(const Scene&){};
+  virtual float heightAt(float x, float y) const = 0;
   /**
    * The contract with this function is that the FBO is immutable and only used
    * for reading.
