@@ -218,8 +218,7 @@ void Scene::draw() {
   }
 #endif
   if (m_shadowMapFramebufferAndTexture) {
-    glBindFramebuffer(GL_FRAMEBUFFER,
-                      m_shadowMapFramebufferAndTexture->first);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFramebufferAndTexture->first);
     glClear(GL_DEPTH_BUFFER_BIT);
     drawObjects(true);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -281,7 +280,7 @@ void Scene::drawObjects(bool forShadowMap) {
   glUniform3fv(m_uniforms.uAmbientLightColor, 1, glm::value_ptr(ambientColor));
 
   // FIXME: Not hardcode this? Maybe make it depend on the frame, or the time...
-  float ambientStrength = 7.0;
+  float ambientStrength = 0.5;
   glUniform1f(m_uniforms.uAmbientLightStrength, ambientStrength);
 
   glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
@@ -290,6 +289,7 @@ void Scene::drawObjects(bool forShadowMap) {
   if (!forShadowMap && m_shadowMapFramebufferAndTexture) {
     glUniformMatrix4fv(m_uniforms.uShadowMapViewProjection, 1, GL_FALSE,
                        glm::value_ptr(shadowMapViewProjection()));
+    glUniform1i(m_uniforms.uShadowMap, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapFramebufferAndTexture->second);
   }
@@ -328,4 +328,10 @@ void Scene::stopPainting() {
 bool Scene::shouldPaint() {
   assertLocked();
   return m_shouldPaint;
+}
+
+float Scene::terrainHeightAt(float x, float y) {
+  assertLocked();
+  assert(m_terrain);
+  return m_terrain->heightAt(x, y);
 }

@@ -15,6 +15,7 @@
 #include "base/Program.h"
 #include "base/Scene.h"
 #include "base/Plane.h"
+#include "base/Terrain.h"
 #include "main/PhysicsState.h"
 
 #include "geometry/Mesh.h"
@@ -78,8 +79,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
   // auto scene = std::make_shared<Scene>(std::move(shaders),
   // Scene::DynTerrain);
-  auto scene =
-      std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
+  auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
   *out_scene = scene;
 
   {
@@ -95,15 +95,27 @@ void renderer(std::shared_ptr<sf::Window> window,
     *out_plane = plane.get();
     scene->addObject(std::move(plane));
 
-    // auto secondCube = Mesh::fromFile("res/models/cube.obj");
-    // secondCube->translate(glm::vec3(3.0, 0.0, 4.0));
-    // secondCube->setColor(glm::vec3(1.0, 1.0, 1.0));
-    // scene->addObject(std::move(secondCube));
+    auto secondCube = Mesh::fromFile("res/models/cube.obj");
+    secondCube->translate(glm::vec3(3.0, 5.0, -5.0));
+    scene->addObject(std::move(secondCube));
+
+    const size_t kNumTrees = 100;
+    for (size_t i = 0; i < kNumTrees; ++i) {
+      auto tree = Mesh::fromFile("res/models/tree/lowpolytree.obj");
+      auto x = rand() % TERRAIN_DIMENSIONS;
+      auto y = rand() % TERRAIN_DIMENSIONS;
+      tree->translate(
+          glm::vec3(x - TERRAIN_DIMENSIONS / 2, scene->terrainHeightAt(x, y), y - TERRAIN_DIMENSIONS / 2));
+      scene->addObject(std::move(tree));
+    }
 
     // auto suzanne = Mesh::fromFile("res/models/suzanne.obj");
     // suzanne->scale(glm::vec3(0.5, 0.5, 0.5));
     // scene->addObject(std::move(suzanne));
-    // scene->addObject(Mesh::fromFile("res/models/QuestionBlock.obj"));
+    auto helicopter = Mesh::fromFile("res/models/helicopter/uh60.obj");
+    helicopter->translate(glm::vec3(10.0, 10.0, -10.0));
+    helicopter->rotate(glm::radians(270.0f), X_AXIS);
+    scene->addObject(std::move(helicopter));
     // scene->addObject(Mesh::fromFile("res/models/Airbus A310.obj"));
   }
 
@@ -132,7 +144,6 @@ int main(int, char**) {
 
   Platform::init();
 
-  // TODO: Request OpenGL 3.1, should be trivial, but...
   sf::ContextSettings settings;
   settings.majorVersion = 4;
   settings.minorVersion = 0;

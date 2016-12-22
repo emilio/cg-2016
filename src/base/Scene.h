@@ -169,6 +169,8 @@ public:
   void toggleDynamicTessellation() {
     m_lodTessellationEnabled = !m_lodTessellationEnabled;
   }
+
+  float terrainHeightAt(float x, float y);
 };
 
 class AutoSceneLocker {

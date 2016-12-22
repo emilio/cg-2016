@@ -3,7 +3,7 @@
 #include "base/Program.h"
 #include "geometry/Mesh.h"
 
-const float TERRAIN_DIMENSIONS = 100.0f;
+const size_t TERRAIN_DIMENSIONS = 100;
 
 class Terrain final : public Mesh {
   Terrain(std::vector<Vertex>&& vertices,

@@ -60,7 +60,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
   if (!ai_material.Get(AI_MATKEY_COLOR_SPECULAR, color))
     material.m_specular = glm::vec4(color.r, color.g, color.b, color.a);
   else
-    material.m_specular = material.m_diffuse;
+    material.m_specular = glm::vec4(0.0, 0.0, 0.0, 0.0);
 
   if (!ai_material.Get(AI_MATKEY_COLOR_AMBIENT, color))
     material.m_ambient = glm::vec4(color.r, color.g, color.b, color.a);
@@ -136,6 +136,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
   indices.reserve(mesh.mNumFaces * 3);
   for (size_t i = 0; i < mesh.mNumFaces; ++i) {
     const aiFace& face = mesh.mFaces[i];
+    LOG("Index count: %u", face.mNumIndices);
     assert(face.mNumIndices == 3);
     indices.push_back(face.mIndices[0]);
     indices.push_back(face.mIndices[1]);
@@ -162,7 +163,11 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
 /* static */ std::unique_ptr<Node> Node::fromFile(const char* a_modelPath) {
   Assimp::Importer importer;
   // NB: We flip the UV coordinates here instead of somewhere else.
-  const aiScene* scene = importer.ReadFile(a_modelPath, aiProcess_FlipUVs);
+  //
+  // We also triangulate faces here if needed, because I'm too lazy to re-export
+  // stuff.
+  const aiScene* scene =
+      importer.ReadFile(a_modelPath, aiProcess_FlipUVs | aiProcess_Triangulate);
 
   if (!scene) {
     LOG("Assimp failed to read the scene");
