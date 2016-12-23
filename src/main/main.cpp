@@ -1,12 +1,14 @@
+#include <cassert>
+#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdio>
-#include <cassert>
-#include <memory>
+#include <ctime>
 #include <iostream>
+#include <memory>
 #include <mutex>
-#include <thread>
 #include <random>
-#include <condition_variable>
+#include <thread>
 
 #include "base/gl.h"
 #include "base/DebuggingUtils.h"
@@ -102,6 +104,7 @@ void renderer(std::shared_ptr<sf::Window> window,
 
     const size_t kNumTrees = 20;
     std::default_random_engine generator;
+    generator.seed(time(nullptr));
     std::uniform_int_distribution<size_t> distribution(0.0f,
                                                        TERRAIN_DIMENSIONS - 1);
     for (size_t i = 0; i < kNumTrees; ++i) {
@@ -109,7 +112,7 @@ void renderer(std::shared_ptr<sf::Window> window,
       float x = distribution(generator);
       float y = distribution(generator);
       tree->translate(glm::vec3(x - TERRAIN_DIMENSIONS / 2,
-                                scene->terrainHeightAt(x, y),
+                                scene->terrainHeightAt(x, y) + 1.5f,
                                 y - TERRAIN_DIMENSIONS / 2));
       scene->addObject(std::move(tree));
     }
