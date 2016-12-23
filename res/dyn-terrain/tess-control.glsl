@@ -14,6 +14,9 @@ float chooseTessLevel() {
 
   float d = abs(distance(uCameraPosition, pos));
   if (d > 50.0)
+    return 1.0;
+
+  if (d > 30.0)
     return 2.0;
 
   if (d > 10.0)

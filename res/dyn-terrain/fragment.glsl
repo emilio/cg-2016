@@ -13,18 +13,21 @@ float getShadow() {
     return 0.0;
   vec2 uv = properCoords.xy / 2.0 + vec2(0.5, 0.5);
 
-  // percentage-closer filtering
+  // percentage-closer filtering.
+  // http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html
   float currentDepth = gl_FragCoord.z;
 
   float shadow = 0.0;
   vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
-  float bias = 0.0005;
   for(int x = -PCF_RANGE; x <= PCF_RANGE; ++x) {
       for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
           float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
           shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
       }
   }
+
+  if (PCF_RANGE == 0)
+    return shadow;
 
   shadow /= pow(PCF_RANGE * 2 + 1, 2);
   return shadow;

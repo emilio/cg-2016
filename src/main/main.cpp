@@ -5,6 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <random>
 #include <condition_variable>
 
 #include "base/gl.h"
@@ -99,13 +100,17 @@ void renderer(std::shared_ptr<sf::Window> window,
     secondCube->translate(glm::vec3(3.0, 5.0, -5.0));
     scene->addObject(std::move(secondCube));
 
-    const size_t kNumTrees = 100;
+    const size_t kNumTrees = 20;
+    std::default_random_engine generator;
+    std::uniform_int_distribution<size_t> distribution(0.0f,
+                                                       TERRAIN_DIMENSIONS - 1);
     for (size_t i = 0; i < kNumTrees; ++i) {
       auto tree = Mesh::fromFile("res/models/tree/lowpolytree.obj");
-      auto x = rand() % TERRAIN_DIMENSIONS;
-      auto y = rand() % TERRAIN_DIMENSIONS;
-      tree->translate(
-          glm::vec3(x - TERRAIN_DIMENSIONS / 2, scene->terrainHeightAt(x, y), y - TERRAIN_DIMENSIONS / 2));
+      float x = distribution(generator);
+      float y = distribution(generator);
+      tree->translate(glm::vec3(x - TERRAIN_DIMENSIONS / 2,
+                                scene->terrainHeightAt(x, y),
+                                y - TERRAIN_DIMENSIONS / 2));
       scene->addObject(std::move(tree));
     }
 

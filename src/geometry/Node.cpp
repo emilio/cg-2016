@@ -136,7 +136,6 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
   indices.reserve(mesh.mNumFaces * 3);
   for (size_t i = 0; i < mesh.mNumFaces; ++i) {
     const aiFace& face = mesh.mFaces[i];
-    LOG("Index count: %u", face.mNumIndices);
     assert(face.mNumIndices == 3);
     indices.push_back(face.mIndices[0]);
     indices.push_back(face.mIndices[1]);
