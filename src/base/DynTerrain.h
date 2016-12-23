@@ -42,8 +42,11 @@ class DynTerrain final : public Node, public ITerrain {
 
   void queryUniforms();
 
-  DynTerrain(std::unique_ptr<Program>, sf::Image&&, GLuint, GLuint,
-      std::vector<glm::vec2>);
+  DynTerrain(std::unique_ptr<Program>,
+             sf::Image&&,
+             GLuint,
+             GLuint,
+             std::vector<glm::vec2>);
 
   GLuint m_vao;
   // TODO: We could maybe optimize the memory representation of the quads using
