@@ -108,6 +108,7 @@ add_library(geometry OBJECT
 set(EXECUTABLES
   main
   image-processing
+  splines
 )
 
 # Ensure we have SFML 2.x
