@@ -1,6 +1,25 @@
 <!doctype html>
-<canvas>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; }
+</style>
+<canvas id="canvas">
   Your browser doesn't support &lt;canvas&gt;.
   Consider downloading the latest version of <a href=https://www.mozilla.org/en-US/firefox/new/>Firefox</a>
 </canvas>
+<select id="lineControl">
+  <option value="poly">Poly-Line</option>
+  <!-- <option value="hermite">Hermite Curve</option> -->
+  <!-- <option value="bspline">B-Spline</option> -->
+</select>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.min.js"></script>
 <script src="splines.js"></script>
+<script>
+require(["splines"], function(splines) {
+  var Application = splines.default;
+  var app = new Application(
+      document.getElementById('lineControl'),
+      document.getElementById('canvas'));
+  app.setup();
+});
+</script>
