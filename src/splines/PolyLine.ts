@@ -1,4 +1,4 @@
-import { Point, Line, LineType } from "Line";
+import { ContainmentResult, Point, Line, LineType } from "Line";
 
 let PROGRAM_CACHE: WebGLProgram = null;
 
@@ -6,6 +6,11 @@ class PolyLine implements Line {
   controlPoints: Array<Point>;
   constructor(controlPoints: Array<Point> = []) {
     this.controlPoints = controlPoints;
+  }
+
+  removeControlPointAt(i: number) {
+    this.controlPoints.splice(i, 1);
+    this.setDirty();
   }
 
   /**
@@ -108,7 +113,7 @@ class PolyLine implements Line {
     gl.drawArrays(kind, 0, arr.length / 2);
 
     // Draw the selected point again with other (greener) color.
-    if (kind == gl.POINTS && isSelected) {
+    if (kind == gl.POINTS && selectedPointIndex >= 0) {
       gl.uniform4f(color, 0.0, 0.7, 0.0, 1.0);
       gl.drawArrays(kind, Math.max(0, selectedPointIndex * 2 - 1), 1);
     }
@@ -137,6 +142,33 @@ class PolyLine implements Line {
 
   setDirty() {
     // TODO: When we cache stuff we will want to properly implement this.
+  }
+
+  contains(p: Point) : ContainmentResult {
+    // First easy pass through the control points to see if p is among them.
+    for (let i = 0; i < this.controlPoints.length; ++i)
+      if (this.controlPoints[i].near(p, 5))
+        return new ContainmentResult(true, i);
+
+    // Now the second pass, doing the math to see if it picks one of the
+    // segments.
+    for (let i = 1; i < this.controlPoints.length; ++i) {
+      let p1 = this.controlPoints[i - 1];
+      let p2 = this.controlPoints[i];
+
+      let direction = Point.substract(p2, p1);
+      let distance = Point.substract(p1, p);
+      let fragment = distance.length() / direction.length();
+      if (fragment > 1)
+        continue;
+
+      let potentialPoint = Point.add(p1, Point.mul(direction, fragment));
+      if (potentialPoint.near(p, 2.5))
+        return new ContainmentResult(true);
+    }
+
+    // Else don't match.
+    return new ContainmentResult(false);
   }
 
   getType() : LineType {

@@ -9,9 +9,16 @@ class Point {
     return new Point(one.x - other.x, one.y - other.y);
   }
 
+  static mul(one: Point, n: number) : Point {
+    return new Point(one.x * n, one.y * n);
+  }
+
   near(other: Point, maxDistance: number) : boolean {
-    let distance = Point.substract(this, other);
-    return Math.sqrt(distance.x * distance.x + distance.y * distance.y) <= maxDistance;
+    return Point.substract(this, other).length() <= maxDistance;
+  }
+
+  length() : number {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 }
 
@@ -19,6 +26,10 @@ enum LineType {
   BSpline,
   Hermite,
   PolyLine,
+}
+
+class ContainmentResult {
+  constructor(public success: boolean, public selectedPointIndex: number = -1) {}
 }
 
 interface Line {
@@ -35,10 +46,16 @@ interface Line {
        isSelected: boolean,
        selectedPointIndex: number);
 
+  /**
+   * Returns whether point p is one of the points in this line or touches it.
+   */
+  contains(p: Point) : ContainmentResult;
+
   addControlPoint(p: Point);
+  removeControlPointAt(i: number);
   setDirty();
 
   getType() : LineType;
 };
 
-export { Point, Line, LineType };
+export { ContainmentResult, Point, Line, LineType };

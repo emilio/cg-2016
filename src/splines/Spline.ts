@@ -1,4 +1,4 @@
-import { Line, Point, LineType } from "Line";
+import { ContainmentResult, Line, Point, LineType } from "Line";
 import PolyLine from "PolyLine";
 
 class BSpline implements Line {
@@ -38,6 +38,10 @@ class BSpline implements Line {
     l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
+  contains(p: Point) : ContainmentResult {
+    return this.evaluatedLine().contains(p);
+  }
+
   isDirty() : boolean {
     return this.dirty;
   }
@@ -46,6 +50,11 @@ class BSpline implements Line {
     this.controlPoints.push(p);
     this.weights.push(0);
     this.setDirty();
+  }
+
+  removeControlPointAt(i: number) {
+    this.controlPoints.splice(i, 1);
+    this.weights.splice(i, 1);
   }
 
   setDirty() {

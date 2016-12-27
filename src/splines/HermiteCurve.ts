@@ -1,4 +1,4 @@
-import { Point, Line, LineType } from "Line";
+import { ContainmentResult, Point, Line, LineType } from "Line";
 import PolyLine from "PolyLine";
 
 const EVALUATION_DELTA: number = 0.05;
@@ -52,6 +52,12 @@ class HermiteCurve implements Line {
     evaluatedControlPoints.push(p2);
   }
 
+  removeControlPointAt(i: number) {
+    this.controlPoints.splice(i, 1);
+    this.tangents.splice(i, 1);
+    this.setDirty();
+  }
+
   reevaluate() {
     this.evaluated = new PolyLine();
     if (this.controlPoints.length == 0)
@@ -80,6 +86,10 @@ class HermiteCurve implements Line {
     this.evaluatedLine().drawLine(gl, isSelected, selectedPointIndex);
     let l = new PolyLine(this.controlPoints);
     l.drawPoints(gl, isSelected, selectedPointIndex);
+  }
+
+  contains(p: Point) : ContainmentResult {
+    return this.evaluatedLine().contains(p);
   }
 
   getType() : LineType {
