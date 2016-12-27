@@ -1,5 +1,9 @@
 class Point {
   constructor(public x: number, public y: number) {}
+
+  static add(one: Point, other: Point) : Point {
+    return new Point(one.x + other.x, one.y + other.y);
+  }
 }
 
 enum LineType {
@@ -19,6 +23,9 @@ interface Line {
    * This is expected to be an atomic operation.
    */
   draw(gl: WebGLRenderingContext);
+
+  addControlPoint(p: Point);
+  setDirty();
 
   getType() : LineType;
 };

@@ -4,8 +4,8 @@ let PROGRAM_CACHE: WebGLProgram = null;
 
 class PolyLine implements Line {
   controlPoints: Array<Point>;
-  constructor() {
-    this.controlPoints = new Array();
+  constructor(controlPoints: Array<Point> = []) {
+    this.controlPoints = controlPoints;
   }
 
   /**
@@ -13,15 +13,25 @@ class PolyLine implements Line {
    * control points as a plan Float32Array.
    */
   pointsAsArrayBuffer() : Float32Array {
-    let ret = new Float32Array(this.controlPoints.length * 4);
-    let floats = [];
+    let ret = new Float32Array(Math.max(1, this.controlPoints.length - 1) * 4);
     let j = 0;
+
+    // Specialize this to show a single point when there's just one.
+    if (this.controlPoints.length == 1) {
+      ret[j++] = this.controlPoints[0].x;
+      ret[j++] = this.controlPoints[0].y;
+      ret[j++] = this.controlPoints[0].x;
+      ret[j++] = this.controlPoints[0].y;
+      return ret;
+    }
+
     for (let i = 1; i < this.controlPoints.length; ++i) {
       ret[j++] = this.controlPoints[i - 1].x;
       ret[j++] = this.controlPoints[i - 1].y;
       ret[j++] = this.controlPoints[i].x;
       ret[j++] = this.controlPoints[i].y;
     }
+    console.log(this.controlPoints, ret);
     return ret;
   }
 
@@ -37,6 +47,7 @@ class PolyLine implements Line {
       "void main() {",
       "  float x = vPoint.x / 800.0 * 2.0 - 1.0;",
       "  float y = vPoint.y / 800.0 * (- 2.0) + 1.0;",
+      "  gl_PointSize = 10.0;",
       "  gl_Position = vec4(x, y, 0.0, 1.0);",
       "}",
     ].join("\n"));
@@ -45,8 +56,9 @@ class PolyLine implements Line {
     let fragment = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fragment, [
       "precision mediump float;",
+      "uniform vec4 uColor;",
       "void main() {",
-      "  gl_FragColor = vec4(0.5, 0.0, 0.0, 1.0);",
+      "  gl_FragColor = uColor;",
       "}",
     ].join("\n"));
     gl.compileShader(fragment);
@@ -59,7 +71,14 @@ class PolyLine implements Line {
   }
 
   draw(gl: WebGLRenderingContext) {
+    this.drawLine(gl);
+    this.drawPoints(gl);
+  }
+
+  drawAs(gl: WebGLRenderingContext, kind: number) {
+    // TODO: cache stuff here, this is all very silly.
     let buff = gl.createBuffer();
+    gl.lineWidth(5.0);
     let arr = this.pointsAsArrayBuffer();
     let program = this.ensureProgram(gl);
     let vPointLocation = gl.getAttribLocation(program, "vPoint");
@@ -68,13 +87,37 @@ class PolyLine implements Line {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buff);
     gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+
+    let color = gl.getUniformLocation(program, "uColor");
+    if (kind == gl.POINTS)
+      gl.uniform4f(color, 0.0, 0.5, 0.0, 1.0);
+    else
+      gl.uniform4f(color, 0.5, 0.0, 0.0, 1.0);
+
     gl.enableVertexAttribArray(vPointLocation);
     gl.vertexAttribPointer(vPointLocation, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.LINES, 0, arr.length / 2);
+    gl.drawArrays(kind, 0, arr.length / 2);
 
     gl.useProgram(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.deleteBuffer(buff);
+  }
+
+  drawLine(gl: WebGLRenderingContext) {
+    this.drawAs(gl, gl.LINES);
+  }
+
+  drawPoints(gl: WebGLRenderingContext) {
+    this.drawAs(gl, gl.POINTS);
+  }
+
+  addControlPoint(p: Point) {
+    this.controlPoints.push(p);
+    this.setDirty();
+  }
+
+  setDirty() {
+    // TODO: When we cache stuff we will want to properly implement this.
   }
 
   getType() : LineType {
