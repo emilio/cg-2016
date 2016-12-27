@@ -130,10 +130,11 @@ class Application {
           // TODO: Tear down cached buffers and stuff? They go away
           // automatically on GC.
           this.lines.splice(this.selection.lineIndex, 1);
+          this.selection.lineIndex = -1;
         } else {
           this.lines[this.selection.lineIndex].removeControlPointAt(this.selection.pointIndex);
         }
-        this.selection.lineIndex = this.selection.pointIndex = -1;
+        this.selection.pointIndex = -1;
         this.redraw();
       }
     });
