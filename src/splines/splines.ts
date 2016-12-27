@@ -3,20 +3,24 @@ import HermiteCurve from "HermiteCurve";
 import PolyLine from "PolyLine";
 import { Line, LineType, Point } from "Line";
 
+class Selection {
+  constructor(public lineIndex: number, public pointIndex: number) {}
+}
+
 class Application {
   lines: Array<Line>;
-  currentLineIndex: number;
   gl: WebGLRenderingContext;
+  selection: Selection;
   constructor(public lineControl: HTMLSelectElement, public canvas: HTMLCanvasElement) {
     this.lines = new Array();
     canvas.width = canvas.height = 800;
-    this.currentLineIndex = -1;
+    this.selection = new Selection(-1, -1);
     this.gl = canvas.getContext('webgl');
     if (!this.gl)
       throw "Couldn't create WebGL context!";
   }
 
-  createLine(p: Point, ty: LineType) {
+  createLine(p: Point, ty: LineType) : Selection {
     let line: Line;
     switch (ty) {
       case LineType.PolyLine:
@@ -32,19 +36,18 @@ class Application {
     line.addControlPoint(p);
     this.lines.push(line);
     line.setDirty();
-    this.currentLineIndex = this.lines.length - 1;
-    this.redraw();
+    return new Selection(this.lines.length - 1, 0);
   }
 
-  addPointToCurrentLineOrCreate(p: Point, ty: LineType) {
-    if (this.currentLineIndex === -1 ||
-        this.lines[this.currentLineIndex].getType() != ty) {
+  addPointToCurrentLineOrCreate(p: Point, ty: LineType) : Selection {
+    if (this.selection.lineIndex === -1 ||
+        this.lines[this.selection.lineIndex].getType() != ty) {
       return this.createLine(p, ty);
     }
 
-    let currentLine = this.lines[this.currentLineIndex];
+    let currentLine = this.lines[this.selection.lineIndex];
     currentLine.addControlPoint(p);
-    this.redraw();
+    return new Selection(this.selection.lineIndex, currentLine.controlPoints.length - 1);
   }
 
   currentLineType() : LineType {
@@ -66,17 +69,34 @@ class Application {
   redraw() {
     console.log("Redrawing canvas", this.lines);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    for (let line of this.lines) {
-      line.draw(this.gl);
+    for (let i = 0; i < this.lines.length; ++i) {
+      let isSelected = this.selection.lineIndex == i;
+      this.lines[i].draw(this.gl, isSelected, isSelected ? this.selection.pointIndex : -1);
     }
+  }
+
+  stateAtPoint(p: Point) : Selection {
+    // FIXME(emilio): We could try to make this search not suck, but seems
+    // harder than what I want to do right now (a quad tree or AABB tree
+    // would help I guess).
+    const SELECTION_RANGE: number = 5;
+    for (let i = 0; i < this.lines.length; ++i)
+      for (let j = 0; j < this.lines[i].controlPoints.length; ++j)
+        if (this.lines[i].controlPoints[j].near(p, SELECTION_RANGE))
+          return new Selection(i, j);
+
+    return null;
   }
 
   setup() {
     this.canvas.addEventListener('click', e => {
       // We rely on the canvas being at the top left of the page, otherwise
       // we'd need to do more expensive operations here.
-      console.log("Canvas click at: ", e.clientX, e.clientY);
-      this.addPointToCurrentLineOrCreate(new Point(e.clientX, e.clientY), this.currentLineType());
+      let p = new Point(e.clientX, e.clientY);
+      let newSelection = this.stateAtPoint(p);
+      this.selection = newSelection ||
+        this.addPointToCurrentLineOrCreate(p, this.currentLineType());
+      this.redraw();
     });
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);

@@ -4,6 +4,15 @@ class Point {
   static add(one: Point, other: Point) : Point {
     return new Point(one.x + other.x, one.y + other.y);
   }
+
+  static substract(one: Point, other: Point) : Point {
+    return new Point(one.x - other.x, one.y - other.y);
+  }
+
+  near(other: Point, maxDistance: number) : boolean {
+    let distance = Point.substract(this, other);
+    return Math.sqrt(distance.x * distance.x + distance.y * distance.y) <= maxDistance;
+  }
 }
 
 enum LineType {
@@ -22,7 +31,9 @@ interface Line {
    *
    * This is expected to be an atomic operation.
    */
-  draw(gl: WebGLRenderingContext);
+  draw(gl: WebGLRenderingContext,
+       isSelected: boolean,
+       selectedPointIndex: number);
 
   addControlPoint(p: Point);
   setDirty();

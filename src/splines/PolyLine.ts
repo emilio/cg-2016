@@ -70,45 +70,64 @@ class PolyLine implements Line {
     return PROGRAM_CACHE;
   }
 
-  draw(gl: WebGLRenderingContext) {
-    this.drawLine(gl);
-    this.drawPoints(gl);
+  draw(gl: WebGLRenderingContext,
+       isSelected: boolean,
+       selectedPointIndex: number) {
+    this.drawLine(gl, isSelected, selectedPointIndex);
+    this.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
-  drawAs(gl: WebGLRenderingContext, kind: number) {
+  drawAs(gl: WebGLRenderingContext,
+         kind: number,
+         isSelected: boolean,
+         selectedPointIndex: number) {
     // TODO: cache stuff here, this is all very silly.
     let buff = gl.createBuffer();
     gl.lineWidth(5.0);
     let arr = this.pointsAsArrayBuffer();
     let program = this.ensureProgram(gl);
     let vPointLocation = gl.getAttribLocation(program, "vPoint");
-    console.log("Point: ", vPointLocation);
 
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buff);
     gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
 
+    gl.enableVertexAttribArray(vPointLocation);
+    gl.vertexAttribPointer(vPointLocation, 2, gl.FLOAT, false, 0, 0);
+
+    // TODO(emilio): Implement a custom color for the selected
+    // point.
     let color = gl.getUniformLocation(program, "uColor");
     if (kind == gl.POINTS)
       gl.uniform4f(color, 0.0, 0.5, 0.0, 1.0);
+    else if (isSelected)
+      gl.uniform4f(color, 0.7, 0.0, 0.0, 1.0);
     else
       gl.uniform4f(color, 0.5, 0.0, 0.0, 1.0);
 
-    gl.enableVertexAttribArray(vPointLocation);
-    gl.vertexAttribPointer(vPointLocation, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(kind, 0, arr.length / 2);
+
+    // Draw the selected point again with other (greener) color.
+    if (kind == gl.POINTS && isSelected) {
+      gl.uniform4f(color, 0.0, 0.7, 0.0, 1.0);
+      gl.drawArrays(kind, Math.max(0, selectedPointIndex * 2 - 1), 1);
+    }
 
     gl.useProgram(null);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.deleteBuffer(buff);
   }
 
-  drawLine(gl: WebGLRenderingContext) {
-    this.drawAs(gl, gl.LINES);
+  drawLine(gl: WebGLRenderingContext,
+           isSelected: boolean,
+           selectedPointIndex: number) {
+    this.drawAs(gl, gl.LINES, isSelected, selectedPointIndex);
   }
 
-  drawPoints(gl: WebGLRenderingContext) {
-    this.drawAs(gl, gl.POINTS);
+  drawPoints(gl: WebGLRenderingContext,
+             isSelected: boolean,
+             selectedPointIndex: number) {
+    this.drawAs(gl, gl.POINTS, isSelected, selectedPointIndex);
   }
 
   addControlPoint(p: Point) {

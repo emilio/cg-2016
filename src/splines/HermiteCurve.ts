@@ -74,10 +74,12 @@ class HermiteCurve implements Line {
     this.setDirty();
   }
 
-  draw(gl: WebGLRenderingContext) {
-    this.evaluatedLine().drawLine(gl);
+  draw(gl: WebGLRenderingContext,
+       isSelected: boolean,
+       selectedPointIndex: number) {
+    this.evaluatedLine().drawLine(gl, isSelected, selectedPointIndex);
     let l = new PolyLine(this.controlPoints);
-    l.drawPoints(gl);
+    l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
   getType() : LineType {

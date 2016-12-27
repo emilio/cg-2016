@@ -26,14 +26,16 @@ class BSpline implements Line {
     return this.evaluated;
   }
 
-  draw(gl: WebGLRenderingContext) {
+  draw(gl: WebGLRenderingContext,
+       isSelected: boolean,
+       selectedPointIndex: number) {
     // We evaluate a BSpline as a simple polyline, then just paint that. It's
     // possible we could use the GPU to evaluate bezier curves with geometry
     // shaders, but oh well.
-    this.evaluatedLine().drawLine(gl);
+    this.evaluatedLine().drawLine(gl, isSelected, selectedPointIndex);
     // Then we draw the control points using the same code as for the polyline.
     let l = new PolyLine(this.controlPoints);
-    l.drawPoints(gl);
+    l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
   isDirty() : boolean {
