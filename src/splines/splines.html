@@ -2,24 +2,41 @@
 <meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; }
+  .line-config, .point-only-config { display: none }
+  .point-selected .point-only-config { display: block }
+  .line-hermite #hermite-config { display: block }
 </style>
 <canvas id="canvas">
   Your browser doesn't support &lt;canvas&gt;.
   Consider downloading the latest version of <a href=https://www.mozilla.org/en-US/firefox/new/>Firefox</a>
 </canvas>
-<select id="lineControl">
-  <option value="poly">Poly-Line</option>
-  <option value="hermite">Hermite Curve</option>
-  <option value="bspline">B-Spline</option>
-</select>
+<div id="config">
+  <label>Which line do yo want to draw?</label>
+  <select id="line-chooser">
+    <option value="poly">Poly-Line</option>
+    <option value="hermite">Hermite Curve</option>
+    <option value="bspline">B-Spline</option>
+  </select>
+  <div class="line-config" id="hermite-config">
+    <div id="hermite-tangent" class="point-only-config">
+      <label>Tangent X:</label>
+      <input type="number" id="hermite-tangent-x">
+      <label>Tangent Y:</label>
+      <input type="number" id="hermite-tangent-y">
+    </div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.2/require.min.js"></script>
 <script src="splines.js"></script>
 <script>
 require(["splines"], function(splines) {
-  var Application = splines.default;
-  var app = new Application(
-      document.getElementById('lineControl'),
-      document.getElementById('canvas'));
+  var app = new splines.Application(
+      new splines.ApplicationDOM(
+          document.getElementById('canvas'),
+          document.getElementById('config'),
+          document.getElementById('line-chooser'),
+          document.getElementById('hermite-tangent-x'),
+          document.getElementById('hermite-tangent-y')));
   app.setup();
 });
 </script>

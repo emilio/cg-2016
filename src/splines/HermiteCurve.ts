@@ -89,7 +89,15 @@ class HermiteCurve implements Line {
   }
 
   contains(p: Point) : ContainmentResult {
-    return this.evaluatedLine().contains(p);
+    // This is just a shady trick to reuse the control point
+    // check.
+    let r = (new PolyLine(this.controlPoints)).contains(p);
+    if (r.success && r.selectedPointIndex !== -1)
+      return r;
+
+    r = this.evaluatedLine().contains(p);
+    r.selectedPointIndex = -1;
+    return r;
   }
 
   getType() : LineType {

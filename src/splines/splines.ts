@@ -12,17 +12,64 @@ class Selection {
   }
 }
 
+class ApplicationDOM {
+  constructor(public canvas: HTMLCanvasElement,
+              public config: HTMLElement,
+              public lineControl: HTMLSelectElement,
+              public hermiteTangentX: HTMLInputElement,
+              public hermiteTangentY: HTMLInputElement) { }
+}
+
 class Application {
   lines: Array<Line>;
+  dom: ApplicationDOM;
+  dragging: boolean;
   gl: WebGLRenderingContext;
   selection: Selection;
-  constructor(public lineControl: HTMLSelectElement, public canvas: HTMLCanvasElement) {
-    this.lines = new Array();
-    canvas.width = canvas.height = 800;
+
+  constructor(dom: ApplicationDOM) {
+    dom.canvas.width = dom.canvas.height = 800;
+    this.dom = dom;
+    this.lines = [];
+    this.dragging = false;
     this.selection = new Selection(-1, -1);
-    this.gl = canvas.getContext('webgl');
+    this.gl = dom.canvas.getContext('webgl');
+
     if (!this.gl)
       throw "Couldn't create WebGL context!";
+  }
+
+  setSelection(selection: Selection) {
+    this.selection = selection;
+    let className = "";
+    if (selection.lineIndex !== -1) {
+      let line = this.lines[selection.lineIndex];
+      let lineType;
+      switch (line.getType()) {
+        case LineType.PolyLine: lineType = "poly"; break;
+        case LineType.Hermite:  lineType = "hermite"; break;
+        case LineType.BSpline:  lineType = "bspline"; break;
+      }
+      className += "line-" + lineType;
+
+      if (selection.pointIndex !== -1) {
+        className += " point-selected";
+
+        switch (line.getType()) {
+          case LineType.Hermite: {
+            let tangent = (<HermiteCurve>line).tangents[selection.pointIndex]
+            this.dom.hermiteTangentX.valueAsNumber = tangent.x;
+            this.dom.hermiteTangentY.valueAsNumber = tangent.y;
+            break;
+          }
+          case LineType.BSpline:
+          case LineType.Hermite:
+            break;
+        }
+      }
+    }
+
+    this.dom.config.className = className;
   }
 
   createLine(p: Point, ty: LineType) : Selection {
@@ -56,7 +103,7 @@ class Application {
   }
 
   currentLineType() : LineType {
-    switch (this.lineControl.options[this.lineControl.selectedIndex].value) {
+    switch (this.dom.lineControl.options[this.dom.lineControl.selectedIndex].value) {
       case "bspline": return LineType.BSpline;
       case "hermite": return LineType.Hermite;
       case "poly": return LineType.PolyLine;
@@ -99,21 +146,56 @@ class Application {
 
   setup() {
     var clickTimeout = null;
+    // NB: We rely on the canvas being at the top left of the page, otherwise
+    // we'd need to do more expensive operations here.
+    //
     // 200ms to avoid triggering a click that destroys our state right before a
     // dblclick.
     const CLICK_GRACE_PERIOD: number = 200;
 
-    // We rely on the canvas being at the top left of the page, otherwise
-    // we'd need to do more expensive operations here.
-    this.canvas.addEventListener('click', e => {
-      console.log('click');
-      if (clickTimeout)
+    this.dom.canvas.addEventListener('mousedown', e => {
+      if (clickTimeout) {
         clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+      if (this.selection.pointIndex === -1)
+        return;
+      let line = this.lines[this.selection.lineIndex];
+      let p = line.controlPoints[this.selection.pointIndex];
+      let mouse = new Point(e.clientX, e.clientY);
+      if (p.near(mouse, 5))
+        this.dragging = true;
+    });
+
+    this.dom.canvas.addEventListener('mousemove', e => {
+      // TODO: Throttle this, or make drawing really fast!
+      if (!this.dragging || this.selection.pointIndex === -1)
+        return;
+      let line = this.lines[this.selection.lineIndex];
+      let p = line.controlPoints[this.selection.pointIndex];
+      p.x = e.clientX;
+      p.y = e.clientY;
+
+      line.setDirty();
+      this.redraw();
+    });
+
+    this.dom.canvas.addEventListener('mouseup', e => {
+      let wasDragging = this.dragging;
+      this.dragging = false;
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
+
+      if (wasDragging)
+        return;
+
       clickTimeout = setTimeout(() => {
         console.log('clickTimeout');
         let p = new Point(e.clientX, e.clientY);
         let oldSelection = this.selection;
-        this.selection = this.stateAtPoint(p);
+        this.setSelection(this.stateAtPoint(p));
         if (!oldSelection.equals(this.selection))
           this.redraw();
         clickTimeout = null;
@@ -139,21 +221,42 @@ class Application {
       }
     });
 
-    this.canvas.addEventListener('dblclick', e => {
+    this.dom.canvas.addEventListener('dblclick', e => {
       console.log('dblclick');
       if (clickTimeout)
         clearTimeout(clickTimeout);
       clickTimeout = null;
       let p = new Point(e.clientX, e.clientY);
-      this.selection =
-        this.addPointToCurrentLineOrCreate(p, this.currentLineType());
+      this.setSelection(
+        this.addPointToCurrentLineOrCreate(p, this.currentLineType()));
       this.redraw();
     });
 
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    [
+      ['hermiteTangentX', 'x'],
+      ['hermiteTangentY', 'y']
+    ].forEach(el => {
+      let element = this.dom[el[0]];
+      let propToOverride = el[1];
+      element.addEventListener('input', e => {
+        let newValue = element.valueAsNumber;
+        let line = <HermiteCurve>this.lines[this.selection.lineIndex];
+        let p = line.tangents[this.selection.pointIndex];
+        p[propToOverride] = newValue;
+        line.setDirty();
+        this.redraw();
+      });
+
+      element.addEventListener('keypress', function(e) {
+        // Stop reaching the document event listener that would remove lines.
+        e.stopPropagation();
+      });
+    });
+
+    this.gl.viewport(0, 0, this.dom.canvas.width, this.dom.canvas.height);
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 };
 
-export default Application;
+export {Application, ApplicationDOM};
