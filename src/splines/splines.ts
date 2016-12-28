@@ -207,14 +207,17 @@ class Application {
         if (this.selection.lineIndex === -1)
           return;
 
-        // If there's no point selected, delete the line.
-        if (this.selection.pointIndex === -1) {
+        let line = this.lines[this.selection.lineIndex];
+
+        // If there's no point selected, or it's the last control point, delete
+        // the line.
+        if (this.selection.pointIndex === -1 || line.controlPoints.length === 1) {
           // TODO: Tear down cached buffers and stuff? They go away
           // automatically on GC.
           this.lines.splice(this.selection.lineIndex, 1);
           this.selection.lineIndex = -1;
         } else {
-          this.lines[this.selection.lineIndex].removeControlPointAt(this.selection.pointIndex);
+          line.removeControlPointAt(this.selection.pointIndex);
         }
         this.selection.pointIndex = -1;
         this.redraw();

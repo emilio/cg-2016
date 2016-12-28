@@ -30,7 +30,7 @@ class BSpline implements Line {
 
   constructor() {
     this.order = 4; // Cubic for now.
-    this.knots = [0, 0, 0, 0, 0]; // We need n + 1 more here.
+    this.knots = [0, 1, 2, 3, 4]; // We need n + 1 more here.
     this.controlPoints = [];
     this.weights = [];
     this.evaluated = new PolyLine();
@@ -47,27 +47,36 @@ class BSpline implements Line {
   calculateBasisFunction(i: number, n: number) {
     // Base case: N_{i, 0}.
     if (n === 0) {
-      return t => {
-        if (t >= this.knots[i] && t < this.knots[i + 1])
-          return 1;
-        return 0;
+      return u => {
+        let r = 0.0;
+        if (u >= this.knots[i] && u < this.knots[i + 1])
+          r = 1.0;
+        console.log("bas(", i, ", ", n, ", ", u, "): ", r);
+        return r;
       };
     }
-    // General case: N_{i, k}.
-    return t => {
-      // This is a bit less straight-forward than the formulae, to avoid
-      // division by zero.
-      let firstDivisor = this.knots[i + n - 1] - this.knots[i];
-      let firstPart = 0.0;
-      if (firstDivisor != 0.0)
-        firstPart = (t - this.knots[i]) / firstDivisor * this.calculateBasisFunction(i, n - 1)(t);
+    // General case: N_{i, n}.
+    return u => {
+      // TODO: This should probably handle division by zero.
+      // f_{i, n} = (u - k_i) / (k_{i + n} - k_i)
+      let f_i_n = (u - this.knots[i]) / (this.knots[i + n] - this.knots[i]);
 
-      let secondDivisor = this.knots[i + n] - this.knots[i + 1];
-      let secondPart = 0.0;
-      if (secondDivisor != 0.0)
-        secondPart = (this.knots[i + n] - t) / secondDivisor * this.calculateBasisFunction(i + 1, n - 1)(t);
-      return firstPart + secondPart;
+      // g_{i, n} = (k_{i+n} - u) / (k_{i+n} - k_i)
+      // NB: Here we calculate g_{i + 1, n}
+      let g_iplusone_n = (this.knots[i + 1 + n] - u) / (this.knots[i + 1 + n] - this.knots[i + 1]);
+
+      let n_i_nminusone = this.calculateBasisFunction(i, n - 1)(u);
+      let n_iplusone_nminusone = this.calculateBasisFunction(i + 1, n - 1)(u);
+
+      console.log("bas(", i, ", ", n, ", ", u, "): ",
+                  f_i_n, " * ", n_i_nminusone, " + ",
+                  g_iplusone_n, " * ", n_iplusone_nminusone);
+      return f_i_n * n_i_nminusone + g_iplusone_n * n_iplusone_nminusone;
     };
+  }
+
+  degree() : number {
+    return this.order - 1;
   }
 
   reevaluate() {
@@ -75,19 +84,30 @@ class BSpline implements Line {
     let evaluateAt = t => {
       // http://www.cl.cam.ac.uk/teaching/2000/AGraphHCI/SMEG/node4.html#eqn:BasicBspline
       let v = new Point(0, 0);
+      let basisSum = 0.0;
       for (let i = 0; i < this.controlPoints.length; ++i) {
-        let basis = this.calculateBasisFunction(i, this.order - 1)(t);
+        let basis = this.calculateBasisFunction(i, this.degree())(t);
+        console.log("bas(", i, ", ", this.degree(), ", ", t, "): ", basis);
+        basisSum += basis;
         // TODO(emilio): We probably need to un-normalize afterwards (weight is
         // always 1 for now so it doesn't matter).
-        console.log(t, basis);
+        // console.log(t, basis, this.controlPoints[i]);
         v = Point.add(v, Point.mul(Point.mul(this.controlPoints[i], this.weights[i]), basis));
       }
+
+      console.log("Sum: ", basisSum);
+
       return v;
     };
 
     const EVALUATION_DELTA: number = 0.05;
-    for (let s = 0.0; s <= 1.0; s+= EVALUATION_DELTA)
+    for (let t = 0.0; t <= 1.0; t += EVALUATION_DELTA) {
+      let s = t * this.knots[this.knots.length - 1];
       this.evaluated.controlPoints.push(evaluateAt(s));
+      // break;
+    }
+    console.log("Evaluated: ", this.evaluated.controlPoints);
+    this.dirty = false;
   }
 
   evaluatedLine() : PolyLine {
@@ -109,7 +129,15 @@ class BSpline implements Line {
   }
 
   contains(p: Point) : ContainmentResult {
-    return this.evaluatedLine().contains(p);
+    // This is just a shady trick to reuse the control point
+    // check.
+    let r = (new PolyLine(this.controlPoints)).contains(p);
+    if (r.success && r.selectedPointIndex !== -1)
+      return r;
+
+    r = this.evaluatedLine().contains(p);
+    r.selectedPointIndex = -1;
+    return r;
   }
 
   isDirty() : boolean {
@@ -119,7 +147,7 @@ class BSpline implements Line {
   addControlPoint(p: Point) {
     this.controlPoints.push(p);
     this.weights.push(1.0);
-    this.knots.push(this.controlPoints.length);
+    this.knots.push(this.knots.length);
     this.setDirty();
   }
 
