@@ -82,7 +82,7 @@ class Application {
         line = new HermiteCurve();
         break;
       case LineType.BSpline:
-        line = new BSpline(1.0);
+        line = new BSpline();
         break;
     }
     line.addControlPoint(p);
