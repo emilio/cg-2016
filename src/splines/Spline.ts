@@ -3,6 +3,9 @@ import PolyLine from "PolyLine";
 
 /**
  * A non-uniform Rational B-spline curve.
+ *
+ * Part of the code is taken, out of despair, from:
+ * https://github.com/OpenNURBS/OpenNURBS/blob/develop/src/geom_defs/gCurve.hpp
  */
 class BSpline implements Line {
   /**
@@ -29,6 +32,7 @@ class BSpline implements Line {
   dirty: boolean;
 
   constructor() {
+    // TODO: Compute the order from the knot vector length et al.
     this.order = 4; // Cubic for now.
     this.knots = [0, 1, 2, 3, 4]; // We need n + 1 more here.
     this.controlPoints = [];
@@ -79,33 +83,28 @@ class BSpline implements Line {
     return this.order - 1;
   }
 
+  evaluateAt(u: number) : Point {
+    let span = this.getKnotSpan(u);
+    let basis = this.getBasisFunctions(u);
+    console.log(span, basis);
+    let p = new Point(0.0, 0.0);
+    let degree = this.degree();
+    for (let i = 0; i < degree; ++i)
+      p = Point.add(p, Point.mul(this.controlPoints[span - degree + i], basis[i]));
+    return p;
+  }
+
   reevaluate() {
+    const POINTS: number = 1.00 / 0.05;
     this.evaluated = new PolyLine();
-    let evaluateAt = t => {
-      // http://www.cl.cam.ac.uk/teaching/2000/AGraphHCI/SMEG/node4.html#eqn:BasicBspline
-      let v = new Point(0, 0);
-      let basisSum = 0.0;
-      for (let i = 0; i < this.controlPoints.length; ++i) {
-        let basis = this.calculateBasisFunction(i, this.degree())(t);
-        console.log("bas(", i, ", ", this.degree(), ", ", t, "): ", basis);
-        basisSum += basis;
-        // TODO(emilio): We probably need to un-normalize afterwards (weight is
-        // always 1 for now so it doesn't matter).
-        // console.log(t, basis, this.controlPoints[i]);
-        v = Point.add(v, Point.mul(Point.mul(this.controlPoints[i], this.weights[i]), basis));
-      }
 
-      console.log("Sum: ", basisSum);
+    let min = this.knots[0];
+    let max = this.knots[this.knots.length - 1];
+    let stepSize = (max - min) / POINTS;
 
-      return v;
-    };
+    for (let u = 0.0; u < max; u += stepSize)
+      this.evaluated.controlPoints.push(this.evaluateAt(u));
 
-    const EVALUATION_DELTA: number = 0.05;
-    for (let t = 0.0; t <= 1.0; t += EVALUATION_DELTA) {
-      let s = t * this.knots[this.knots.length - 1];
-      this.evaluated.controlPoints.push(evaluateAt(s));
-      // break;
-    }
     console.log("Evaluated: ", this.evaluated.controlPoints);
     this.dirty = false;
   }
@@ -142,6 +141,55 @@ class BSpline implements Line {
 
   isDirty() : boolean {
     return this.dirty;
+  }
+
+  getKnotSpan(u: number) : number {
+    let n = this.controlPoints.length - 1;
+    let low = this.degree();
+    let hi = this.controlPoints.length;
+    let mid = Math.floor((low + hi) / 2);
+
+    if (u === this.knots[hi])
+      return n;
+
+    console.log(u, mid, this.knots);
+
+    let maxIter = 5;
+    while ((u < this.knots[mid] || u >= this.knots[mid + 1]) && maxIter--) {
+      if (u < this.knots[mid])
+        hi = mid;
+      else
+        low = mid;
+
+      mid = Math.floor((low + hi) / 2);
+    }
+
+    return mid;
+  }
+
+  /**
+   * Get a vector with `this.controlPoints.length` numbers corresponding to the
+   * evaluation of the basis functions at point `u`.
+   */
+  getBasisFunctions(u: number) : Array<number> {
+    let knotIndex = this.getKnotSpan(u);
+    let basis = new Array(this.controlPoints.length);
+    basis[0] = 1;
+
+    let left = new Array(this.controlPoints.length);
+    let right = new Array(this.controlPoints.length);
+    for (let j = 1; j <= this.degree(); ++j) {
+      left[j] = u - this.knots[knotIndex + 1 - j];
+      right[j] = this.knots[knotIndex + j] - u;
+      let saved = 0.0;
+      for (let r = 0; r < j; ++r) {
+        let temp = basis[r] / (right[r + 1] + left[j - r]);
+        basis[r] = saved + right[r + 1] * temp;
+        saved = left[j - r] * temp;
+      }
+      basis[j] = saved;
+    }
+    return basis;
   }
 
   addControlPoint(p: Point) {
