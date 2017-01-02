@@ -259,6 +259,31 @@ class Application {
     this.gl.viewport(0, 0, this.dom.canvas.width, this.dom.canvas.height);
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    // Testing...
+    //
+    // This should produce a circle (taken from
+    // https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline#Example:_a_circle),
+    // so let's see.
+    //
+    let halfSquareOfTwo = Math.sqrt(2) / 2;
+    let spline = new BSpline();
+    spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
+    spline.controlPoints = [
+      new Point(1, 0),
+      new Point(1, 1),
+      new Point(0, 1),
+      new Point(-1, 1),
+      new Point(-1, 0),
+      new Point(-1, -1),
+      new Point(0, -1),
+      new Point(1, -1),
+      new Point(1, 0),
+    ];
+    spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
+    spline.setDirty();
+    this.lines.push(spline);
+    this.redraw();
   }
 };
 

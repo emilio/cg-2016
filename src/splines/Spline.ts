@@ -102,8 +102,10 @@ class BSpline implements Line {
     let max = this.knots[this.knots.length - 1];
     let stepSize = (max - min) / POINTS;
 
-    for (let u = 0.0; u < max; u += stepSize)
-      this.evaluated.controlPoints.push(this.evaluateAt(u));
+    for (let u = 0.0; u < max; u += stepSize) {
+      // this.evaluated.controlPoints.push(this.evaluateAt(u));
+      this.evaluated.controlPoints.push(Point.mul(this.evaluateAt(u), 800));
+    }
 
     console.log("Evaluated: ", this.evaluated.controlPoints);
     this.dirty = false;
@@ -152,10 +154,11 @@ class BSpline implements Line {
     if (u === this.knots[hi])
       return n;
 
-    console.log(u, mid, this.knots);
 
-    let maxIter = 5;
-    while ((u < this.knots[mid] || u >= this.knots[mid + 1]) && maxIter--) {
+    while ((u < this.knots[mid] || u >= this.knots[mid + 1])) {
+      if (hi == low && hi == mid)
+        break;
+
       if (u < this.knots[mid])
         hi = mid;
       else
