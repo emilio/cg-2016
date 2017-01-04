@@ -185,7 +185,7 @@ int main(int, char**) {
   {
     AutoSceneLocker lock(*scene);
     scene->setPhysicsCallback([&](Scene& scene) { physicsState.tick(scene); });
-    scene->setLightSourcePosition(glm::vec3(00.0f, 50.0f, 50.0f));
+    scene->setLightSourcePosition(glm::vec3(00.0f, 20.0f, 30.0f));
   }
 
   bool shouldClose = false;

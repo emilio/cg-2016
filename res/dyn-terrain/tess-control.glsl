@@ -4,7 +4,6 @@ layout (vertices = 3) out;
 float chooseTessLevel() {
   // if (!uLodEnabled)
   //   return uLodLevel;
-
   // TODO: The extra texture fetch kinda sucks.
   vec3 pos = vec3(gl_in[gl_InvocationID].gl_Position);
   pos.y = getHeight(vec2(pos.x, pos.z));

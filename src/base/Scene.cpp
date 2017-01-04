@@ -201,7 +201,6 @@ void Scene::draw() {
       m_terrain->recomputeShadowMap(*this);
   }
 
-#if 0
   if (m_shadowMapFramebufferAndTexture) {
     Optional<GLuint> terrainShadowMap =
         m_terrain ? m_terrain->shadowMapFBO() : None;
@@ -211,15 +210,9 @@ void Scene::draw() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
                       m_shadowMapFramebufferAndTexture->first);
+    glClear(GL_DEPTH_BUFFER_BIT);
     glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
                       SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    drawObjects(true);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  }
-#endif
-  if (m_shadowMapFramebufferAndTexture) {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFramebufferAndTexture->first);
-    glClear(GL_DEPTH_BUFFER_BIT);
     drawObjects(true);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }

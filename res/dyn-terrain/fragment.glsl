@@ -1,3 +1,12 @@
+#line 1
+
+#if defined(FOR_SHADOW_MAP)
+
+void main() {
+}
+
+#else
+
 in vec3 fPosition;
 in vec3 fNormal;
 in vec2 fUv;
@@ -5,6 +14,7 @@ in vec2 fUv;
 out vec4 oFragColor;
 
 #define PCF_RANGE 2
+#define BIAS 0.0005
 
 float getShadow() {
   vec4 posLightSpace = uShadowMapViewProjection * vec4(fPosition, 1.0);
@@ -24,7 +34,7 @@ float getShadow() {
   for(int x = -PCF_RANGE; x <= PCF_RANGE; ++x) {
     for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
       float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
-      shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
+      shadow += (currentDepth - BIAS) > pcfDepth ? 1.0 : 0.0;
     }
   }
 
@@ -53,3 +63,5 @@ void main() {
 
   oFragColor = ambient + diffuse * (1 - shadow);
 }
+
+#endif // defined(FOR_SHADOW_MAP)

@@ -23,7 +23,7 @@ public:
   };
 
   virtual bool wantsShadowMap() const {
-    return true;
+    return false;
   };
 
   virtual ~ITerrain() {}

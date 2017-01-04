@@ -15,6 +15,7 @@
  */
 class DynTerrain final : public Node, public ITerrain {
   std::unique_ptr<Program> m_program;
+  std::unique_ptr<Program> m_programForShadowMap;
 
   GLuint m_coverTexture;
 
@@ -28,7 +29,7 @@ class DynTerrain final : public Node, public ITerrain {
   // height of the terrain dynamically in the vertex shader.
   std::vector<glm::vec2> m_vertices;
 
-  struct {
+  struct Uniforms {
     GLint uCameraPosition;
     GLint uLightSourcePosition;
     GLint uViewProjection;
@@ -38,11 +39,15 @@ class DynTerrain final : public Node, public ITerrain {
     GLint uHeightMap;
     GLint uDimension;
     GLint uShadowMap;
-  } m_uniforms;
 
-  void queryUniforms();
+    void query(Program&);
+  };
+
+  Uniforms m_uniforms;
+  Uniforms m_uniformsForShadowMap;
 
   DynTerrain(std::unique_ptr<Program>,
+             std::unique_ptr<Program>,
              sf::Image&&,
              GLuint,
              GLuint,
@@ -53,13 +58,21 @@ class DynTerrain final : public Node, public ITerrain {
   // an ebo, but in practice it doesn't matter that much.
   GLuint m_vbo;
 
+  GLuint m_cachedShadowMapFBO;
+  GLuint m_cachedShadowMap;
+
 public:
   virtual ~DynTerrain();
   static std::unique_ptr<DynTerrain> create();
   static GLuint textureFromImage(const sf::Image& image, bool a_mipmaps);
 
   virtual void drawTerrain(const Scene&) const override;
+  virtual void recomputeShadowMap(const Scene&) override;
+  virtual Optional<GLuint> shadowMapFBO() const override;
+  virtual bool wantsShadowMap() const override;
   virtual float heightAt(float x, float y) const override;
+
+  void drawTerrainInternal(const Scene&, bool forShadowMap) const;
   void draw(DrawContext&) const override {
     assert(false && "not implemented! use drawTerrain instead!");
   }
