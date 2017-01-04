@@ -286,12 +286,13 @@ void Scene::drawObjects(bool forShadowMap) {
   glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
 
   // Use slot number 1 for the shadow map.
-  if (!forShadowMap && m_shadowMapFramebufferAndTexture) {
+  if (shadowMap()) {
     glUniformMatrix4fv(m_uniforms.uShadowMapViewProjection, 1, GL_FALSE,
                        glm::value_ptr(shadowMapViewProjection()));
-    glUniform1i(m_uniforms.uShadowMap, 1);
+    if (forShadowMap)
+      glUniform1i(m_uniforms.uShadowMap, 1);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_shadowMapFramebufferAndTexture->second);
+    glBindTexture(GL_TEXTURE_2D, forShadowMap ? 0 : *shadowMap());
   }
 
   LOG("camera: (%f %f %f)", m_cameraPosition[0], m_cameraPosition[1],

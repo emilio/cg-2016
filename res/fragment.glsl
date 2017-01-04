@@ -6,6 +6,39 @@ in vec3 fPosition;
 in vec3 fNormal;
 in vec2 fUv;
 
+#define PCF_RANGE 2
+#define BIAS 0.05
+
+float getShadow() {
+  vec4 posLightSpace = uShadowMapViewProjection * vec4(fPosition, 1.0);
+  vec3 properCoords = posLightSpace.xyz / posLightSpace.w;
+  if (properCoords.z > 1.0)
+    return 0.0;
+  // The  coordinates are in normalized device coords, convert back to [0, 1]..
+  properCoords = properCoords * 0.5 + 0.5;
+  vec2 uv = properCoords.xy;
+
+  // percentage-closer filtering.
+  // http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html
+  float currentDepth = properCoords.z;
+  // return currentDepth;
+
+  float shadow = 0.0;
+  vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+  for(int x = -PCF_RANGE; x <= PCF_RANGE; ++x) {
+    for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
+      float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
+      shadow += currentDepth - BIAS > pcfDepth ? 1.0 : 0.0;
+    }
+  }
+
+  if (PCF_RANGE == 0)
+    return shadow;
+
+  shadow /= pow(PCF_RANGE * 2 + 1, 2);
+  return shadow;
+}
+
 void main() {
   if (uDrawingForShadowMap)
     return;
@@ -39,5 +72,6 @@ void main() {
                uMaterial.m_shininess);
 
   vec4 specular = uMaterial.m_specular * spec * vec4(uLightSourceColor, 1.0);
-  oFragColor = diffuse + ambient + specular;
+  float shadow = getShadow();
+  oFragColor = ambient + diffuse * (1 - shadow) + specular;
 }

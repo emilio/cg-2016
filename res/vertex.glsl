@@ -7,12 +7,6 @@ layout (location = 2) in vec2 vUv;
 /** The fragment position in world space, passed to the fragment shader. */
 out vec3 fPosition;
 
-/**
- * The fragment position in light space, passed to the fragment shader in order
- * to do shadows
- */
-out vec3 fPositionLightSpace;
-
 /** The fragment normal position, given to the fragment shader. */
 out vec3 fNormal;
 
@@ -29,7 +23,6 @@ void main () {
   // http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
   if (!uDrawingForShadowMap) {
     fPosition = vec3(uModel * vec4(vPosition, 1.0));
-    fPositionLightSpace = vec3(uShadowMapViewProjection * uModel * vec4(vPosition, 1.0));
     fNormal = normalize(vec3(uModel * vec4(vNormal, 0.0)));
     fUv = vUv;
   }

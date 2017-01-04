@@ -9,21 +9,23 @@ out vec4 oFragColor;
 float getShadow() {
   vec4 posLightSpace = uShadowMapViewProjection * vec4(fPosition, 1.0);
   vec3 properCoords = posLightSpace.xyz / posLightSpace.w;
+  // From normalized device coordinates.
+  properCoords = properCoords * 0.5 + 0.5;
   if (properCoords.z > 1.0)
     return 0.0;
-  vec2 uv = properCoords.xy / 2.0 + vec2(0.5, 0.5);
+  vec2 uv = properCoords.xy;
 
   // percentage-closer filtering.
   // http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html
-  float currentDepth = gl_FragCoord.z;
+  float currentDepth = properCoords.z;
 
   float shadow = 0.0;
   vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
   for(int x = -PCF_RANGE; x <= PCF_RANGE; ++x) {
-      for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
-          float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
-          shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
-      }
+    for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
+      float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
+      shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
+    }
   }
 
   if (PCF_RANGE == 0)
