@@ -93,13 +93,8 @@ void renderer(std::shared_ptr<sf::Window> window,
     auto plane = Plane::create();
     // plane->setColor(glm::vec3(0.0, 1.0, 0.0));
 
-    // Yup, for now our plane is going to be a cube, awesome, isn't it?
     *out_plane = plane.get();
     scene->addObject(std::move(plane));
-
-    auto secondCube = Mesh::fromFile("res/models/cube.obj");
-    secondCube->translate(glm::vec3(3.0, 5.0, -5.0));
-    scene->addObject(std::move(secondCube));
 
     const size_t kNumTrees = 20;
     std::default_random_engine generator;
