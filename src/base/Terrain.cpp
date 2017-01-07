@@ -1,5 +1,7 @@
 #include "base/Terrain.h"
 #include "base/Logging.h"
+#include "base/Scene.h"
+#include "geometry/DrawContext.h"
 #include "tools/Optional.h"
 
 static inline float mapToHeight(uint8_t byte) {
@@ -118,7 +120,9 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
   return terrain;
 }
 
-void Terrain::drawTerrain(const Scene&) const {
+void Terrain::drawTerrain(const Scene& scene) const {
+  DrawContext context(scene.rootDrawContext());
+  draw(context);
 }
 
 float Terrain::heightAt(float x, float y) const {

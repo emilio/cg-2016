@@ -8,6 +8,7 @@ class Scene;
 // Can't believe I'm doing this.
 class ITerrain {
 public:
+  virtual bool hasCustomProgram() const { return true; }
   virtual void drawTerrain(const Scene&) const = 0;
   virtual void recomputeShadowMap(const Scene&){};
   virtual float heightAt(float x, float y) const = 0;

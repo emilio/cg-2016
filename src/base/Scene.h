@@ -100,6 +100,7 @@ private:
   void drawObjects(bool forShadowMap);
 
 public:
+  DrawContext rootDrawContext() const;
   void addObject(std::unique_ptr<Node>&& a_object);
   void recomputeView();
   void recomputeView(const glm::vec3& lookingAt, const glm::vec3& up);

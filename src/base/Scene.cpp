@@ -219,14 +219,15 @@ void Scene::draw() {
     Optional<GLuint> terrainShadowMap =
         m_terrain ? m_terrain->shadowMapFBO() : None;
 
-    assert(terrainShadowMap);
-    // We copy the cached terrain FBO.
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
                       m_shadowMapFramebufferAndTexture->first);
     glClear(GL_DEPTH_BUFFER_BIT);
-    glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
-                      SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    if (terrainShadowMap) {
+      // We copy the cached terrain FBO.
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
+      glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
+                        SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    }
     drawObjects(true);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
@@ -252,7 +253,9 @@ void Scene::draw() {
     m_skybox->draw(viewProjection);
   }
 
-  if (m_terrain)
+  // Now the terrain, if it uses a custom program, otherwise draw it with the
+  // rest of our objects.
+  if (m_terrain && m_terrain->hasCustomProgram())
     m_terrain->drawTerrain(*this);
 
   drawObjects(false);
@@ -308,12 +311,11 @@ void Scene::drawObjects(bool forShadowMap) {
   LOG_MATRIX("view", m_view);
   LOG_MATRIX("viewProjection", viewProjection);
 
-  DrawContext context(*m_mainProgram,
-                      DrawContext::Uniforms{
-                          m_uniforms.uModel, m_uniforms.uUsesTexture,
-                          m_uniforms.uTexture, m_uniforms.uMaterial,
-                      },
-                      glm::mat4());
+  if (m_terrain && !m_terrain->hasCustomProgram())
+    m_terrain->drawTerrain(*this);
+
+  DrawContext context(rootDrawContext());
+
   // size_t i = 0;
   for (auto& object : m_objects) {
     assert(object);
@@ -322,10 +324,18 @@ void Scene::drawObjects(bool forShadowMap) {
     //   object->rotateY(glm::radians(2.5f));
     // else
     //   object->rotateX(glm::radians(4.0f));
-
-    LOG("Object %zu", i);
+    // LOG("Object %zu", i);
     object->draw(context);
   }
+}
+
+DrawContext Scene::rootDrawContext() const {
+  return DrawContext(*m_mainProgram,
+                     DrawContext::Uniforms{
+                         m_uniforms.uModel, m_uniforms.uUsesTexture,
+                         m_uniforms.uTexture, m_uniforms.uMaterial,
+                     },
+                     glm::mat4());
 }
 
 void Scene::stopPainting() {
