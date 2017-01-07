@@ -145,8 +145,8 @@ void renderer(std::shared_ptr<sf::Window> window,
 }
 
 int main(int, char**) {
-  const size_t INITIAL_WIDTH = 2000;
-  const size_t INITIAL_HEIGHT = 2000;
+  const size_t INITIAL_WIDTH = 1000;
+  const size_t INITIAL_HEIGHT = 1000;
   const char* TITLE = "OpenGL";  // FIXME: Think of a good title
 
   Platform::init();

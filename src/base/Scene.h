@@ -15,8 +15,8 @@ const glm::vec3 X_AXIS = glm::vec3(1, 0, 0);
 const glm::vec3 Y_AXIS = glm::vec3(0, 1, 0);
 const glm::vec3 Z_AXIS = glm::vec3(0, 0, 1);
 
-const float SHADOW_WIDTH = 2000.0f;
-const float SHADOW_HEIGHT = 2000.0f;
+const float SHADOW_WIDTH = 1000.0f;
+const float SHADOW_HEIGHT = 1000.0f;
 
 const float CAMERA_DISTANCE = 20.0f;
 
