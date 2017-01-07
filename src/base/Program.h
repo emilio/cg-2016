@@ -4,6 +4,7 @@
 #include <memory>
 #include "base/gl.h"
 #include "base/ErrorChecker.h"
+#include "base/Platform.h"
 #include "tools/Optional.h"
 
 struct ShaderSet {
@@ -20,7 +21,7 @@ struct ShaderSet {
             std::string a_vertex,
             std::string a_fragment,
             std::string a_geometry)
-    : m_version("400")
+    : m_version(Platform::getGLSLVersionAsString())
     , m_commonHeader(std::move(a_common))
     , m_vertex(std::move(a_vertex))
     , m_fragment(std::move(a_fragment))

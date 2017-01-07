@@ -144,7 +144,7 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
   sf::Image coverImporter;
 
   if (!heightMapImporter.loadFromFile("res/terrain/heightmap.png")) {
-  // if (!heightMapImporter.loadFromFile("res/terrain/maribor.png")) {
+    // if (!heightMapImporter.loadFromFile("res/terrain/maribor.png")) {
     ERROR("Error loading heightmap");
     return nullptr;
   }
@@ -157,10 +157,10 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
   GLuint cover = textureFromImage(coverImporter, true);
   GLuint heightmap = textureFromImage(heightMapImporter, false);
 
-  auto ret = std::unique_ptr<DynTerrain>(new DynTerrain(
-      std::move(program), std::move(shadowMapProgram),
-      std::move(heightMapImporter), cover, heightmap,
-      makePlane(TERRAIN_DIMENSIONS, TERRAIN_DIMENSIONS)));
+  auto ret = std::unique_ptr<DynTerrain>(
+      new DynTerrain(std::move(program), std::move(shadowMapProgram),
+                     std::move(heightMapImporter), cover, heightmap,
+                     makePlane(TERRAIN_DIMENSIONS, TERRAIN_DIMENSIONS)));
 
   ret->scale(TERRAIN_DIMENSIONS);
   return ret;
@@ -197,7 +197,8 @@ void DynTerrain::drawTerrain(const Scene& scene) const {
   drawTerrainInternal(scene, false);
 }
 
-void DynTerrain::drawTerrainInternal(const Scene& scene, bool forShadowMap) const {
+void DynTerrain::drawTerrainInternal(const Scene& scene,
+                                     bool forShadowMap) const {
   Program& program = forShadowMap ? *m_programForShadowMap : *m_program;
   const Uniforms& uniforms = forShadowMap ? m_uniformsForShadowMap : m_uniforms;
   glm::mat4 viewProjection =
@@ -212,16 +213,14 @@ void DynTerrain::drawTerrainInternal(const Scene& scene, bool forShadowMap) cons
   glCullFace(forShadowMap ? GL_FRONT : GL_BACK);
   glBindVertexArray(m_vao);
 
-  glUniform3fv(uniforms.uCameraPosition, 1,
-               glm::value_ptr(cameraPos));
+  glUniform3fv(uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));
   glUniform3fv(uniforms.uLightSourcePosition, 1,
                glm::value_ptr(scene.lightSourcePosition()));
   glUniformMatrix4fv(uniforms.uViewProjection, 1, GL_FALSE,
                      glm::value_ptr(viewProjection));
   glUniformMatrix4fv(uniforms.uShadowMapViewProjection, 1, GL_FALSE,
                      glm::value_ptr(scene.shadowMapViewProjection()));
-  glUniformMatrix4fv(uniforms.uModel, 1, GL_FALSE,
-                     glm::value_ptr(transform()));
+  glUniformMatrix4fv(uniforms.uModel, 1, GL_FALSE, glm::value_ptr(transform()));
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_coverTexture);

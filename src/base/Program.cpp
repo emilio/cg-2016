@@ -173,9 +173,8 @@ static bool createShaderOfKind(ShaderKind a_kind,
   LOG("Program status: link: %d, validate: %d", linkSuccess, validateSuccess);
 
   if (!linkSuccess || !validateSuccess) {
-    fprintf(stderr,
-            linkSuccess ? "Program validation failed\n"
-                        : "Program failed to link\n");
+    fprintf(stderr, linkSuccess ? "Program validation failed\n"
+                                : "Program failed to link\n");
     GLint logSize;
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logSize);
     assert(logSize >= 0);

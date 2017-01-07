@@ -1,3 +1,4 @@
+#include "base/Platform.h"
 #include "base/Scene.h"
 #include "base/Skybox.h"
 #include "base/gl.h"
@@ -54,11 +55,24 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
   reloadShaders();
   assert(m_mainProgram);
 
+  if (Platform::getGLVersion() <= 3) {
+    switch (a_terrainMode) {
+      case BezierTerrain:
+      case DynTerrain:
+        WARN(
+            "Unsupported GLSL version for terrain kind, falling back to \
+             normal terrain");
+        a_terrainMode = Terrain;
+        break;
+      default:
+        break;
+    }
+  }
+
   switch (a_terrainMode) {
     case Terrain: {
-      auto terrain = Terrain::create();
-      if (terrain)
-        addObject(std::move(terrain));
+      m_terrain = Terrain::create();
+      assert(m_terrain);
       break;
     }
     case BezierTerrain:
