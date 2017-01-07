@@ -74,4 +74,11 @@ void main() {
   vec4 specular = uMaterial.m_specular * spec * vec4(uLightSourceColor, 1.0);
   float shadow = getShadow();
   oFragColor = ambient + diffuse * (1 - shadow) + specular;
+
+  // Apply gamma correction, if the model isn't textured, because otherwise for
+  // some reason ig seems too bright.
+  if (!uUsesTexture) {
+    float gamma = 2.2;
+    oFragColor.rgb = pow(oFragColor.rgb, vec3(1.0 / gamma));
+  }
 }

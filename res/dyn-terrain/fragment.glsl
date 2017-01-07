@@ -62,6 +62,10 @@ void main() {
   vec4 diffuse = diffuseColor * lightSourceColor * diffuseImpact;
 
   oFragColor = ambient + diffuse * (1 - shadow);
+
+  // Apply gamma correction.
+  float gamma = 2.2;
+  oFragColor.rgb = pow(oFragColor.rgb, vec3(1.0 / gamma));
 }
 
 #endif // defined(FOR_SHADOW_MAP)
