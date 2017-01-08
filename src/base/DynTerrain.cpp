@@ -169,7 +169,9 @@ std::unique_ptr<DynTerrain> DynTerrain::create() {
 DynTerrain::~DynTerrain() {
   glDeleteTextures(1, &m_coverTexture);
   glDeleteTextures(1, &m_heightmapTexture);
+
   glDeleteTextures(1, &m_cachedShadowMap);
+  glDeleteFramebuffers(1, &m_cachedShadowMapFBO);
 
   glDeleteBuffers(1, &m_vbo);
   glDeleteVertexArrays(1, &m_vao);
