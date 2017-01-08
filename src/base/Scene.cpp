@@ -215,6 +215,11 @@ void Scene::draw() {
       m_terrain->recomputeShadowMap(*this);
   }
 
+  // TODO: Probably we may want to run more/less physics than once per frame,
+  // but this is ok for now.
+  if (m_physicsCallback)
+    (*m_physicsCallback)(*this);
+
   if (m_shadowMapFramebufferAndTexture) {
     Optional<GLuint> terrainShadowMap =
         m_terrain ? m_terrain->shadowMapFBO() : None;
@@ -233,11 +238,6 @@ void Scene::draw() {
   }
 
   glPolygonMode(GL_FRONT_AND_BACK, m_wireframeMode ? GL_LINE : GL_FILL);
-
-  // TODO: Probably we may want to run more/less physics than once per frame,
-  // but this is ok for now.
-  if (m_physicsCallback)
-    (*m_physicsCallback)(*this);
 
   assert(!m_pendingResize);
 
