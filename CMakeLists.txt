@@ -12,6 +12,7 @@ endif()
 
 # Add this before our local stuff because assimp doesn't build with -Werror
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/assimp)
+add_subdirectory(${CMAKE_SOURCE_DIR}/doc)
 
 enable_testing()
 
