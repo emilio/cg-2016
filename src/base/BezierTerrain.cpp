@@ -240,7 +240,8 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
   }
 
   sf::Image heightMap;
-  if (!heightMap.loadFromFile("res/terrain/maribor.png")) {
+  if (!heightMap.loadFromFile("res/terrain/heightmap.png")) {
+  // if (!heightMap.loadFromFile("res/terrain/maribor.png")) {
     ERROR("Error loading heightmap");
     return nullptr;
   }
@@ -255,7 +256,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
 
   std::vector<glm::vec3> vertices;
   std::vector<GLuint> indices;
-  makePlane<400 * 3 + 4>(heightMap, vertices, indices);
+  makePlane<20 * 3 + 4>(heightMap, vertices, indices);
 
   auto terrain = std::unique_ptr<BezierTerrain>(
       new BezierTerrain(std::move(program), std::move(shadowMapProgram),

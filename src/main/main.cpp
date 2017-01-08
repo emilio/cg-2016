@@ -68,7 +68,9 @@ void handleKey(Scene& scene,
 void renderer(std::shared_ptr<sf::Window> window,
               std::condition_variable* condvar,
               std::shared_ptr<Scene>* out_scene,
-              Plane** out_plane) {
+              Plane** out_plane,
+              int argc,
+              const char** argv) {
   window->setActive(true);
 
   // Basic debugging setup.
@@ -81,7 +83,9 @@ void renderer(std::shared_ptr<sf::Window> window,
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
   // auto scene = std::make_shared<Scene>(std::move(shaders),
   // Scene::DynTerrain);
-  auto scene = std::make_shared<Scene>(std::move(shaders), Scene::DynTerrain);
+  auto terrainType = (argc > 1 && !strcmp(argv[1], "--bezier")) ?
+    Scene::BezierTerrain : Scene::DynTerrain;
+  auto scene = std::make_shared<Scene>(std::move(shaders), terrainType);
   *out_scene = scene;
 
   {
@@ -137,7 +141,7 @@ void renderer(std::shared_ptr<sf::Window> window,
   }
 }
 
-int main(int, char**) {
+int main(int argc, const char** argv) {
   const size_t INITIAL_WIDTH = 1000;
   const size_t INITIAL_HEIGHT = 1000;
   const char* TITLE = "OpenGL";  // FIXME: Think of a good title
@@ -167,7 +171,7 @@ int main(int, char**) {
     std::mutex condvar_mutex;
     std::unique_lock<std::mutex> lock(condvar_mutex);
     rendererThread = std::make_unique<std::thread>(renderer, window, &condvar,
-                                                   &scene, &plane);
+                                                   &scene, &plane, argc, argv);
     assert(rendererThread);
     condvar.wait(lock);
     assert(scene);
