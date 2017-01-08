@@ -46,6 +46,10 @@ finish the second assignment, oh well...
 that we should take screenshots of the modeling process. I totally forgot about
 this so any screenshot if present would be on retrospective.
 
+# Building
+
+There are building instructions available in the `README.md` file.
+
 # Documentation
 
 **Disclaimer**: This is the first renderer I've ever created. Thus, the design
@@ -373,3 +377,76 @@ get the interpolated points.
 
 That code lives in the `src/base/BezierTerrain.h` and
 `src/base/BezierTerrain.cpp` files, and in the `res/bezier-terrain` directory.
+
+You can try it with `./bin/main --bezier` (if you have GL 4), and there are
+a few extra controls on top of the normal ones:
+
+ * `<p>` toggles dynamic tessellation (so the effect is seen more easily).
+ * `<j>` raises the static tessellation level (not quite static, but anyway,
+   raises the tessellation level that is used if dynamic tessellation is not
+   enabled.
+ * `<k>` decrements the tessellation level used if dynamic tessellation is
+   disabled.
+
+I'll send you if I can a video showcasing it.
+
+## Shadow Mapping
+
+I won't extend myself too much on the topic of shadow mapping. It's a very well
+known technique to do dynamic shadows.
+
+I implemented it as a two phase rendering, as explained at the beginning of this
+writeup.
+
+The only "curious" thing I did is that, instead of re-computing also the shadow
+of the terrain all the time, given that the light is static, I just cache it and
+blit it over the draw framebuffer before drawing the rest of the shadows of the
+scene:
+
+```cpp
+if (m_shadowMapFramebufferAndTexture) {
+  Optional<GLuint> terrainShadowMap =
+      m_terrain ? m_terrain->shadowMapFBO() : None;
+
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                    m_shadowMapFramebufferAndTexture->first);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  if (terrainShadowMap) {
+    // We copy the cached terrain FBO.
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, *terrainShadowMap);
+    glBlitFramebuffer(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT, 0, 0, SHADOW_WIDTH,
+                      SHADOW_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+  }
+  drawObjects(true);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+```
+
+This happens for all kinds of terrain except the "basic" one, mainly because
+that other one reuses the main program and I didn't want to re-compile it, or
+reference-count it.
+
+Other curious thing I did is implementing percentage-closer filtering. This
+technique is described in [a Nvidia
+article](http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html),
+and I implemented it the simplest possible way, that is, simply averaging
+the eight surrounding pixels in the fragment shader.
+
+There's a lot I could improve for that though.
+
+## Modeling the "Rocket" model
+
+I left this for the end, because it's sincerely the last thing I've done.
+I haven't spent too much time with Blender, mostly because I don't enjoy it
+a lot.
+
+The model I did was pretty simple, it's indeed a cone at the top, five conic
+segments for the middle of the rocket and the inner parts, and a few Bézier
+curves I used to do the small red things in the base of the model.
+
+As I wrote above, I completely forgot to do screenshots while doing it, so
+I probably re-do the small red parts, that were the most tricky, and send them
+over to you by mail.
+
+In general, I [kind of appreciated it in the
+end](https://twitter.com/ecbos_/status/817842195696930816).
