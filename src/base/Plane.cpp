@@ -32,11 +32,7 @@ std::unique_ptr<Plane> Plane::create() {
 }
 
 float Plane::optimalCameraDistance() const {
-#ifdef DEBUG
   return 5.0f;
-#else
-  return 10.0f;
-#endif
 }
 
 void Plane::computeTransform() {

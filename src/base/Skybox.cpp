@@ -98,7 +98,7 @@ void Skybox::draw(const glm::mat4& a_viewProjection) const {
 
   m_program->use();
 
-  glDisable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
   glDepthMask(GL_FALSE);
   glBindVertexArray(m_vao);
 
