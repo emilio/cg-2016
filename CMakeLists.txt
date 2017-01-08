@@ -40,14 +40,6 @@ set(GENERATED_FILES
   res/models/rocket
   res/models/tree
   res/models/Rmk3.obj
-  res/models/suzanne.obj
-  res/models/suzanne.mtl
-  res/models/QuestionBlock.obj
-  res/models/QuestionBlock.mtl
-  "res/models/AirbusA310.mtl"
-  "res/models/AirbusA310.obj"
-  res/models/cube.obj
-  res/models/box.obj
   res/terrain/heightmap.png
   res/terrain/cover.png
   res/terrain/maribor.png
