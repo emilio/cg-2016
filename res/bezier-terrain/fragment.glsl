@@ -13,18 +13,36 @@ in vec2 fUv;
 
 out vec4 oFragColor;
 
+#define PCF_RANGE 2
+#define BIAS 0.0005
+
 float getShadow() {
   vec4 posLightSpace = uShadowMapViewProjection * vec4(fPosition, 1.0);
   vec3 properCoords = posLightSpace.xyz / posLightSpace.w;
-  vec2 uv = properCoords.xy / 2.0 + vec2(0.5, 0.5);
-  float depth = texture(uShadowMap, uv).r;
-  float bias = 0.0005;
-  if (depth < gl_FragCoord.z + bias) {
-    float d = gl_FragCoord.z + bias - depth;
-    // FIXME: Should linearize!
-    return 1.0 / d;
+  // From normalized device coordinates.
+  properCoords = properCoords * 0.5 + 0.5;
+  if (properCoords.z > 1.0)
+    return 0.0;
+  vec2 uv = properCoords.xy;
+
+  // percentage-closer filtering.
+  // http://http.developer.nvidia.com/GPUGems/gpugems_ch11.html
+  float currentDepth = properCoords.z;
+
+  float shadow = 0.0;
+  vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+  for(int x = -PCF_RANGE; x <= PCF_RANGE; ++x) {
+    for(int y = -PCF_RANGE; y <= PCF_RANGE; ++y) {
+      float pcfDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
+      shadow += (currentDepth - BIAS) > pcfDepth ? 1.0 : 0.0;
+    }
   }
-  return 0.0;
+
+  if (PCF_RANGE == 0)
+    return shadow;
+
+  shadow /= pow(PCF_RANGE * 2 + 1, 2);
+  return shadow;
 }
 
 void main() {

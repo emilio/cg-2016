@@ -240,7 +240,7 @@ std::unique_ptr<BezierTerrain> BezierTerrain::create() {
   }
 
   sf::Image heightMap;
-  if (!heightMap.loadFromFile("res/terrain/heightmap.png")) {
+  if (!heightMap.loadFromFile("res/terrain/maribor.png")) {
     ERROR("Error loading heightmap");
     return nullptr;
   }

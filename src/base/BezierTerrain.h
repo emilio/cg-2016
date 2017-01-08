@@ -68,13 +68,17 @@ public:
 
   virtual void recomputeShadowMap(const Scene&) override;
   virtual Optional<GLuint> shadowMapFBO() const override;
+  virtual bool wantsShadowMap() const override {
+    return true;
+  }
 
   virtual void draw(DrawContext&) const override {
     assert(false && "call drawTerrain instead!");
   }
 
   virtual float heightAt(float, float) const override {
-    assert(false && "Unimplemented!");
+    // FIXME(emilio): Proper height.
+    // assert(false && "Unimplemented!");
     return 0.0;
   }
 };
