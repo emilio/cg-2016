@@ -8,6 +8,7 @@ out vec4 fPosition;
 void basisFunctions(out float[4] b, out float[4] db, float t) {
   float t1 = (1.0 - t);
   float t12 = t1 * t1;
+
   // Bernstein
   b[0] = t12 * t1;
   b[1] = 3.0 * t12 * t;
@@ -25,9 +26,6 @@ void main() {
   float u = gl_TessCoord.x;
   float v = gl_TessCoord.y;
 
-  /**
-   * FIXME(emilio): This is copy-pasta, understand it, and then improve it!
-   */
   vec4 p00 = gl_in[0].gl_Position;
   vec4 p01 = gl_in[1].gl_Position;
   vec4 p02 = gl_in[2].gl_Position;
