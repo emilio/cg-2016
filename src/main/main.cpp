@@ -124,7 +124,6 @@ void renderer(std::shared_ptr<sf::Window> window,
   // Scene is ready, ready to handle events!
   condvar->notify_all();
 
-  const size_t HALF_A_FRAME_MS = 62;
   while (true) {
     {
       AutoSceneLocker lock(*scene);
@@ -135,7 +134,6 @@ void renderer(std::shared_ptr<sf::Window> window,
       scene->draw();
     }
     window->display();
-    std::this_thread::sleep_for(std::chrono::milliseconds(HALF_A_FRAME_MS));
   }
 }
 
