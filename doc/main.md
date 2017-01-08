@@ -5,6 +5,7 @@ author:
  - "Emilio Cobos Álvarez <emilio.cobos@student.um.si>, <emilio@crisal.io>"
 numbersections: true
 toc: true
+colorlinks: true
 abstract: |
  Description and documentation of the implementation of a terrain renderer.
 ---
