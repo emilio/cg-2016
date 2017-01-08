@@ -71,7 +71,7 @@ void main() {
     spec = pow(max(dot(viewDirection, reflectionDirection), 0.0),
                uMaterial.m_shininess);
 
-  vec4 specular = uMaterial.m_specular * spec * vec4(uLightSourceColor, 1.0);
+  vec4 specular = uMaterial.m_specular * spec * mix(vec4(uLightSourceColor, 1.0), diffuseColor, 0.5);
   float shadow = getShadow();
   oFragColor = ambient + diffuse * (1 - shadow) + specular;
 

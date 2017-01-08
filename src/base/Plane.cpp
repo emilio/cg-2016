@@ -7,12 +7,12 @@
 Plane::Plane() : m_speed(2.0f) {
   m_orientation =
       glm::rotate(glm::quat(), glm::radians(180.0f), glm::vec3(0, 1, 0));
-#ifdef DEBUG
+  auto node = Node::fromFile("res/models/rocket/rocket.obj");
+
+  // It's pretty big.
+  node->scale(glm::vec3(0.5, 0.5, 0.5));
+  addChild(std::move(node));
   // addChild(Node::fromFile("res/models/helicopter/uh60.obj"));
-  addChild(Node::fromFile("res/models/suzanne.obj"));
-#else
-  addChild(Node::fromFile("res/models/Airbus A310.obj"));
-#endif
 }
 
 void Plane::pitch(float amount) {

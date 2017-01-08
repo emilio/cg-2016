@@ -21,7 +21,7 @@ PhysicsState::PhysicsState(Plane& a_node)
   : m_lastPhysics(Clock::now()), m_plane(a_node) {}
 
 void PhysicsState::tick(Scene& scene) {
-  const float INTERPOLATION_FACTOR = 0.1f;
+  const float INTERPOLATION_FACTOR = 0.02f;
 
   TimePoint now = Clock::now();
   Milliseconds diff = now - m_lastPhysics;

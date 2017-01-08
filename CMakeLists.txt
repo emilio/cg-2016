@@ -36,6 +36,7 @@ set(GENERATED_FILES
   res/dyn-terrain
   res/bezier-terrain
   res/models/helicopter
+  res/models/rocket
   res/models/tree
   res/models/Rmk3.obj
   res/models/suzanne.obj

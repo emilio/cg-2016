@@ -290,7 +290,7 @@ void Scene::drawObjects(bool forShadowMap) {
   glUniform3fv(m_uniforms.uAmbientLightColor, 1, glm::value_ptr(ambientColor));
 
   // FIXME: Not hardcode this? Maybe make it depend on the frame, or the time...
-  float ambientStrength = 0.4;
+  float ambientStrength = 0.2;
   glUniform1f(m_uniforms.uAmbientLightStrength, ambientStrength);
 
   glUniform3fv(m_uniforms.uCameraPosition, 1, glm::value_ptr(cameraPos));

@@ -97,6 +97,7 @@ void Mesh::draw(DrawContext& context) const {
               m_material.m_shininess);
   glUniform1f(context.uniforms().m_material.m_shininess_percent,
               m_material.m_shininess_percent);
+  // LOG("Texture: %d", (int) m_texture.isSome());
   glUniform1i(context.uniforms().m_usesTexture, m_texture.isSome());
 
   if (m_texture) {
