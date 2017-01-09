@@ -57,15 +57,27 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
   if (!ai_material.Get(AI_MATKEY_COLOR_DIFFUSE, color))
     material.m_diffuse = glm::vec4(color.r, color.g, color.b, color.a);
 
-  if (!ai_material.Get(AI_MATKEY_COLOR_SPECULAR, color))
+  // Assimp instead of returning a non-AI_SUCCESS value, sets the color to
+  // opaque black, which as you might expect, makes things... not great.
+  //
+  // Actually, I think none of the models I've loaded so far hit the success
+  // path, but anyway, worth keeping here as long as later we set the diffuse
+  // color appropriately.
+  if (!ai_material.Get(AI_MATKEY_COLOR_SPECULAR, color) &&
+      color != aiColor4D(0, 0, 0, 1.0))
     material.m_specular = glm::vec4(color.r, color.g, color.b, color.a);
-  else
-    material.m_specular = glm::vec4(0.0, 0.0, 0.0, 0.0);
 
-  if (!ai_material.Get(AI_MATKEY_COLOR_AMBIENT, color))
+  if (!ai_material.Get(AI_MATKEY_COLOR_AMBIENT, color) &&
+      color != aiColor4D(0, 0, 0, 1.0))
     material.m_ambient = glm::vec4(color.r, color.g, color.b, color.a);
   else
     material.m_ambient = material.m_diffuse;
+
+  LOG("ambient: %f %f %f %f",
+      material.m_ambient[0],
+      material.m_ambient[1],
+      material.m_ambient[2],
+      material.m_ambient[3])
 
   if (!ai_material.Get(AI_MATKEY_COLOR_EMISSIVE, color))
     material.m_emissive = glm::vec4(color.r, color.g, color.b, color.a);
@@ -76,6 +88,10 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
 
   if (!ai_material.Get(AI_MATKEY_SHININESS_STRENGTH, floatVal))
     material.m_shininess_percent = floatVal;
+
+  LOG("Shininess: %f, strength: %f",
+      material.m_shininess,
+      material.m_shininess_percent);
 
   // TODO: This can load a bunch of textures from the same file, build a cache,
   // and refcount, and all that stuff.

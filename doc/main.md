@@ -435,6 +435,75 @@ the eight surrounding pixels in the fragment shader.
 
 There's a lot I could improve for that though.
 
+## Phong shading
+
+I implemented the classic Phong shading model for all the scene objects. Note
+that the terrain shaders don't have the specular component because they don't
+reflect light (so it was kind of pointless).
+
+Roughly, the model consists in getting three different kinds of light components
+(called diffuse, ambient, and specular) that influence in the final model.
+
+### Diffuse component
+
+The diffuse component varies with the direction of the surface, and it's
+calculated using the dot product between the normal and the light:
+
+```glsl
+vec4 diffuseColor = uMaterial.m_diffuse;
+if (uUsesTexture)
+  diffuseColor = texture2D(uTexture, fUv);
+
+vec3 lightDirection = normalize(uLightSourcePosition - fPosition);
+float diffuseImpact = max(dot(fNormal, lightDirection), 0.0);
+vec4 diffuse = diffuseColor * diffuseImpact;
+```
+
+### Ambient component
+
+The ambient component does not depend on the light (it's assumed to be the
+"ambient" light, and otherwise everything not directly illuminated by the light
+source would be black).
+
+It's easy to calculate too:
+
+```glsl
+vec4 ambientColor = uMaterial.m_ambient;
+if (uUsesTexture)
+  ambientColor = diffuseColor;
+vec4 ambient =
+  ambientColor * vec4(uAmbientLightColor, 1.0) * uAmbientLightStrength;
+```
+
+### Specular component
+
+The specular component is what determines when an object "shines". We compute it
+using the material data using the light and reflection direction.
+
+```glsl
+vec3 lightDirection = normalize(uLightSourcePosition - fPosition);
+vec3 reflectionDirection = reflect(-lightDirection, fNormal);
+
+float spec = uMaterial.m_shininess_percent *
+  pow(max(dot(lightDirection, reflectionDirection), 0.0),
+      uMaterial.m_shininess);
+
+vec4 specular = uMaterial.m_specular * spec;
+```
+
+### Computing the final color
+
+The final color is computed adding up those components. Note that since we have
+shadow mapping, but the shadow should obviously not affect the ambient
+component, we don't multiply it for the shadow.
+
+```glsl
+float shadow = getShadow();
+oFragColor = ambient + (diffuse + specular) * (1 - shadow);
+```
+
+[webgl-marburg-phong-example]: http://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
+
 ## Modeling the "Rocket" model
 
 I left this for the end, because it's sincerely the last thing I've done.

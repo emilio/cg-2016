@@ -44,41 +44,28 @@ void main() {
     return;
 
   vec4 diffuseColor = uMaterial.m_diffuse;
-
+  vec4 ambientColor = uMaterial.m_ambient;
+  vec4 specColor = uMaterial.m_specular;
   if (uUsesTexture)
-    diffuseColor = texture2D(uTexture, fUv);
+    diffuseColor = ambientColor = specColor = texture2D(uTexture, fUv);
 
   // First, the ambient light.
-  // NOTE: We're multiplying for the diffuse color because otherwise the result
-  // is pretty lame. I don't know for sure if it's due to the model or how I
-  // read it.
   vec4 ambient =
-    diffuseColor * uMaterial.m_ambient * vec4(uAmbientLightColor, 1.0) * uAmbientLightStrength;
+    ambientColor * vec4(uAmbientLightColor, 1.0) * uAmbientLightStrength;
 
   // Then the diffuse light.
   vec3 lightDirection = normalize(uLightSourcePosition - fPosition);
   float diffuseImpact = max(dot(fNormal, lightDirection), 0.0);
-  vec4 diffuse = diffuseColor * vec4(uLightSourceColor, 1.0) * diffuseImpact;
+  vec4 diffuse = diffuseColor * diffuseImpact;
 
   // Then the specular strength to finish up the Phong model.
-  vec3 viewDirection = normalize(uCameraPosition - fPosition);
   vec3 reflectionDirection = reflect(-lightDirection, fNormal);
-  float spec = 0.0;
 
-  if (uMaterial.m_shininess_percent > 0.0)
-    spec = uMaterial.m_shininess_percent;
-  else
-    spec = pow(max(dot(viewDirection, reflectionDirection), 0.0),
-               uMaterial.m_shininess);
+  float spec = uMaterial.m_shininess_percent *
+    pow(max(dot(lightDirection, reflectionDirection), 0.0),
+        uMaterial.m_shininess);
 
-  vec4 specular = uMaterial.m_specular * spec * mix(vec4(uLightSourceColor, 1.0), diffuseColor, 0.5);
+  vec4 specular = specColor * max(spec, 0.0);
   float shadow = getShadow();
-  oFragColor = ambient + diffuse * (1 - shadow) + specular;
-
-  // Apply gamma correction, if the model isn't textured, because otherwise for
-  // some reason ig seems too bright.
-  if (!uUsesTexture) {
-    float gamma = 2.2;
-    oFragColor.rgb = pow(oFragColor.rgb, vec3(1.0 / gamma));
-  }
+  oFragColor = ambient + (diffuse + specular) * (1 - shadow);
 }
