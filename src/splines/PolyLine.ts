@@ -1,6 +1,7 @@
-import { ContainmentResult, Point, Line, LineType } from "Line";
+import { ContainmentResult, DisplayMode, Point, Point3D, Line, LineType } from "Line";
 
 let PROGRAM_CACHE: WebGLProgram = null;
+let REVOLUTION_PROGRAM_CACHE: WebGLProgram = null;
 
 class PolyLine implements Line {
   controlPoints: Array<Point>;
@@ -40,6 +41,136 @@ class PolyLine implements Line {
     return ret;
   }
 
+  // Build a rotation matrix for an angle `a` around a normalized axis `axis`.
+  rotationMatrix(a: number, axis: Point3D) {
+    let cos = Math.cos(a);
+    let sin = Math.sin(a);
+
+    let oneMinusCos = 1 - cos;
+    let temp = Point3D.mul(axis, 1 - cos);
+    return [
+      [
+        cos + (1 - cos) * axis.x * axis.x,
+        (1 - cos) * axis.x * axis.y + sin * axis.z,
+        (1 - cos) * axis.x * axis.z - sin * axis.y,
+        0,
+      ], [
+        (1 - cos) * axis.y * axis.x - sin * axis.z,
+        cos + (1 - cos) * axis.y * axis.y,
+        (1 - cos) * axis.y * axis.z + sin * axis.x,
+        0,
+      ], [
+        (1 - cos) * axis.z * axis.x + sin * axis.y,
+        (1 - cos) * axis.z * axis.y - sin * axis.x,
+        cos + (1 - cos) * axis.z * axis.y - sin * axis.x,
+        0,
+      ], [
+        0,
+        0,
+        0,
+        1,
+      ],
+    ];
+  }
+
+  /**
+   * Transform a point from world space to UDC centerd and the center of the
+   * canvas.
+   */
+  pointToUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
+    return new Point3D(point.x / gl.canvas.width * 2.0 - 1.0,
+                       point.y / gl.canvas.height * -2.0 + 1.0,
+                       point.z);
+  }
+
+  pointFromUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
+    return new Point3D((point.x + 1.0) * 0.5 * gl.canvas.width,
+                       (point.y - 1.0) * -0.5 * gl.canvas.height,
+                       point.z);
+  }
+
+  transformPoint(gl: WebGLRenderingContext,
+                 untransformed: Point3D,
+                 m: Array<Array<number>>) : Point3D {
+    let p = this.pointToUDC(gl, untransformed);
+
+    let result = [
+      m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z + m[0][3],
+      m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z + m[1][3],
+      m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z + m[2][3],
+      m[3][0] * p.x + m[3][1] * p.y + m[3][2] * p.z + m[3][3],
+    ];
+
+    let transformed = new Point3D(result[0] / result[3],
+                                  result[1] / result[3],
+                                  result[2] / result[3]);
+
+    let ret = this.pointFromUDC(gl, transformed);
+    console.log(untransformed, p, transformed, ret);
+    return ret;
+  }
+
+  revolutionSurfaceAroundAxis(gl: WebGLRenderingContext, axis: Point3D) : Float32Array {
+    if (this.controlPoints.length === 0)
+      return new Float32Array([]);
+
+    // The final points of the surface.
+    let result = [];
+
+    // The points of the line rotated last time, in world space.
+    let previousPoints: Array<Point3D> = [];
+    for (let point of this.controlPoints)
+      previousPoints.push(new Point3D(point.x, point.y, 0.0));
+
+    const ANGLE_STEP: number = 10;
+    const ANGLE_STEP_RADIANS = ANGLE_STEP * Math.PI / 180;
+
+    let rotationMatrix = this.rotationMatrix(ANGLE_STEP_RADIANS, axis);
+
+    let addFace = function(p1, p2, p3) {
+      let normal = Point3D.cross(Point3D.substract(p3, p1),
+                                 Point3D.substract(p2, p1)).normalize();
+      // First face.
+      result.push(p1);
+      result.push(normal);
+      result.push(p2);
+      result.push(normal);
+      result.push(p3);
+      result.push(normal);
+    };
+
+    console.log(rotationMatrix);
+    // We position the axis in the center of the screen in world position, with z = 0
+    for (let angle = ANGLE_STEP; angle <= 360; angle += ANGLE_STEP) {
+      let thesePoints = new Array(previousPoints.length);
+      thesePoints[0] = this.transformPoint(gl, previousPoints[0], rotationMatrix);
+      // Push the previous point, then this one, then the next previous point
+      // if applicable, then the next of these, to build a square with two
+      // triangles.
+      for (let i = 1; i < this.controlPoints.length; ++i) {
+        thesePoints[i] = this.transformPoint(gl, previousPoints[i], rotationMatrix);
+
+        // First face.
+        addFace(previousPoints[i - 1], thesePoints[i - 1], previousPoints[i]);
+
+        // Second face.
+        addFace(previousPoints[i], thesePoints[i - 1], thesePoints[i]);
+      }
+
+      previousPoints = thesePoints;
+    }
+
+    let ret = new Float32Array(result.length * 3);
+    let i = 0;
+    for (let p of result) {
+      ret[i++] = p.x;
+      ret[i++] = p.y;
+      ret[i++] = p.z;
+    }
+
+    return ret;
+  }
+
   ensureProgram(gl: WebGLRenderingContext) : WebGLProgram {
     if (PROGRAM_CACHE)
       return PROGRAM_CACHE;
@@ -73,6 +204,50 @@ class PolyLine implements Line {
     gl.linkProgram(PROGRAM_CACHE);
     console.log("Tried to link program: ", gl.getProgramInfoLog(PROGRAM_CACHE));
     return PROGRAM_CACHE;
+  }
+
+  ensureRevolutionProgram(gl: WebGLRenderingContext) : WebGLProgram {
+    if (REVOLUTION_PROGRAM_CACHE)
+      return REVOLUTION_PROGRAM_CACHE;
+    REVOLUTION_PROGRAM_CACHE = gl.createProgram();
+
+    let vertex = gl.createShader(gl.VERTEX_SHADER);
+    // TODO(emilio): Same re. hardcoding dimensions. We assume a 800x800x800 cube.
+    gl.shaderSource(vertex, [
+      "precision mediump float;",
+      "attribute vec3 vPoint;",
+      "attribute vec3 vNormal;",
+      "varying vec3 fNormal;",
+      "void main() {",
+      "  float x = vPoint.x / 800.0 * 2.0 - 1.0;",
+      "  float y = vPoint.y / 800.0 * (- 2.0) + 1.0;",
+      "  float z = vPoint.z / 800.0 * 2.0 - 1.0;",
+      "  gl_PointSize = 10.0;",
+      "  gl_Position = vec4(x, y, z, 1.0);",
+      "  fNormal = vNormal;",
+      "}",
+    ].join("\n"));
+    gl.compileShader(vertex);
+    console.log("Vertex: ", gl.getShaderInfoLog(vertex));
+
+    let fragment = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragment, [
+      "precision mediump float;",
+      "varying vec3 fNormal;",
+      "void main() {",
+      // TODO(emilio): Reflection model.
+      "  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
+      "  gl_FragColor = vec4(fNormal, 1.0);",
+      "}",
+    ].join("\n"));
+    gl.compileShader(fragment);
+    console.log("Fragment: ", gl.getShaderInfoLog(fragment));
+
+    gl.attachShader(REVOLUTION_PROGRAM_CACHE, vertex);
+    gl.attachShader(REVOLUTION_PROGRAM_CACHE, fragment);
+    gl.linkProgram(REVOLUTION_PROGRAM_CACHE);
+    console.log("Tried to link program: ", gl.getProgramInfoLog(REVOLUTION_PROGRAM_CACHE));
+    return REVOLUTION_PROGRAM_CACHE;
   }
 
   draw(gl: WebGLRenderingContext,
@@ -135,13 +310,49 @@ class PolyLine implements Line {
     this.drawAs(gl, gl.POINTS, isSelected, selectedPointIndex);
   }
 
+  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D) {
+    let program = this.ensureRevolutionProgram(gl);
+    gl.useProgram(program);
+
+    let arr = this.revolutionSurfaceAroundAxis(gl, axis);
+
+    let vPointLocation = gl.getAttribLocation(program, "vPoint");
+    let vNormalLocation = gl.getAttribLocation(program, "vNormal");
+    let buff = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buff);
+    gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+
+    console.log(arr);
+
+    // We push six floats each time.
+    const SIZE_OF_PACK_BYTES: number = 3 * 4 * 2;
+
+    gl.enableVertexAttribArray(vPointLocation);
+    gl.vertexAttribPointer(vPointLocation, 3, gl.FLOAT, false,
+                           SIZE_OF_PACK_BYTES, 0);
+    gl.enableVertexAttribArray(vNormalLocation);
+    gl.vertexAttribPointer(vNormalLocation, 3, gl.FLOAT, false,
+                           SIZE_OF_PACK_BYTES, SIZE_OF_PACK_BYTES / 2);
+
+    let pointCount = arr.length / 3 / 2;
+    gl.drawArrays(gl.TRIANGLES, 0, pointCount);
+
+    gl.disableVertexAttribArray(vPointLocation);
+    gl.disableVertexAttribArray(vNormalLocation);
+
+    gl.useProgram(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.deleteBuffer(buff);
+  }
+
   addControlPoint(p: Point) {
     this.controlPoints.push(p);
     this.setDirty();
   }
 
   setDirty() {
-    // TODO: When we cache stuff we will want to properly implement this.
+    // TODO: If/when we cache stuff we will want to properly implement this.
   }
 
   contains(p: Point) : ContainmentResult {

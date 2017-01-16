@@ -1,4 +1,4 @@
-import { ContainmentResult, Line, Point, LineType } from "Line";
+import { ContainmentResult, Line, Point, Point3D, LineType } from "Line";
 import PolyLine from "PolyLine";
 
 /**
@@ -127,6 +127,10 @@ class BSpline implements Line {
     // Then we draw the control points using the same code as for the polyline.
     let l = new PolyLine(this.controlPoints);
     l.drawPoints(gl, isSelected, selectedPointIndex);
+  }
+
+  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D) {
+    this.evaluatedLine().drawRevolutionSurface(gl, axis);
   }
 
   contains(p: Point) : ContainmentResult {

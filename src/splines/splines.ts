@@ -1,7 +1,7 @@
 import BSpline from "Spline";
 import HermiteCurve from "HermiteCurve";
 import PolyLine from "PolyLine";
-import { Line, LineType, Point } from "Line";
+import { DisplayMode, Line, LineType, Point, Point3D } from "Line";
 
 class Selection {
   constructor(public lineIndex: number, public pointIndex: number) {}
@@ -17,7 +17,9 @@ class ApplicationDOM {
               public config: HTMLElement,
               public lineControl: HTMLSelectElement,
               public hermiteTangentX: HTMLInputElement,
-              public hermiteTangentY: HTMLInputElement) { }
+              public hermiteTangentY: HTMLInputElement,
+              public revolutionTrigger: HTMLElement,
+              public revolutionAxis: HTMLSelectElement) { }
 }
 
 class Application {
@@ -26,6 +28,7 @@ class Application {
   dragging: boolean;
   gl: WebGLRenderingContext;
   selection: Selection;
+  displayMode: DisplayMode;
 
   constructor(dom: ApplicationDOM) {
     dom.canvas.width = dom.canvas.height = 800;
@@ -33,6 +36,7 @@ class Application {
     this.lines = [];
     this.dragging = false;
     this.selection = new Selection(-1, -1);
+    this.displayMode = DisplayMode.Lines;
     this.gl = dom.canvas.getContext('webgl');
 
     if (!this.gl)
@@ -119,11 +123,16 @@ class Application {
   // We may want to redraw when the cursor is moving, in that case we may need
   // some perf work.
   redraw() {
-    console.log("Redrawing canvas", this.lines);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     for (let i = 0; i < this.lines.length; ++i) {
       let isSelected = this.selection.lineIndex == i;
-      this.lines[i].draw(this.gl, isSelected, isSelected ? this.selection.pointIndex : -1);
+      if (this.displayMode == DisplayMode.Lines) {
+        this.lines[i].draw(this.gl, isSelected,
+                           isSelected ? this.selection.pointIndex : -1);
+      } else {
+        // TODO(emilio): customize axis.
+        this.lines[i].drawRevolutionSurface(this.gl, new Point3D(0, 1, 0));
+      }
     }
   }
 
@@ -146,6 +155,9 @@ class Application {
 
   setup() {
     var clickTimeout = null;
+
+    this.gl.enable(this.gl.DEPTH_TEST);
+
     // NB: We rely on the canvas being at the top left of the page, otherwise
     // we'd need to do more expensive operations here.
     //
@@ -154,6 +166,8 @@ class Application {
     const CLICK_GRACE_PERIOD: number = 200;
 
     this.dom.canvas.addEventListener('mousedown', e => {
+      if (this.displayMode == DisplayMode.Revolution)
+        return;
       if (clickTimeout) {
         clearTimeout(clickTimeout);
         clickTimeout = null;
@@ -168,6 +182,8 @@ class Application {
     });
 
     this.dom.canvas.addEventListener('mousemove', e => {
+      if (this.displayMode == DisplayMode.Revolution)
+        return;
       // TODO: Throttle this, or make drawing really fast!
       if (!this.dragging || this.selection.pointIndex === -1)
         return;
@@ -181,6 +197,8 @@ class Application {
     });
 
     this.dom.canvas.addEventListener('mouseup', e => {
+      if (this.displayMode == DisplayMode.Revolution)
+        return;
       let wasDragging = this.dragging;
       this.dragging = false;
       if (clickTimeout) {
@@ -203,6 +221,9 @@ class Application {
     });
 
     document.addEventListener('keypress', e => {
+      if (this.displayMode == DisplayMode.Revolution)
+        return;
+
       if (e.keyCode === 46) { // Del
         if (this.selection.lineIndex === -1)
           return;
@@ -229,9 +250,12 @@ class Application {
       if (clickTimeout)
         clearTimeout(clickTimeout);
       clickTimeout = null;
-      let p = new Point(e.clientX, e.clientY);
-      this.setSelection(
-        this.addPointToCurrentLineOrCreate(p, this.currentLineType()));
+      if (this.displayMode == DisplayMode.Lines) {
+        let p = new Point(e.clientX, e.clientY);
+        this.setSelection(
+          this.addPointToCurrentLineOrCreate(p, this.currentLineType()));
+      }
+      this.displayMode = DisplayMode.Lines;
       this.redraw();
     });
 
@@ -260,30 +284,36 @@ class Application {
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
+    this.dom.revolutionTrigger.addEventListener('click', e => {
+      this.displayMode = DisplayMode.Revolution;
+      this.redraw();
+      e.preventDefault();
+    });
+
     // Testing...
     //
     // This should produce a circle (taken from
     // https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline#Example:_a_circle),
     // so let's see.
     //
-    let halfSquareOfTwo = Math.sqrt(2) / 2;
-    let spline = new BSpline();
-    spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
-    spline.controlPoints = [
-      new Point(1, 0),
-      new Point(1, 1),
-      new Point(0, 1),
-      new Point(-1, 1),
-      new Point(-1, 0),
-      new Point(-1, -1),
-      new Point(0, -1),
-      new Point(1, -1),
-      new Point(1, 0),
-    ];
-    spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
-    spline.setDirty();
-    this.lines.push(spline);
-    this.redraw();
+    // let halfSquareOfTwo = Math.sqrt(2) / 2;
+    // let spline = new BSpline();
+    // spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
+    // spline.controlPoints = [
+    //   new Point(1, 0),
+    //   new Point(1, 1),
+    //   new Point(0, 1),
+    //   new Point(-1, 1),
+    //   new Point(-1, 0),
+    //   new Point(-1, -1),
+    //   new Point(0, -1),
+    //   new Point(1, -1),
+    //   new Point(1, 0),
+    // ];
+    // spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
+    // spline.setDirty();
+    // this.lines.push(spline);
+    // this.redraw();
   }
 };
 
