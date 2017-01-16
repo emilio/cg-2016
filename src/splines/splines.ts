@@ -157,6 +157,7 @@ class Application {
     var clickTimeout = null;
 
     this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LEQUAL);
 
     // NB: We rely on the canvas being at the top left of the page, otherwise
     // we'd need to do more expensive operations here.

@@ -78,15 +78,16 @@ class PolyLine implements Line {
    * canvas.
    */
   pointToUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
+    // TODO: The z handling is dubious, at its best.
     return new Point3D(point.x / gl.canvas.width * 2.0 - 1.0,
                        point.y / gl.canvas.height * -2.0 + 1.0,
-                       point.z);
+                       point.z / gl.canvas.width);
   }
 
   pointFromUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
     return new Point3D((point.x + 1.0) * 0.5 * gl.canvas.width,
                        (point.y - 1.0) * -0.5 * gl.canvas.height,
-                       point.z);
+                       point.z * gl.canvas.width);
   }
 
   transformPoint(gl: WebGLRenderingContext,
@@ -122,14 +123,14 @@ class PolyLine implements Line {
     for (let point of this.controlPoints)
       previousPoints.push(new Point3D(point.x, point.y, 0.0));
 
-    const ANGLE_STEP: number = 10;
+    const ANGLE_STEP: number = 5;
     const ANGLE_STEP_RADIANS = ANGLE_STEP * Math.PI / 180;
 
     let rotationMatrix = this.rotationMatrix(ANGLE_STEP_RADIANS, axis);
 
     let addFace = function(p1, p2, p3) {
-      let normal = Point3D.cross(Point3D.substract(p3, p1),
-                                 Point3D.substract(p2, p1)).normalize();
+      let normal = Point3D.cross(Point3D.substract(p2, p1),
+                                 Point3D.substract(p3, p1)).normalize();
       // First face.
       result.push(p1);
       result.push(normal);
