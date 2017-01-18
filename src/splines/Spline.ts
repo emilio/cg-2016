@@ -1,4 +1,4 @@
-import { ContainmentResult, Line, Point, Point3D, LineType } from "Line";
+import { ContainmentResult, Line, Matrix4D, Point, Point3D, LineType } from "Line";
 import PolyLine from "PolyLine";
 
 /**
@@ -129,8 +129,8 @@ class BSpline implements Line {
     l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
-  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D) {
-    this.evaluatedLine().drawRevolutionSurface(gl, axis);
+  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProj: Matrix4D) {
+    this.evaluatedLine().drawRevolutionSurface(gl, axis, viewProj);
   }
 
   contains(p: Point) : ContainmentResult {

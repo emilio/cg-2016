@@ -1,4 +1,4 @@
-import { ContainmentResult, DisplayMode, Point, Point3D, Line, LineType } from "Line";
+import { ContainmentResult, DisplayMode, Matrix4D, Point, Point3D, Line, LineType } from "Line";
 import PolyLine from "PolyLine";
 
 const EVALUATION_DELTA: number = 0.05;
@@ -88,8 +88,8 @@ class HermiteCurve implements Line {
     l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
-  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D) {
-    this.evaluatedLine().drawRevolutionSurface(gl, axis);
+  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProj: Matrix4D) {
+    this.evaluatedLine().drawRevolutionSurface(gl, axis, viewProj);
   }
 
   contains(p: Point) : ContainmentResult {

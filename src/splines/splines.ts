@@ -1,7 +1,7 @@
 import BSpline from "Spline";
 import HermiteCurve from "HermiteCurve";
 import PolyLine from "PolyLine";
-import { DisplayMode, Line, LineType, Point, Point3D } from "Line";
+import { DisplayMode, Line, LineType, Matrix4D, Point, Point3D } from "Line";
 
 class Selection {
   constructor(public lineIndex: number, public pointIndex: number) {}
@@ -131,7 +131,16 @@ class Application {
                            isSelected ? this.selection.pointIndex : -1);
       } else {
         // TODO(emilio): customize axis.
-        this.lines[i].drawRevolutionSurface(this.gl, new Point3D(0, 1, 0));
+        let camera = new Point3D(0.0, 0.0, -100.0);
+        let proj = Matrix4D.ortho(this.gl.canvas.width, 0, 100);
+        let up = Point3D.YAxis();
+        let axisToRotate = Point3D.YAxis();
+        let view = Matrix4D.lookAt(camera, Point3D.origin(), up);
+        console.log(view);
+        console.log(proj);
+        let viewProj = Matrix4D.mul(proj, view);
+        console.log(viewProj);
+        this.lines[i].drawRevolutionSurface(this.gl, new Point3D(0, 1, 0), viewProj);
       }
     }
   }
