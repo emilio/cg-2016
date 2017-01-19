@@ -29,6 +29,7 @@ class Application {
   gl: WebGLRenderingContext;
   selection: Selection;
   displayMode: DisplayMode;
+  cameraPosition: Point3D;
 
   constructor(dom: ApplicationDOM) {
     dom.canvas.width = dom.canvas.height = 800;
@@ -37,6 +38,7 @@ class Application {
     this.dragging = false;
     this.selection = new Selection(-1, -1);
     this.displayMode = DisplayMode.Lines;
+    this.cameraPosition = new Point3D(400.0, 400.0, -800);
     this.gl = dom.canvas.getContext('webgl');
 
     if (!this.gl)
@@ -131,11 +133,11 @@ class Application {
                            isSelected ? this.selection.pointIndex : -1);
       } else {
         // TODO(emilio): customize axis.
-        let camera = new Point3D(0.0, 0.0, -100.0);
-        let proj = Matrix4D.ortho(this.gl.canvas.width, 0, 100);
+        let camera = this.cameraPosition;
+        let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
         let up = Point3D.YAxis();
         let axisToRotate = Point3D.YAxis();
-        let view = Matrix4D.lookAt(camera, Point3D.origin(), up);
+        let view = Matrix4D.lookAt(camera, new Point3D(400.0, 400.0, 0), up);
         console.log(view);
         console.log(proj);
         let viewProj = Matrix4D.mul(proj, view);
@@ -207,8 +209,13 @@ class Application {
     });
 
     this.dom.canvas.addEventListener('mouseup', e => {
-      if (this.displayMode == DisplayMode.Revolution)
+      if (this.displayMode == DisplayMode.Revolution) {
+        this.cameraPosition = new Point3D(this.cameraPosition.x,
+                                          this.cameraPosition.y + 10.0,
+                                          this.cameraPosition.z);
+        this.redraw();
         return;
+      }
       let wasDragging = this.dragging;
       this.dragging = false;
       if (clickTimeout) {

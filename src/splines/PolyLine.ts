@@ -226,9 +226,10 @@ class PolyLine implements Line {
       "  // the final one.",
       "  vec4 clipPos = uViewProjection * vec4(vPoint, 1.0);",
       "  // Ahh, coordinate spaces, my nemesis.",
-      "  float x = clipPos.x + 1.0;",
-      "  float y = -clipPos.y + 1.0;",
-      "  float z = clipPos.z;", // Doesn't matter that much.
+      "  // gl_Position = clipPos;",
+      "  float x = (clipPos.x + 1.0) * 0.5;",
+      "  float y = (clipPos.y - 1.0) * 0.5;",
+      "  float z = (clipPos.z + 1.0) * 0.5;", // Doesn't matter that much.
       "  gl_Position = vec4(x, y, z, 1.0);",
       "  fNormal = vNormal;",
       "}",
