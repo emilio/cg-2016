@@ -179,7 +179,6 @@ class Application {
                            uIncrement);
       } else {
         let camera = this.cameraPosition();
-        let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
         let axisToRotate = Point3D.YAxis();
         let DOMAxis = this.dom.revolutionAxis.options[this.dom.revolutionAxis.selectedIndex].value;
         console.log(DOMAxis);
@@ -192,6 +191,7 @@ class Application {
             break;
         }
 
+        let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
         let up = Point3D.YAxis();
         let view = Matrix4D.lookAt(camera, new Point3D(400.0, 400.0, 0), up);
         console.log(view);

@@ -50,27 +50,21 @@ class PolyLine implements Line {
    * canvas.
    */
   pointToUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
-    // TODO: The z handling is dubious, at its best.
     return new Point3D(point.x / gl.canvas.width * 2.0 - 1.0,
                        point.y / gl.canvas.height * -2.0 + 1.0,
-                       point.z / gl.canvas.width * 2.0 - 1.0);
+                       point.z / gl.canvas.width * 2.0);
   }
 
   pointFromUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
     return new Point3D((point.x + 1.0) * 0.5 * gl.canvas.width,
                        (point.y - 1.0) * -0.5 * gl.canvas.height,
-                       (point.z + 1.0) * 0.5 * gl.canvas.width);
+                        point.z * 0.5 * gl.canvas.width);
   }
 
   transformPoint(gl: WebGLRenderingContext,
-                 untransformed: Point3D,
+                 p: Point3D,
                  m: Matrix4D) : Point3D {
-    let p = this.pointToUDC(gl, untransformed);
-
-    let transformed = Matrix4D.transformPoint(p, m);
-
-    let ret = this.pointFromUDC(gl, transformed);
-    return ret;
+    return Matrix4D.transformPoint(p, m);
   }
 
   revolutionSurfaceAroundAxis(gl: WebGLRenderingContext,
@@ -86,7 +80,7 @@ class PolyLine implements Line {
     // The points of the line rotated last time, in world space.
     let previousPoints: Array<Point3D> = [];
     for (let point of this.controlPoints)
-      previousPoints.push(new Point3D(point.x, point.y, 0.0));
+      previousPoints.push(this.pointToUDC(gl, new Point3D(point.x, point.y, 0)));
 
     const rotationStepRadians = rotationStep * Math.PI / 180;
 
@@ -129,6 +123,9 @@ class PolyLine implements Line {
     let ret = new Float32Array(result.length * 3);
     let i = 0;
     for (let p of result) {
+      // We ship the point over already in world position.
+      if (i % 2 == 0)
+        p = this.pointFromUDC(gl, p);
       ret[i++] = p.x;
       ret[i++] = p.y;
       ret[i++] = p.z;
@@ -186,15 +183,8 @@ class PolyLine implements Line {
       "varying vec3 fNormal;",
       "uniform mat4 uViewProjection;",
       "void main() {",
-      "  // Point already in world space, but with origin in 0, so need to transform",
-      "  // the final one.",
-      "  vec4 clipPos = uViewProjection * vec4(vPoint, 1.0);",
-      "  // Ahh, coordinate spaces, my nemesis.",
-      "  // gl_Position = clipPos;",
-      "  float x = (clipPos.x + 1.0) * 0.5;",
-      "  float y = (clipPos.y - 1.0) * 0.5;",
-      "  float z = (clipPos.z + 0.5) * 0.5;", // Doesn't matter that much.
-      "  gl_Position = vec4(x, y, z, 1.0);",
+      "  // Point already in world space.",
+      "  gl_Position = uViewProjection * vec4(vPoint, 1.0);",
       "  fNormal = vNormal;",
       "}",
     ].join("\n"));

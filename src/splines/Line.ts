@@ -198,10 +198,10 @@ class Matrix4D {
    */
   static ortho(size: number, near: number, far: number) : Matrix4D {
     let ret = Matrix4D.diag(1.0);
-    let left = 0;
-    let right = size;
-    let top = 0;
-    let bottom = size;
+    let left = -size / 2;
+    let right = size / 2;
+    let top = -size / 2;
+    let bottom = size / 2;
     ret.m11 = 2 / (right - left);
     ret.m22 = 2 / (top - bottom);
     ret.m33 = - 2 / (far - near);
