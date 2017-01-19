@@ -132,17 +132,27 @@ class Application {
         this.lines[i].draw(this.gl, isSelected,
                            isSelected ? this.selection.pointIndex : -1);
       } else {
-        // TODO(emilio): customize axis.
         let camera = this.cameraPosition;
         let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
-        let up = Point3D.YAxis();
         let axisToRotate = Point3D.YAxis();
+        let DOMAxis = this.dom.revolutionAxis.options[this.dom.revolutionAxis.selectedIndex].value;
+        console.log(DOMAxis);
+        switch (DOMAxis) {
+          case "x":
+            axisToRotate = Point3D.XAxis();
+            break;
+          case "z":
+            axisToRotate = Point3D.ZAxis();
+            break;
+        }
+
+        let up = Point3D.YAxis();
         let view = Matrix4D.lookAt(camera, new Point3D(400.0, 400.0, 0), up);
         console.log(view);
         console.log(proj);
         let viewProj = Matrix4D.mul(proj, view);
         console.log(viewProj);
-        this.lines[i].drawRevolutionSurface(this.gl, new Point3D(0, 1, 0), viewProj);
+        this.lines[i].drawRevolutionSurface(this.gl, axisToRotate, viewProj);
       }
     }
   }
@@ -211,7 +221,7 @@ class Application {
     this.dom.canvas.addEventListener('mouseup', e => {
       if (this.displayMode == DisplayMode.Revolution) {
         this.cameraPosition = new Point3D(this.cameraPosition.x,
-                                          this.cameraPosition.y + 10.0,
+                                          this.cameraPosition.y + 1000.0,
                                           this.cameraPosition.z);
         this.redraw();
         return;
@@ -305,6 +315,12 @@ class Application {
       this.displayMode = DisplayMode.Revolution;
       this.redraw();
       e.preventDefault();
+    });
+
+    this.dom.revolutionAxis.addEventListener('change', e => {
+      if (this.displayMode != DisplayMode.Revolution)
+        return;
+      this.redraw();
     });
 
     // Testing...

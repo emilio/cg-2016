@@ -37,7 +37,6 @@ class PolyLine implements Line {
       ret[j++] = this.controlPoints[i].x;
       ret[j++] = this.controlPoints[i].y;
     }
-    console.log(this.controlPoints, ret);
     return ret;
   }
 
@@ -107,8 +106,6 @@ class PolyLine implements Line {
                                   result[2] / result[3]);
 
     let ret = this.pointFromUDC(gl, transformed);
-    // console.log(untransformed, p, transformed, ret);
-    console.log(untransformed.x, untransformed.y, ret.x, ret.y);
     return ret;
   }
 
@@ -141,7 +138,6 @@ class PolyLine implements Line {
       result.push(normal);
     };
 
-    console.log(rotationMatrix);
     // We position the axis in the center of the screen in world position, with z = 0
     for (let angle = ANGLE_STEP; angle <= 360; angle += ANGLE_STEP) {
       let thesePoints = new Array(previousPoints.length);
@@ -318,6 +314,8 @@ class PolyLine implements Line {
   }
 
   drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProjection: Matrix4D) {
+    console.log(axis);
+
     let program = this.ensureRevolutionProgram(gl);
     gl.useProgram(program);
 
@@ -329,8 +327,6 @@ class PolyLine implements Line {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buff);
     gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
-
-    console.log(arr);
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "uViewProjection"),
                         false, viewProjection.toFloat32Array());
