@@ -28,24 +28,49 @@ class ApplicationDOM {
 class Application {
   lines: Array<Line>;
   dom: ApplicationDOM;
-  dragging: boolean;
+  draggingPoint: boolean;
   gl: WebGLRenderingContext;
   selection: Selection;
   displayMode: DisplayMode;
-  cameraPosition: Point3D;
+  cameraDrag: Point;
+  lazyRedrawTimeout: number;
+
+  // Rotations around the origin in _radians_.
+  cameraRotationX: number;
+  cameraRotationY: number;
 
   constructor(dom: ApplicationDOM) {
     dom.canvas.width = dom.canvas.height = 800;
     this.dom = dom;
     this.lines = [];
-    this.dragging = false;
+    this.draggingPoint = false;
+    this.cameraDrag = null;
+    this.lazyRedrawTimeout = null;
+
+    this.cameraRotationX = this.cameraRotationY = 0.0;
+
     this.selection = new Selection(-1, -1);
     this.displayMode = DisplayMode.Lines;
-    this.cameraPosition = new Point3D(400.0, 400.0, -800);
     this.gl = dom.canvas.getContext('webgl');
 
     if (!this.gl)
       throw "Couldn't create WebGL context!";
+  }
+
+  cameraPosition() : Point3D {
+    const CAM_DISTANCE: number = 400;
+
+    let rotX = this.cameraRotationX * Math.PI / 180;
+    let rotY = this.cameraRotationY * Math.PI / 180;
+
+    let x = Matrix4D.rotation(rotX, Point3D.XAxis());
+    let y = Matrix4D.rotation(rotY, Point3D.YAxis());
+
+    let p = new Point3D(0, 0, -1);
+
+    p = Matrix4D.transformPoint(p, Matrix4D.mul(y, x));
+
+    return Point3D.add(Point3D.mul(p, CAM_DISTANCE), new Point3D(400, 400, 0));
   }
 
   setSelection(selection: Selection) {
@@ -120,6 +145,17 @@ class Application {
     }
   }
 
+  lazyRedraw() {
+    const LAZY_REDRAW_TIMEOUT: number = 500;
+
+    if (this.lazyRedrawTimeout)
+      clearTimeout(this.lazyRedrawTimeout);
+
+    this.lazyRedrawTimeout = setTimeout(() => {
+      this.redraw();
+    }, LAZY_REDRAW_TIMEOUT);
+  }
+
   // This does a full redraw of the scene, without any kind of caching.
   //
   // We can do way better than this, but since this isn't run at an animation
@@ -128,6 +164,10 @@ class Application {
   // We may want to redraw when the cursor is moving, in that case we may need
   // some perf work.
   redraw() {
+    if (this.lazyRedrawTimeout)
+      clearTimeout(this.lazyRedrawTimeout);
+    this.lazyRedrawTimeout = null;
+
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     let uIncrement = Math.min(Math.max(this.dom.uIncrement.valueAsNumber, 0.00001), 1.0);
 
@@ -138,7 +178,7 @@ class Application {
                            isSelected ? this.selection.pointIndex : -1,
                            uIncrement);
       } else {
-        let camera = this.cameraPosition;
+        let camera = this.cameraPosition();
         let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
         let axisToRotate = Point3D.YAxis();
         let DOMAxis = this.dom.revolutionAxis.options[this.dom.revolutionAxis.selectedIndex].value;
@@ -158,7 +198,7 @@ class Application {
         console.log(proj);
         let viewProj = Matrix4D.mul(proj, view);
         console.log(viewProj);
-        let rotationStep = Math.min(Math.max(this.dom.rotationStep.valueAsNumber, 0.00001), 1.0);
+        let rotationStep = Math.min(Math.max(this.dom.rotationStep.valueAsNumber, 0.00001), 360);
 
         this.lines[i]
           .drawRevolutionSurface(this.gl, axisToRotate, viewProj,
@@ -200,8 +240,10 @@ class Application {
     const CLICK_GRACE_PERIOD: number = 200;
 
     this.dom.canvas.addEventListener('mousedown', e => {
-      if (this.displayMode == DisplayMode.Revolution)
+      if (this.displayMode == DisplayMode.Revolution) {
+        this.cameraDrag = new Point(e.clientX, e.clientY);
         return;
+      }
       if (clickTimeout) {
         clearTimeout(clickTimeout);
         clickTimeout = null;
@@ -212,14 +254,24 @@ class Application {
       let p = line.controlPoints[this.selection.pointIndex];
       let mouse = new Point(e.clientX, e.clientY);
       if (p.near(mouse, 5))
-        this.dragging = true;
+        this.draggingPoint = true;
     });
 
     this.dom.canvas.addEventListener('mousemove', e => {
-      if (this.displayMode == DisplayMode.Revolution)
+      const CAMERA_DRAG_PER_PX: number = 0.1;
+      if (this.displayMode == DisplayMode.Revolution) {
+        if (!this.cameraDrag)
+          return;
+        let thisPoint = new Point(e.clientX, e.clientY);
+        let diff = Point.substract(thisPoint, this.cameraDrag);
+        this.cameraRotationX += diff.y * CAMERA_DRAG_PER_PX;
+        this.cameraRotationY += diff.x * CAMERA_DRAG_PER_PX;
+        this.cameraDrag = thisPoint;
+        this.lazyRedraw();
         return;
+      }
       // TODO: Throttle this, or make drawing really fast!
-      if (!this.dragging || this.selection.pointIndex === -1)
+      if (!this.draggingPoint || this.selection.pointIndex === -1)
         return;
       let line = this.lines[this.selection.lineIndex];
       let p = line.controlPoints[this.selection.pointIndex];
@@ -232,14 +284,11 @@ class Application {
 
     this.dom.canvas.addEventListener('mouseup', e => {
       if (this.displayMode == DisplayMode.Revolution) {
-        this.cameraPosition = new Point3D(this.cameraPosition.x,
-                                          this.cameraPosition.y + 1000.0,
-                                          this.cameraPosition.z);
-        this.redraw();
+        this.cameraDrag = null;
         return;
       }
-      let wasDragging = this.dragging;
-      this.dragging = false;
+      let wasDragging = this.draggingPoint;
+      this.draggingPoint = false;
       if (clickTimeout) {
         clearTimeout(clickTimeout);
         clickTimeout = null;
@@ -319,7 +368,6 @@ class Application {
       });
     });
 
-    let redrawTimeout = null;
     [
       [ 'uIncrement', false ],
       [ 'rotationAmount', true ],
@@ -332,11 +380,7 @@ class Application {
       elem.addEventListener('input', e => {
         if (onlyOnRevolutionMode && this.displayMode != DisplayMode.Revolution)
           return;
-        if (redrawTimeout)
-          clearTimeout(redrawTimeout);
-        redrawTimeout = setTimeout(() => {
-          this.redraw();
-        }, 500);
+        this.lazyRedraw();
       });
     });
 

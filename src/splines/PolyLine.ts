@@ -41,35 +41,8 @@ class PolyLine implements Line {
   }
 
   // Build a rotation matrix for an angle `a` around a normalized axis `axis`.
-  rotationMatrix(a: number, axis: Point3D) {
-    let cos = Math.cos(a);
-    let sin = Math.sin(a);
-
-    let oneMinusCos = 1 - cos;
-    let temp = Point3D.mul(axis, 1 - cos);
-    return [
-      [
-        cos + (1 - cos) * axis.x * axis.x,
-        (1 - cos) * axis.x * axis.y + sin * axis.z,
-        (1 - cos) * axis.x * axis.z - sin * axis.y,
-        0,
-      ], [
-        (1 - cos) * axis.y * axis.x - sin * axis.z,
-        cos + (1 - cos) * axis.y * axis.y,
-        (1 - cos) * axis.y * axis.z + sin * axis.x,
-        0,
-      ], [
-        (1 - cos) * axis.z * axis.x + sin * axis.y,
-        (1 - cos) * axis.z * axis.y - sin * axis.x,
-        cos + (1 - cos) * axis.z * axis.y - sin * axis.x,
-        0,
-      ], [
-        0,
-        0,
-        0,
-        1,
-      ],
-    ];
+  rotationMatrix(a: number, axis: Point3D) : Matrix4D {
+    return Matrix4D.rotation(a, axis);
   }
 
   /**
@@ -91,19 +64,10 @@ class PolyLine implements Line {
 
   transformPoint(gl: WebGLRenderingContext,
                  untransformed: Point3D,
-                 m: Array<Array<number>>) : Point3D {
+                 m: Matrix4D) : Point3D {
     let p = this.pointToUDC(gl, untransformed);
 
-    let result = [
-      m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z + m[0][3],
-      m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z + m[1][3],
-      m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z + m[2][3],
-      m[3][0] * p.x + m[3][1] * p.y + m[3][2] * p.z + m[3][3],
-    ];
-
-    let transformed = new Point3D(result[0] / result[3],
-                                  result[1] / result[3],
-                                  result[2] / result[3]);
+    let transformed = Matrix4D.transformPoint(p, m);
 
     let ret = this.pointFromUDC(gl, transformed);
     return ret;
@@ -128,9 +92,7 @@ class PolyLine implements Line {
 
     let rotationMatrix = this.rotationMatrix(rotationStepRadians, axis);
 
-    let addFace = function(p1, p2, p3) {
-      let normal = Point3D.cross(Point3D.substract(p2, p1),
-                                 Point3D.substract(p3, p1)).normalize();
+    let addFace = function(p1, p2, p3, normal) {
       // First face.
       result.push(p1);
       result.push(normal);
@@ -150,11 +112,15 @@ class PolyLine implements Line {
       for (let i = 1; i < this.controlPoints.length; ++i) {
         thesePoints[i] = this.transformPoint(gl, previousPoints[i], rotationMatrix);
 
+        let normal = Point3D.cross(Point3D.substract(previousPoints[i], previousPoints[i - 1]),
+                                   Point3D.substract(thesePoints[i - 1], previousPoints[i - 1]))
+          .normalize();
+
         // First face.
-        addFace(previousPoints[i - 1], thesePoints[i - 1], previousPoints[i]);
+        addFace(previousPoints[i - 1], thesePoints[i - 1], previousPoints[i], normal);
 
         // Second face.
-        addFace(previousPoints[i], thesePoints[i - 1], thesePoints[i]);
+        addFace(previousPoints[i], thesePoints[i - 1], thesePoints[i], normal);
       }
 
       previousPoints = thesePoints;
@@ -227,7 +193,7 @@ class PolyLine implements Line {
       "  // gl_Position = clipPos;",
       "  float x = (clipPos.x + 1.0) * 0.5;",
       "  float y = (clipPos.y - 1.0) * 0.5;",
-      "  float z = (clipPos.z + 1.0) * 0.5;", // Doesn't matter that much.
+      "  float z = (clipPos.z + 0.5) * 0.5;", // Doesn't matter that much.
       "  gl_Position = vec4(x, y, z, 1.0);",
       "  fNormal = vNormal;",
       "}",

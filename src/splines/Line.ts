@@ -41,8 +41,16 @@ class Point3D {
     return new Point3D(0, 0, 1);
   }
 
+  static add(one: Point3D, other: Point3D) : Point3D {
+    return new Point3D(one.x + other.x, one.y + other.y, one.z + other.z);
+  }
+
   static mul(one: Point3D, n: number) : Point3D {
     return new Point3D(one.x * n, one.y * n, one.z * n);
+  }
+
+  static mid(p1: Point3D, p2: Point3D) : Point3D {
+    return Point3D.add(p1, Point3D.mul(Point3D.substract(p2, p1), .5));
   }
 
   static substract(one: Point3D, other: Point3D) : Point3D {
@@ -228,6 +236,43 @@ class Matrix4D {
     ret.m34 =  Point3D.dot(f, eye);
 
     return ret;
+  }
+
+  static rotation(a: number, axis: Point3D) : Matrix4D {
+    let cos = Math.cos(a);
+    let sin = Math.sin(a);
+
+    let oneMinusCos = 1 - cos;
+    return new Matrix4D(
+      cos + (1 - cos) * axis.x * axis.x,
+      (1 - cos) * axis.x * axis.y + sin * axis.z,
+      (1 - cos) * axis.x * axis.z - sin * axis.y,
+      0,
+
+      (1 - cos) * axis.y * axis.x - sin * axis.z,
+      cos + (1 - cos) * axis.y * axis.y,
+      (1 - cos) * axis.y * axis.z + sin * axis.x,
+      0,
+
+      (1 - cos) * axis.z * axis.x + sin * axis.y,
+      (1 - cos) * axis.z * axis.y - sin * axis.x,
+      cos + (1 - cos) * axis.z * axis.y - sin * axis.x,
+      0,
+
+      0,
+      0,
+      0,
+      1,
+    );
+  }
+
+  static transformPoint(p: Point3D, m: Matrix4D) : Point3D {
+    let x = m.m11 * p.x + m.m12 * p.y + m.m13 * p.z + m.m14;
+    let y = m.m21 * p.x + m.m22 * p.y + m.m23 * p.z + m.m24;
+    let z = m.m31 * p.x + m.m32 * p.y + m.m33 * p.z + m.m34;
+    let w = m.m41 * p.x + m.m42 * p.y + m.m43 * p.z + m.m44;
+
+    return new Point3D(x / w, y / w, z / w);
   }
 
   // NB: We transpose it here to match opengl's column major order.
