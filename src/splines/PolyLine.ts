@@ -109,7 +109,10 @@ class PolyLine implements Line {
     return ret;
   }
 
-  revolutionSurfaceAroundAxis(gl: WebGLRenderingContext, axis: Point3D) : Float32Array {
+  revolutionSurfaceAroundAxis(gl: WebGLRenderingContext,
+                              axis: Point3D,
+                              rotationAmount: number,
+                              rotationStep: number) : Float32Array {
     if (this.controlPoints.length === 0)
       return new Float32Array([]);
 
@@ -121,10 +124,9 @@ class PolyLine implements Line {
     for (let point of this.controlPoints)
       previousPoints.push(new Point3D(point.x, point.y, 0.0));
 
-    const ANGLE_STEP: number = 5;
-    const ANGLE_STEP_RADIANS = ANGLE_STEP * Math.PI / 180;
+    const rotationStepRadians = rotationStep * Math.PI / 180;
 
-    let rotationMatrix = this.rotationMatrix(ANGLE_STEP_RADIANS, axis);
+    let rotationMatrix = this.rotationMatrix(rotationStepRadians, axis);
 
     let addFace = function(p1, p2, p3) {
       let normal = Point3D.cross(Point3D.substract(p2, p1),
@@ -139,7 +141,7 @@ class PolyLine implements Line {
     };
 
     // We position the axis in the center of the screen in world position, with z = 0
-    for (let angle = ANGLE_STEP; angle <= 360; angle += ANGLE_STEP) {
+    for (let angle = rotationStep; angle <= rotationAmount; angle += rotationStep) {
       let thesePoints = new Array(previousPoints.length);
       thesePoints[0] = this.transformPoint(gl, previousPoints[0], rotationMatrix);
       // Push the previous point, then this one, then the next previous point
@@ -313,13 +315,18 @@ class PolyLine implements Line {
     this.drawAs(gl, gl.POINTS, isSelected, selectedPointIndex);
   }
 
-  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProjection: Matrix4D) {
+  drawRevolutionSurface(gl: WebGLRenderingContext,
+                        axis: Point3D,
+                        viewProjection: Matrix4D,
+                        _uIncrement: number,
+                        rotationAmount: number,
+                        rotationStep: number) {
     console.log(axis);
 
     let program = this.ensureRevolutionProgram(gl);
     gl.useProgram(program);
 
-    let arr = this.revolutionSurfaceAroundAxis(gl, axis);
+    let arr = this.revolutionSurfaceAroundAxis(gl, axis, rotationAmount, rotationStep);
 
     let vPointLocation = gl.getAttribLocation(program, "vPoint");
     let vNormalLocation = gl.getAttribLocation(program, "vNormal");

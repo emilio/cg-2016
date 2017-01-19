@@ -29,7 +29,7 @@ class BSpline implements Line {
   /** The weights of each control point. */
   weights: Array<number>;
   evaluated: PolyLine;
-  dirty: boolean;
+  dirty: number;
 
   constructor() {
     // TODO: Compute the order from the knot vector length et al.
@@ -38,7 +38,7 @@ class BSpline implements Line {
     this.controlPoints = [];
     this.weights = [];
     this.evaluated = new PolyLine();
-    this.dirty = false;
+    this.dirty = -1.0;
   }
 
   /**
@@ -94,43 +94,50 @@ class BSpline implements Line {
     return p;
   }
 
-  reevaluate() {
-    const POINTS: number = 1.00 / 0.05;
+  reevaluate(uIncrement: number) {
     this.evaluated = new PolyLine();
 
     let min = this.knots[0];
     let max = this.knots[this.knots.length - 1];
-    let stepSize = (max - min) / POINTS;
-
-    for (let u = 0.0; u < max; u += stepSize) {
+    for (let u = 0.0; u < max; u += uIncrement) {
       // this.evaluated.controlPoints.push(this.evaluateAt(u));
       this.evaluated.controlPoints.push(Point.mul(this.evaluateAt(u), 800));
     }
-
-    console.log("Evaluated: ", this.evaluated.controlPoints);
-    this.dirty = false;
   }
 
-  evaluatedLine() : PolyLine {
-    if (this.dirty)
-      this.reevaluate();
+  evaluatedLine(uIncrement: number = 0.05) : PolyLine {
+    if (this.dirty !== uIncrement)
+      this.reevaluate(uIncrement);
+    this.dirty = uIncrement;
     return this.evaluated;
   }
 
   draw(gl: WebGLRenderingContext,
        isSelected: boolean,
-       selectedPointIndex: number) {
+       selectedPointIndex: number,
+       uIncrement: number) {
     // We evaluate a BSpline as a simple polyline, then just paint that. It's
     // possible we could use the GPU to evaluate bezier curves with geometry
     // shaders, but oh well.
-    this.evaluatedLine().drawLine(gl, isSelected, selectedPointIndex);
+    this.evaluatedLine(uIncrement).drawLine(gl, isSelected, selectedPointIndex);
     // Then we draw the control points using the same code as for the polyline.
     let l = new PolyLine(this.controlPoints);
     l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
-  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProj: Matrix4D) {
-    this.evaluatedLine().drawRevolutionSurface(gl, axis, viewProj);
+  drawRevolutionSurface(gl: WebGLRenderingContext,
+                        axis: Point3D,
+                        viewProj: Matrix4D,
+                        uIncrement: number,
+                        rotationAmount: number,
+                        rotationStep: number) {
+    this.evaluatedLine(uIncrement)
+      .drawRevolutionSurface(gl,
+                             axis,
+                             viewProj,
+                             uIncrement,
+                             rotationAmount,
+                             rotationStep);
   }
 
   contains(p: Point) : ContainmentResult {
@@ -143,10 +150,6 @@ class BSpline implements Line {
     r = this.evaluatedLine().contains(p);
     r.selectedPointIndex = -1;
     return r;
-  }
-
-  isDirty() : boolean {
-    return this.dirty;
   }
 
   getKnotSpan(u: number) : number {
@@ -215,7 +218,7 @@ class BSpline implements Line {
   }
 
   setDirty() {
-    this.dirty = true;
+    this.dirty = -1.0;
   }
 
   getType() : LineType {

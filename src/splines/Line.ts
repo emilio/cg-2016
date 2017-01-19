@@ -98,14 +98,18 @@ interface Line {
    */
   draw(gl: WebGLRenderingContext,
        isSelected: boolean,
-       selectedPointIndex: number);
+       selectedPointIndex: number,
+       uIncrement: number);
 
   /**
    * Evaluates this line and draws it as a revolution surface around the axis.
    */
   drawRevolutionSurface(gl: WebGLRenderingContext,
                         axis: Point3D,
-                        viewProj: Matrix4D);
+                        viewProj: Matrix4D,
+                        uIncrement: number,
+                        rotationAmount: number,
+                        rotationStep: number);
 
   /**
    * Returns whether point p is one of the points in this line or touches it.

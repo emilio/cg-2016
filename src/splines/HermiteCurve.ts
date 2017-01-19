@@ -1,7 +1,6 @@
 import { ContainmentResult, DisplayMode, Matrix4D, Point, Point3D, Line, LineType } from "Line";
 import PolyLine from "PolyLine";
 
-const EVALUATION_DELTA: number = 0.05;
 
 class HermiteCurve implements Line {
   controlPoints: Array<Point>;
@@ -13,15 +12,15 @@ class HermiteCurve implements Line {
   // because we're on a rush.
   tangents: Array<Point>;
   evaluated: PolyLine;
-  dirty: boolean;
+  dirty: number;
   constructor() {
     this.controlPoints = new Array();
     this.tangents = new Array();
     this.evaluated = new PolyLine();
-    this.dirty = false;
+    this.dirty = -1.0;
   }
 
-  evaluateSegment(i: number, evaluatedControlPoints: Array<Point>) {
+  evaluateSegment(i: number, evaluatedControlPoints: Array<Point>, uIncrement: number) {
     let p1 = this.controlPoints[i - 1];
     let t1 = this.tangents[i - 1];
     let p2 = this.controlPoints[i];
@@ -35,7 +34,7 @@ class HermiteCurve implements Line {
     // h3(s) =   s^3 - 2s^2 + s
     // h4(s) =   s^3 -  s^2
     evaluatedControlPoints.push(p1);
-    for (let s = 0.0; s < 1.0; s += EVALUATION_DELTA) {
+    for (let s = 0.0; s < 1.0; s += uIncrement) {
       let s2 = s * s;
       let s3 = s * s * s;
 
@@ -58,18 +57,18 @@ class HermiteCurve implements Line {
     this.setDirty();
   }
 
-  reevaluate() {
+  reevaluate(uIncrement: number) {
     this.evaluated = new PolyLine();
     if (this.controlPoints.length == 0)
       return;
     for (let i = 1; i < this.controlPoints.length; ++i)
-      this.evaluateSegment(i, this.evaluated.controlPoints);
+      this.evaluateSegment(i, this.evaluated.controlPoints, uIncrement);
   }
 
-  evaluatedLine() : PolyLine {
-    if (this.dirty)
-      this.reevaluate();
-    this.dirty = false;
+  evaluatedLine(uIncrement: number = 0.05) : PolyLine {
+    if (this.dirty !== uIncrement)
+      this.reevaluate(uIncrement);
+    this.dirty = uIncrement;
     return this.evaluated;
   }
 
@@ -82,14 +81,26 @@ class HermiteCurve implements Line {
 
   draw(gl: WebGLRenderingContext,
        isSelected: boolean,
-       selectedPointIndex: number) {
-    this.evaluatedLine().drawLine(gl, isSelected, selectedPointIndex);
+       selectedPointIndex: number,
+       uIncrement: number) {
+    this.evaluatedLine(uIncrement).drawLine(gl, isSelected, selectedPointIndex);
     let l = new PolyLine(this.controlPoints);
     l.drawPoints(gl, isSelected, selectedPointIndex);
   }
 
-  drawRevolutionSurface(gl: WebGLRenderingContext, axis: Point3D, viewProj: Matrix4D) {
-    this.evaluatedLine().drawRevolutionSurface(gl, axis, viewProj);
+  drawRevolutionSurface(gl: WebGLRenderingContext,
+                        axis: Point3D,
+                        viewProj: Matrix4D,
+                        uIncrement: number,
+                        rotationAmount: number,
+                        rotationStep: number) {
+    this.evaluatedLine(uIncrement)
+      .drawRevolutionSurface(gl,
+                             axis,
+                             viewProj,
+                             uIncrement,
+                             rotationAmount,
+                             rotationStep);
   }
 
   contains(p: Point) : ContainmentResult {
@@ -109,11 +120,7 @@ class HermiteCurve implements Line {
   }
 
   setDirty() {
-    this.dirty = true;
-  }
-
-  isDirty() : boolean {
-    return this.dirty;
+    this.dirty = -1.0;
   }
 }
 

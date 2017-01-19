@@ -18,8 +18,11 @@ class ApplicationDOM {
               public lineControl: HTMLSelectElement,
               public hermiteTangentX: HTMLInputElement,
               public hermiteTangentY: HTMLInputElement,
+              public uIncrement: HTMLInputElement,
               public revolutionTrigger: HTMLElement,
-              public revolutionAxis: HTMLSelectElement) { }
+              public revolutionAxis: HTMLSelectElement,
+              public rotationAmount: HTMLInputElement,
+              public rotationStep: HTMLInputElement) {}
 }
 
 class Application {
@@ -126,11 +129,14 @@ class Application {
   // some perf work.
   redraw() {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    let uIncrement = Math.min(Math.max(this.dom.uIncrement.valueAsNumber, 0.00001), 1.0);
+
     for (let i = 0; i < this.lines.length; ++i) {
       let isSelected = this.selection.lineIndex == i;
       if (this.displayMode == DisplayMode.Lines) {
         this.lines[i].draw(this.gl, isSelected,
-                           isSelected ? this.selection.pointIndex : -1);
+                           isSelected ? this.selection.pointIndex : -1,
+                           uIncrement);
       } else {
         let camera = this.cameraPosition;
         let proj = Matrix4D.ortho(this.gl.canvas.width, -10000, 10000);
@@ -152,7 +158,13 @@ class Application {
         console.log(proj);
         let viewProj = Matrix4D.mul(proj, view);
         console.log(viewProj);
-        this.lines[i].drawRevolutionSurface(this.gl, axisToRotate, viewProj);
+        let rotationStep = Math.min(Math.max(this.dom.rotationStep.valueAsNumber, 0.00001), 1.0);
+
+        this.lines[i]
+          .drawRevolutionSurface(this.gl, axisToRotate, viewProj,
+                                 uIncrement,
+                                 this.dom.rotationAmount.valueAsNumber,
+                                 rotationStep);
       }
     }
   }
@@ -304,6 +316,27 @@ class Application {
       element.addEventListener('keypress', function(e) {
         // Stop reaching the document event listener that would remove lines.
         e.stopPropagation();
+      });
+    });
+
+    let redrawTimeout = null;
+    [
+      [ 'uIncrement', false ],
+      [ 'rotationAmount', true ],
+      [ 'rotationStep', true ],
+    ].forEach(entry => {
+      // FIXME(emilio): https://github.com/Microsoft/TypeScript/issues/13578
+      let elem = this.dom[<string>entry[0]];
+      let onlyOnRevolutionMode = entry[1];
+
+      elem.addEventListener('input', e => {
+        if (onlyOnRevolutionMode && this.displayMode != DisplayMode.Revolution)
+          return;
+        if (redrawTimeout)
+          clearTimeout(redrawTimeout);
+        redrawTimeout = setTimeout(() => {
+          this.redraw();
+        }, 500);
       });
     });
 

@@ -25,6 +25,8 @@
       <input type="number" id="hermite-tangent-y">
     </div>
   </div>
+  <label>Increment of u (0.0 - 1.0)</label>
+  <input type="number" id="u-increment" value="0.05">
   <div class="rotation-config" id="rotation-config">
     <button id="rotation-config-trigger">Create revolution surface</button>
     <label>Axis</label>
@@ -33,6 +35,10 @@
       <option value="y" selected>Y</option>
       <option value="z">Z</option>
     </select>
+    <label>Rotation amount (degrees)</label>
+    <input type="number" id="rotation-amount" value="360.0">
+    <label>Rotation step (degrees)</label>
+    <input type="number" id="rotation-step" value="5">
   </div>
 </div>
 <script src="require.min.js"></script>
@@ -46,8 +52,11 @@ require(["splines"], function(splines) {
           document.getElementById('line-chooser'),
           document.getElementById('hermite-tangent-x'),
           document.getElementById('hermite-tangent-y'),
+          document.getElementById('u-increment'),
           document.getElementById('rotation-config-trigger'),
-          document.getElementById('rotation-config-axis')));
+          document.getElementById('rotation-config-axis'),
+          document.getElementById('rotation-amount'),
+          document.getElementById('rotation-step')));
   app.setup();
 });
 </script>
