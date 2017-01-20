@@ -13,6 +13,10 @@ class Point {
     return new Point(one.x * n, one.y * n);
   }
 
+  static div(one: Point, n: number) : Point {
+    return new Point(one.x / n, one.y / n);
+  }
+
   near(other: Point, maxDistance: number) : boolean {
     return Point.substract(this, other).length() <= maxDistance;
   }

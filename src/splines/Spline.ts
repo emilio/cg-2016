@@ -53,29 +53,35 @@ class BSpline implements Line {
     if (n === 0) {
       return u => {
         let r = 0.0;
-        if (u >= this.knots[i] && u < this.knots[i + 1])
+        if (u >= this.knots[i] && u <= this.knots[i + 1])
           r = 1.0;
-        console.log("bas(", i, ", ", n, ", ", u, "): ", r);
         return r;
       };
     }
     // General case: N_{i, n}.
     return u => {
-      // TODO: This should probably handle division by zero.
       // f_{i, n} = (u - k_i) / (k_{i + n} - k_i)
-      let f_i_n = (u - this.knots[i]) / (this.knots[i + n] - this.knots[i]);
+      let tmp = this.knots[i + n] - this.knots[i];
+      let f_i_n = 0.0;
+      if (tmp !== 0)
+        f_i_n = (u - this.knots[i]) / tmp;
 
       // g_{i, n} = (k_{i+n} - u) / (k_{i+n} - k_i)
       // NB: Here we calculate g_{i + 1, n}
-      let g_iplusone_n = (this.knots[i + 1 + n] - u) / (this.knots[i + 1 + n] - this.knots[i + 1]);
+      tmp = this.knots[i + n + 1] - this.knots[i + 1];
+      let g_iplusone_n = 0.0;
+      if (tmp !== 0)
+        g_iplusone_n = (this.knots[i + 1 + n] - u) / tmp;
 
-      let n_i_nminusone = this.calculateBasisFunction(i, n - 1)(u);
-      let n_iplusone_nminusone = this.calculateBasisFunction(i + 1, n - 1)(u);
+      let left = 0.0;
+      if (f_i_n !== 0)
+        left = f_i_n * this.calculateBasisFunction(i, n - 1)(u);
 
-      console.log("bas(", i, ", ", n, ", ", u, "): ",
-                  f_i_n, " * ", n_i_nminusone, " + ",
-                  g_iplusone_n, " * ", n_iplusone_nminusone);
-      return f_i_n * n_i_nminusone + g_iplusone_n * n_iplusone_nminusone;
+      let right = 0.0;
+      if (g_iplusone_n !== 0)
+        right = g_iplusone_n * this.calculateBasisFunction(i + 1, n - 1)(u);
+
+      return left + right;
     };
   }
 
@@ -84,25 +90,29 @@ class BSpline implements Line {
   }
 
   evaluateAt(u: number) : Point {
-    let span = this.getKnotSpan(u);
-    let basis = this.getBasisFunctions(u);
-    console.log(span, basis);
-    let p = new Point(0.0, 0.0);
-    let degree = this.degree();
-    for (let i = 0; i < degree; ++i)
-      p = Point.add(p, Point.mul(this.controlPoints[span - degree + i], basis[i]));
-    return p;
+    // "Normalize" it.
+    let norm = u * this.knots[this.knots.length - 1];
+
+    let num = new Point(0.0, 0.0);
+    let denom = 0.0;
+    for (let i = 0; i < this.controlPoints.length; ++i) {
+      let factor = this.calculateBasisFunction(i, this.degree())(norm);
+      factor *= this.weights[i];
+      num = Point.add(num, Point.mul(this.controlPoints[i], factor));
+      denom += factor;
+    }
+
+    return Point.div(num, denom);
   }
 
   reevaluate(uIncrement: number) {
     this.evaluated = new PolyLine();
 
-    let min = this.knots[0];
-    let max = this.knots[this.knots.length - 1];
-    for (let u = 0.0; u < max; u += uIncrement) {
-      // this.evaluated.controlPoints.push(this.evaluateAt(u));
-      this.evaluated.controlPoints.push(Point.mul(this.evaluateAt(u), 800));
-    }
+    let u = 0.0;
+    for (; u <= 1.0; u += uIncrement)
+      this.evaluated.controlPoints.push(this.evaluateAt(u));
+    if (u > 1.0)
+      this.evaluated.controlPoints.push(this.evaluateAt(1.0));
   }
 
   evaluatedLine(uIncrement: number = 0.05) : PolyLine {
@@ -150,56 +160,6 @@ class BSpline implements Line {
     r = this.evaluatedLine().contains(p);
     r.selectedPointIndex = -1;
     return r;
-  }
-
-  getKnotSpan(u: number) : number {
-    let n = this.controlPoints.length - 1;
-    let low = this.degree();
-    let hi = this.controlPoints.length;
-    let mid = Math.floor((low + hi) / 2);
-
-    if (u === this.knots[hi])
-      return n;
-
-
-    while ((u < this.knots[mid] || u >= this.knots[mid + 1])) {
-      if (hi == low && hi == mid)
-        break;
-
-      if (u < this.knots[mid])
-        hi = mid;
-      else
-        low = mid;
-
-      mid = Math.floor((low + hi) / 2);
-    }
-
-    return mid;
-  }
-
-  /**
-   * Get a vector with `this.controlPoints.length` numbers corresponding to the
-   * evaluation of the basis functions at point `u`.
-   */
-  getBasisFunctions(u: number) : Array<number> {
-    let knotIndex = this.getKnotSpan(u);
-    let basis = new Array(this.controlPoints.length);
-    basis[0] = 1;
-
-    let left = new Array(this.controlPoints.length);
-    let right = new Array(this.controlPoints.length);
-    for (let j = 1; j <= this.degree(); ++j) {
-      left[j] = u - this.knots[knotIndex + 1 - j];
-      right[j] = this.knots[knotIndex + j] - u;
-      let saved = 0.0;
-      for (let r = 0; r < j; ++r) {
-        let temp = basis[r] / (right[r + 1] + left[j - r]);
-        basis[r] = saved + right[r + 1] * temp;
-        saved = left[j - r] * temp;
-      }
-      basis[j] = saved;
-    }
-    return basis;
   }
 
   addControlPoint(p: Point) {

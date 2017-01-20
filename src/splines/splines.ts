@@ -406,24 +406,25 @@ class Application {
     // https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline#Example:_a_circle),
     // so let's see.
     //
-    // let halfSquareOfTwo = Math.sqrt(2) / 2;
-    // let spline = new BSpline();
-    // spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
-    // spline.controlPoints = [
-    //   new Point(1, 0),
-    //   new Point(1, 1),
-    //   new Point(0, 1),
-    //   new Point(-1, 1),
-    //   new Point(-1, 0),
-    //   new Point(-1, -1),
-    //   new Point(0, -1),
-    //   new Point(1, -1),
-    //   new Point(1, 0),
-    // ];
-    // spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
-    // spline.setDirty();
-    // this.lines.push(spline);
-    // this.redraw();
+    let halfSquareOfTwo = Math.sqrt(2) / 2;
+    let spline = new BSpline();
+    spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
+    spline.order = 3;
+    spline.controlPoints = [
+      new Point(800, 400),
+      new Point(800, 800),
+      new Point(400, 800),
+      new Point(0, 800),
+      new Point(0, 400),
+      new Point(0, 0),
+      new Point(400, 0),
+      new Point(800, 0),
+      new Point(800, 400),
+    ];
+    spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
+    spline.setDirty();
+    this.lines.push(spline);
+    this.redraw();
   }
 };
 
