@@ -52,13 +52,13 @@ class PolyLine implements Line {
   pointToUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
     return new Point3D(point.x / gl.canvas.width * 2.0 - 1.0,
                        point.y / gl.canvas.height * -2.0 + 1.0,
-                       point.z / gl.canvas.width * 2.0);
+                       point.z / gl.canvas.width * -2.0);
   }
 
   pointFromUDC(gl: WebGLRenderingContext, point: Point3D) : Point3D {
     return new Point3D((point.x + 1.0) * 0.5 * gl.canvas.width,
                        (point.y - 1.0) * -0.5 * gl.canvas.height,
-                        point.z * 0.5 * gl.canvas.width);
+                        point.z * -0.5 * gl.canvas.width);
   }
 
   transformPoint(gl: WebGLRenderingContext,
@@ -181,11 +181,13 @@ class PolyLine implements Line {
       "attribute vec3 vPoint;",
       "attribute vec3 vNormal;",
       "varying vec3 fNormal;",
+      "varying vec3 fPosition;",
       "uniform mat4 uViewProjection;",
       "void main() {",
       "  // Point already in world space.",
-      "  gl_Position = uViewProjection * vec4(vPoint, 1.0);",
+      "  fPosition = vPoint;",
       "  fNormal = vNormal;",
+      "  gl_Position = uViewProjection * vec4(vPoint, 1.0);",
       "}",
     ].join("\n"));
     gl.compileShader(vertex);
@@ -195,10 +197,25 @@ class PolyLine implements Line {
     gl.shaderSource(fragment, [
       "precision mediump float;",
       "varying vec3 fNormal;",
+      "varying vec3 fPosition;",
+      "uniform vec3 uLightPosition;",
       "void main() {",
-      // TODO(emilio): Reflection model.
-      "  // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
-      "  gl_FragColor = vec4(fNormal, 1.0);",
+      "  const vec4 OBJECT_COLOR = vec4(0.5, 0.5, 0.0, 1.0);",
+      "  const vec4 SPEC_COLOR = vec4(1.0, 1.0, 1.0, 1.0);",
+      "  const float AMBIENT_LIGHT_STRENGTH = 0.6;",
+
+      "  vec4 ambient = OBJECT_COLOR * AMBIENT_LIGHT_STRENGTH;",
+
+      "  vec3 lightDir = normalize(fPosition - uLightPosition);",
+
+      "  float diffuseImpact = max(dot(fNormal, -lightDir), 0.0);",
+      "  vec4 diffuse = diffuseImpact * OBJECT_COLOR;",
+
+      "  vec3 reflectDir = reflect(lightDir, fNormal);",
+      "  float spec = ",
+      "    pow(max(dot(-lightDir, reflectDir), 0.0), 4.0);",
+      "  vec4 specular = spec * SPEC_COLOR;",
+      "  gl_FragColor = diffuse + specular + ambient;",
       "}",
     ].join("\n"));
     gl.compileShader(fragment);
@@ -293,6 +310,8 @@ class PolyLine implements Line {
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "uViewProjection"),
                         false, viewProjection.toFloat32Array());
+    gl.uniform3f(gl.getUniformLocation(program, "uLightPosition"),
+                 200.0, 200.0, -800.0); // Make it come from the top left.
 
     // We push six floats each time.
     const SIZE_OF_PACK_BYTES: number = 3 * 4 * 2;
