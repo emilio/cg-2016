@@ -8,6 +8,7 @@ endif()
 
 add_custom_target(docs ALL
   DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/main.pdf"
+          "${CMAKE_CURRENT_BINARY_DIR}/surfaces.pdf"
   VERBATIM
 )
 

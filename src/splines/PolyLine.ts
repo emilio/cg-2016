@@ -175,7 +175,6 @@ class PolyLine implements Line {
     REVOLUTION_PROGRAM_CACHE = gl.createProgram();
 
     let vertex = gl.createShader(gl.VERTEX_SHADER);
-    // TODO(emilio): Same re. hardcoding dimensions. We assume a 800x800x800 cube.
     gl.shaderSource(vertex, [
       "precision mediump float;",
       "attribute vec3 vPoint;",

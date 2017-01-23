@@ -12,7 +12,7 @@ abstract: |
 
 # Introduction
 
-I've implementing a third-person-view application as requested in the
+I've implemented a third-person-view application as requested in the
 assignment.
 
 On top of it, I've implemented a bunch of other stuff, mostly for personal

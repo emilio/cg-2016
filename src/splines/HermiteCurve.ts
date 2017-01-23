@@ -59,10 +59,11 @@ class HermiteCurve implements Line {
 
   reevaluate(uIncrement: number) {
     this.evaluated = new PolyLine();
-    if (this.controlPoints.length == 0)
-      return;
-    for (let i = 1; i < this.controlPoints.length; ++i)
-      this.evaluateSegment(i, this.evaluated.controlPoints, uIncrement);
+    for (let i = 1; i < this.controlPoints.length; ++i) {
+      this.evaluateSegment(i,
+                           this.evaluated.controlPoints,
+                           uIncrement * this.controlPoints.length);
+    }
   }
 
   evaluatedLine(uIncrement: number = 0.05) : PolyLine {
