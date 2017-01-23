@@ -18,6 +18,8 @@ class ApplicationDOM {
               public lineControl: HTMLSelectElement,
               public hermiteTangentX: HTMLInputElement,
               public hermiteTangentY: HTMLInputElement,
+              public splineDegree: HTMLInputElement,
+              public splinePointWeight: HTMLInputElement,
               public uIncrement: HTMLInputElement,
               public revolutionTrigger: HTMLElement,
               public revolutionAxis: HTMLSelectElement,
@@ -82,7 +84,11 @@ class Application {
       switch (line.getType()) {
         case LineType.PolyLine: lineType = "poly"; break;
         case LineType.Hermite:  lineType = "hermite"; break;
-        case LineType.BSpline:  lineType = "bspline"; break;
+        case LineType.BSpline: {
+          this.dom.splineDegree.valueAsNumber = (<BSpline>line).degree();
+          lineType = "bspline";
+          break;
+        }
       }
       className += "line-" + lineType;
 
@@ -96,7 +102,11 @@ class Application {
             this.dom.hermiteTangentY.valueAsNumber = tangent.y;
             break;
           }
-          case LineType.BSpline:
+          case LineType.BSpline: {
+            let weight = (<BSpline>line).weights[selection.pointIndex]
+            this.dom.splinePointWeight.valueAsNumber = weight;
+            break;
+          }
           case LineType.Hermite:
             break;
         }
@@ -359,13 +369,26 @@ class Application {
         let p = line.tangents[this.selection.pointIndex];
         p[propToOverride] = newValue;
         line.setDirty();
-        this.redraw();
+        this.lazyRedraw();
       });
 
       element.addEventListener('keypress', function(e) {
         // Stop reaching the document event listener that would remove lines.
         e.stopPropagation();
       });
+    });
+
+    this.dom.splineDegree.addEventListener('input', e => {
+      let line = <BSpline>this.lines[this.selection.lineIndex];
+      line.setDegree(this.dom.splineDegree.valueAsNumber);
+      this.lazyRedraw();
+    });
+
+    this.dom.splinePointWeight.addEventListener('input', e => {
+      let line = <BSpline>this.lines[this.selection.lineIndex];
+      line.weights[this.selection.pointIndex] = this.dom.splinePointWeight.valueAsNumber;
+      line.setDirty();
+      this.lazyRedraw();
     });
 
     [
@@ -399,32 +422,6 @@ class Application {
         return;
       this.redraw();
     });
-
-    // Testing...
-    //
-    // This should produce a circle (taken from
-    // https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline#Example:_a_circle),
-    // so let's see.
-    //
-    let halfSquareOfTwo = Math.sqrt(2) / 2;
-    let spline = new BSpline();
-    spline.knots = [0, 0, 0, Math.PI / 2, Math.PI / 2, Math.PI, Math.PI,  3 * Math.PI / 2, 3 * Math.PI / 2, 2 * Math.PI, 2 * Math.PI, 2 * Math.PI]
-    spline.order = 3;
-    spline.controlPoints = [
-      new Point(800, 400),
-      new Point(800, 800),
-      new Point(400, 800),
-      new Point(0, 800),
-      new Point(0, 400),
-      new Point(0, 0),
-      new Point(400, 0),
-      new Point(800, 0),
-      new Point(800, 400),
-    ];
-    spline.weights = [1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1, halfSquareOfTwo, 1];
-    spline.setDirty();
-    this.lines.push(spline);
-    this.redraw();
   }
 };
 

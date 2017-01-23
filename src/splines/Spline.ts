@@ -34,11 +34,19 @@ class BSpline implements Line {
   constructor() {
     // TODO: Compute the order from the knot vector length et al.
     this.order = 4; // Cubic for now.
-    this.knots = [0, 1, 2, 3, 4]; // We need n + 1 more here.
+    this.knots = [];
     this.controlPoints = [];
     this.weights = [];
     this.evaluated = new PolyLine();
     this.dirty = -1.0;
+    this.recomputeKnots();
+  }
+
+  recomputeKnots() {
+    this.knots = [];
+    let knotCount = this.controlPoints.length + this.order + 1;
+    for (let i = 0; i < knotCount; ++i)
+      this.knots.push(i);
   }
 
   /**
@@ -87,6 +95,13 @@ class BSpline implements Line {
 
   degree() : number {
     return this.order - 1;
+  }
+
+  setDegree(degree: number) {
+    if (isNaN(degree))
+      return;
+    this.order = degree + 1;
+    this.recomputeKnots();
   }
 
   evaluateAt(u: number) : Point {
@@ -175,6 +190,7 @@ class BSpline implements Line {
     this.knots.splice(i + this.order + 1, 1);
     for (; i < this.knots.length; ++i)
       this.knots[i] -= 1;
+    this.setDirty();
   }
 
   setDirty() {
