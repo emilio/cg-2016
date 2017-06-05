@@ -147,7 +147,8 @@ class Application {
   }
 
   currentLineType() : LineType {
-    switch (this.dom.lineControl.options[this.dom.lineControl.selectedIndex].value) {
+    let option = <HTMLOptionElement>this.dom.lineControl.options[this.dom.lineControl.selectedIndex];
+    switch (option.value) {
       case "bspline": return LineType.BSpline;
       case "hermite": return LineType.Hermite;
       case "poly": return LineType.PolyLine;
@@ -190,7 +191,8 @@ class Application {
       } else {
         let camera = this.cameraPosition();
         let axisToRotate = Point3D.YAxis();
-        let DOMAxis = this.dom.revolutionAxis.options[this.dom.revolutionAxis.selectedIndex].value;
+        let axisElement = <HTMLOptionElement>this.dom.revolutionAxis.options[this.dom.revolutionAxis.selectedIndex];
+        let DOMAxis = axisElement.value;
         console.log(DOMAxis);
         switch (DOMAxis) {
           case "x":
