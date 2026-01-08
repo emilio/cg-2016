@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+
 #ifdef DEBUG
 #define LOG_INTERNAL(type, msg, ...)                                           \
   fprintf(stderr, "[" type "] " msg "\n", ##__VA_ARGS__);

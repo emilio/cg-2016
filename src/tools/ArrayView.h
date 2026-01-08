@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cassert>
+#include <cstddef>
+
 template <typename T>
 class ArrayView {
   T* m_ptr;

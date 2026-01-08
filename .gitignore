@@ -2,3 +2,4 @@ build_DBG
 build_REL
 *.pyc
 videos/
+build/

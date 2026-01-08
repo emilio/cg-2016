@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 void InputUtils::handleText(Scene& a_scene,
-                            sf::Event::TextEvent& a_event,
+                            const sf::Event::TextEntered& a_event,
                             bool&) {
   switch (a_event.unicode) {
     case 'r':

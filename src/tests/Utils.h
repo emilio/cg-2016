@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base/Logging.h"
+#include <cstdlib>
 
 #define ASSERT(t)                                                              \
   do {                                                                         \

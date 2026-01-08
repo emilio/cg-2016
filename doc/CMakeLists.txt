@@ -18,6 +18,6 @@ foreach(doc_file ${DOC_FILES})
   get_filename_component(doc_pdf_name ${doc_file} NAME_WE)
   add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${doc_pdf_name}.pdf"
     DEPENDS "${doc_file}"
-    COMMAND "${PANDOC}" "--from=markdown" "--latex-engine=xelatex" "--to=latex" "${doc_file}" -o "${doc_pdf_name}.pdf"
+    COMMAND "${PANDOC}" "--from=markdown" "--pdf-engine=xelatex" "--to=latex" "${doc_file}" -o "${doc_pdf_name}.pdf"
   )
 endforeach()

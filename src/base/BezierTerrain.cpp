@@ -51,7 +51,7 @@ static void makePlane(const sf::Image& heightMap,
 
   for (size_t x = 0; x < size; ++x) {
     for (size_t y = 0; y < size; ++y) {
-      auto height = mapToHeight(heightMap.getPixel(x * xratio, y * yratio).r);
+      auto height = mapToHeight(heightMap.getPixel(sf::Vector2u(x * xratio, y * yratio)).r);
       glm::vec3 position(((float)x) / size, height, ((float)y) / size);
       vertices.push_back(position - glm::vec3(0.5, 0.0, 0.5));
     }

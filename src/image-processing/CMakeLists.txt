@@ -9,7 +9,7 @@ add_executable(image-processing image-processing.cpp
   $<TARGET_OBJECTS:tools>
 )
 
-add_dependencies(image-processing Generated assimp)
+add_dependencies(image-processing Generated)
 target_link_libraries(image-processing -lm -lGL ${SFML_LIBRARIES} ${ASSIMP_LIB})
 
 if(LINUX)

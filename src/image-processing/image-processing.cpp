@@ -1,40 +1,40 @@
+#include <cassert>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdio>
-#include <cassert>
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <thread>
-#include <condition_variable>
 
-#include "base/gl.h"
+#include "base/DebuggingUtils.h"
+#include "base/InputUtils.h"
 #include "base/Logging.h"
 #include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
-#include "base/DebuggingUtils.h"
-#include "base/InputUtils.h"
+#include "base/gl.h"
 
 #include "geometry/Mesh.h"
 
-#include "glm/matrix.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/matrix.hpp"
 
 #include <SFML/Graphics.hpp>
 
 void handleKey(Scene& a_scene,
-               sf::Event::KeyEvent& a_event,
+               const sf::Event::KeyPressed& a_event,
                bool& a_shouldClose) {
   constexpr const float CAMERA_ROTATION = glm::radians(3.f);
 
   switch (a_event.code) {
-    case sf::Keyboard::Escape:
+    case sf::Keyboard::Key::Escape:
       a_shouldClose = true;
       return;
-    case sf::Keyboard::Up:
-    case sf::Keyboard::Down: {
-      float multiplier = a_event.code == sf::Keyboard::Down ? 1.0 : -1.0;
+    case sf::Keyboard::Key::Up:
+    case sf::Keyboard::Key::Down: {
+      float multiplier = a_event.code == sf::Keyboard::Key::Down ? 1.0 : -1.0;
 
       // Get closer in the direction to the origin.
       glm::vec3 direction =
@@ -47,9 +47,9 @@ void handleKey(Scene& a_scene,
                                 multiplier * direction * 0.5f);
       break;
     }
-    case sf::Keyboard::Left:
-    case sf::Keyboard::Right: {
-      float multiplier = a_event.code == sf::Keyboard::Right ? 1.0 : -1.0;
+    case sf::Keyboard::Key::Left:
+    case sf::Keyboard::Key::Right: {
+      float multiplier = a_event.code == sf::Keyboard::Key::Right ? 1.0 : -1.0;
       // FIXME: This is probably slow-ish, and pretty crappy, but...
       glm::mat4 mat =
           glm::rotate(glm::mat4(), multiplier * CAMERA_ROTATION, Y_AXIS);
@@ -58,7 +58,7 @@ void handleKey(Scene& a_scene,
       break;
     }
     default:
-      LOG("Unhandled special key %d", a_event.code);
+      LOG("Unhandled special key %d", int(a_event.code));
       return;
   }
 
@@ -69,7 +69,7 @@ void handleKey(Scene& a_scene,
 void renderer(std::shared_ptr<sf::Window> window,
               std::condition_variable* condvar,
               std::shared_ptr<Scene>* out_scene) {
-  window->setActive(true);
+  (void)window->setActive(true);
 
   // Basic debugging setup.
   DebuggingUtils::dumpRenderingInfo();
@@ -129,13 +129,13 @@ int main(int, const char**) {
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
 
-  sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
-  auto window =
-      std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default, settings);
+  sf::VideoMode vm(sf::Vector2u(INITIAL_WIDTH, INITIAL_HEIGHT));
+  auto window = std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default,
+                                             sf::State::Windowed, settings);
   window->setVerticalSyncEnabled(true);
 
   std::shared_ptr<Scene> scene(nullptr);
-  window->setActive(false);
+  (void)window->setActive(false);
 
   std::unique_ptr<std::thread> rendererThread;
 
@@ -150,26 +150,20 @@ int main(int, const char**) {
   }
 
   bool shouldClose = false;
-  sf::Event event;
-  while (!shouldClose && window->waitEvent(event)) {
-    AutoSceneLocker lock(*scene);
-    switch (event.type) {
-      case sf::Event::Closed:
-        shouldClose = true;
-        break;
-      case sf::Event::Resized:
-        scene->setPendingResize(event.size.width, event.size.height);
-        break;
-      case sf::Event::KeyPressed:
-        handleKey(*scene, event.key, shouldClose);
-        break;
-      case sf::Event::TextEntered:
-        InputUtils::handleText(*scene, event.text, shouldClose);
-        break;
-      default:
-        std::cerr << "[event] Unhandled " << event.type << "\n";
-        break;
-    }
+  while (window->isOpen() && !shouldClose) {
+    window->handleEvents([&](const sf::Event::Closed&) { shouldClose = true; },
+                         [&](const sf::Event::Resized& event) {
+                           AutoSceneLocker lock(*scene);
+                           scene->setPendingResize(event.size.x, event.size.y);
+                         },
+                         [&](const sf::Event::KeyPressed& event) {
+                           AutoSceneLocker lock(*scene);
+                           handleKey(*scene, event, shouldClose);
+                         },
+                         [&](const sf::Event::TextEntered& event) {
+                           AutoSceneLocker lock(*scene);
+                           InputUtils::handleText(*scene, event, shouldClose);
+                         });
   }
 
   {

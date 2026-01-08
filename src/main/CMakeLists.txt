@@ -9,7 +9,7 @@ add_executable(main main.cpp
   $<TARGET_OBJECTS:tools>
 )
 
-add_dependencies(main Generated assimp)
+add_dependencies(main Generated)
 target_link_libraries(main -lm -lGL ${SFML_LIBRARIES} ${ASSIMP_LIB})
 
 if(LINUX)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 4.2)
 project(TEST CXX)
 
 # In order to use YouCompleteMe with Vim.
@@ -10,18 +10,15 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
   endif()
 endif()
 
-# Add this before our local stuff because assimp doesn't build with -Werror
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/assimp)
 add_subdirectory(${CMAKE_SOURCE_DIR}/doc)
 
 enable_testing()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(WILL_RUN_TESTS ON CACHE BOOL "Run tests")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -g3 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -g3 -Wall -Wextra")
 # Add -DGL_DEBUG to debug GL errors.
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Werror -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
@@ -71,11 +68,10 @@ foreach(generated_file ${GENERATED_FILES})
 endforeach(generated_file)
 
 add_custom_target(Generated DEPENDS ${GENERATED_FILES})
+add_compile_definitions(GLM_FORCE_CTOR_INIT=1)
 
-link_directories(${LIBRARY_OUTPUT_PATH}/assimp/code)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/lib/glm)
-include_directories(${CMAKE_SOURCE_DIR}/lib/assimp/include)
 
 add_library(base OBJECT
   src/base/Program.cpp
@@ -105,17 +101,12 @@ set(EXECUTABLES
   splines
 )
 
-# Ensure we have SFML 2.x
-find_package(SFML 2 REQUIRED system window graphics)
-if(SFML_FOUND)
-  include_directories(${SFML_INCLUDE_DIR})
-endif()
+# Ensure we have SFML 3.x
+find_package(SFML 3 REQUIRED System Window Graphics)
+find_package(assimp 6 REQUIRED)
 
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-  set(ASSIMP_LIB -lassimpd)
-else()
-  set(ASSIMP_LIB -lassimp)
-endif()
+set(ASSIMP_LIB -lassimp)
+set(SFML_LIBRARIES -lsfml-system -lsfml-window -lsfml-graphics)
 
 set(LINUX false)
 if (WIN32)

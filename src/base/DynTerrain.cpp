@@ -262,7 +262,7 @@ float DynTerrain::heightAt(float x, float y) const {
 
   // This is kind of fiddly, because we're duplicating the stuff that is in the
   // fragment shader, but oh well.
-  float v = m_heightmap.getPixel(x_ * size.x, y_ * size.y).g / 255.0f;
+  float v = m_heightmap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
   return (v - 0.5) / 3.0 * TERRAIN_DIMENSIONS;
 }
 

@@ -6,5 +6,5 @@ class Scene;
 
 class InputUtils final {
 public:
-  static void handleText(Scene& a_scene, sf::Event::TextEvent& a_event, bool&);
+  static void handleText(Scene& a_scene, const sf::Event::TextEntered& a_event, bool&);
 };

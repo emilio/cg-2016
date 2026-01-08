@@ -63,7 +63,7 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
       float posX = ((float)x) / size.x;
       float posY = ((float)y) / size.y;
 
-      auto pixel = heightMap.getPixel(x, y);
+      auto pixel = heightMap.getPixel(sf::Vector2u(x, y));
       float height = mapToHeight(pixel.r);
 
       Vertex vertex;
@@ -134,6 +134,6 @@ float Terrain::heightAt(float x, float y) const {
 
   // This is kind of fiddly, because we're duplicating the stuff that is in the
   // fragment shader, but oh well.
-  float v = m_heightMap.getPixel(x_ * size.x, y_ * size.y).g / 255.0f;
+  float v = m_heightMap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
   return (v - 0.5) / 3.0 * TERRAIN_DIMENSIONS;
 }

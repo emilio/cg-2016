@@ -10,56 +10,56 @@
 #include <random>
 #include <thread>
 
-#include "base/gl.h"
 #include "base/DebuggingUtils.h"
 #include "base/InputUtils.h"
 #include "base/Logging.h"
+#include "base/Plane.h"
 #include "base/Platform.h"
 #include "base/Program.h"
 #include "base/Scene.h"
-#include "base/Plane.h"
 #include "base/Terrain.h"
+#include "base/gl.h"
 #include "main/PhysicsState.h"
 
 #include "geometry/Mesh.h"
 
-#include "glm/matrix.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/matrix.hpp"
 
 #include <SFML/Graphics.hpp>
 
 void handleKey(Scene& scene,
-               sf::Event::KeyEvent& a_event,
+               const sf::Event::KeyPressed& a_event,
                PhysicsState& a_state,
                bool& a_shouldClose) {
   constexpr const float PLANE_ROTATION = glm::radians(1.0f);
   constexpr const float SPEED_DELTA = 0.2f;
 
   switch (a_event.code) {
-    case sf::Keyboard::Escape:
+    case sf::Keyboard::Key::Escape:
       a_shouldClose = true;
       break;
-    case sf::Keyboard::PageUp:
+    case sf::Keyboard::Key::PageUp:
       a_state.speedUp(SPEED_DELTA);
       break;
-    case sf::Keyboard::PageDown:
+    case sf::Keyboard::Key::PageDown:
       a_state.speedUp(-SPEED_DELTA);
       break;
-    case sf::Keyboard::Up:
+    case sf::Keyboard::Key::Up:
       a_state.rotate(scene, PhysicsState::Top, PLANE_ROTATION);
       break;
-    case sf::Keyboard::Down:
+    case sf::Keyboard::Key::Down:
       a_state.rotate(scene, PhysicsState::Down, PLANE_ROTATION);
       break;
-    case sf::Keyboard::Right:
+    case sf::Keyboard::Key::Right:
       a_state.rotate(scene, PhysicsState::Right, PLANE_ROTATION);
       break;
-    case sf::Keyboard::Left:
+    case sf::Keyboard::Key::Left:
       a_state.rotate(scene, PhysicsState::Left, PLANE_ROTATION);
       break;
     default:
-      LOG("Unhandled special key %d", a_event.code);
+      LOG("Unhandled special key %d", int(a_event.code));
       return;
   }
 }
@@ -71,7 +71,7 @@ void renderer(std::shared_ptr<sf::Window> window,
               Plane** out_plane,
               int argc,
               const char** argv) {
-  window->setActive(true);
+  (void)window->setActive(true);
 
   // Basic debugging setup.
   DebuggingUtils::dumpRenderingInfo();
@@ -83,8 +83,9 @@ void renderer(std::shared_ptr<sf::Window> window,
   ShaderSet shaders("res/common.glsl", "res/vertex.glsl", "res/fragment.glsl");
   // auto scene = std::make_shared<Scene>(std::move(shaders),
   // Scene::DynTerrain);
-  auto terrainType = (argc > 1 && !strcmp(argv[1], "--bezier")) ?
-    Scene::BezierTerrain : Scene::DynTerrain;
+  auto terrainType = (argc > 1 && !strcmp(argv[1], "--bezier"))
+                         ? Scene::BezierTerrain
+                         : Scene::DynTerrain;
   auto scene = std::make_shared<Scene>(std::move(shaders), terrainType);
   *out_scene = scene;
 
@@ -154,9 +155,9 @@ int main(int argc, const char** argv) {
   settings.depthBits = 32;
   settings.attributeFlags = sf::ContextSettings::Core;
 
-  sf::VideoMode vm(INITIAL_WIDTH, INITIAL_HEIGHT);
-  auto window =
-      std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default, settings);
+  sf::VideoMode vm(sf::Vector2u(INITIAL_WIDTH, INITIAL_HEIGHT));
+  auto window = std::make_shared<sf::Window>(vm, TITLE, sf::Style::Default,
+                                             sf::State::Windowed, settings);
   window->setVerticalSyncEnabled(true);
 
   std::shared_ptr<Scene> scene(nullptr);
@@ -166,7 +167,7 @@ int main(int argc, const char** argv) {
   // Start the renderer and wait for the scene to be ready.
   std::unique_ptr<std::thread> rendererThread;
   {
-    window->setActive(false);
+    (void)window->setActive(false);
     std::condition_variable condvar;
     std::mutex condvar_mutex;
     std::unique_lock<std::mutex> lock(condvar_mutex);
@@ -186,26 +187,20 @@ int main(int argc, const char** argv) {
   }
 
   bool shouldClose = false;
-  sf::Event event;
-  while (!shouldClose && window->waitEvent(event)) {
-    AutoSceneLocker lock(*scene);
-    switch (event.type) {
-      case sf::Event::Closed:
-        shouldClose = true;
-        break;
-      case sf::Event::Resized:
-        scene->setPendingResize(event.size.width, event.size.height);
-        break;
-      case sf::Event::KeyPressed:
-        handleKey(*scene, event.key, physicsState, shouldClose);
-        break;
-      case sf::Event::TextEntered:
-        InputUtils::handleText(*scene, event.text, shouldClose);
-        break;
-      default:
-        std::cerr << "[event] Unhandled " << event.type << "\n";
-        break;
-    }
+  while (window->isOpen() && !shouldClose) {
+    window->handleEvents([&](const sf::Event::Closed&) { shouldClose = true; },
+                         [&](const sf::Event::Resized& event) {
+                           AutoSceneLocker lock(*scene);
+                           scene->setPendingResize(event.size.x, event.size.y);
+                         },
+                         [&](const sf::Event::KeyPressed& event) {
+                           AutoSceneLocker lock(*scene);
+                           handleKey(*scene, event, physicsState, shouldClose);
+                         },
+                         [&](const sf::Event::TextEntered& event) {
+                           AutoSceneLocker lock(*scene);
+                           InputUtils::handleText(*scene, event, shouldClose);
+                         });
   }
 
   {
