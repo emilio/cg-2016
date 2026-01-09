@@ -4,7 +4,7 @@
 Mesh::Mesh(std::vector<Vertex>&& a_vertices,
            std::vector<GLuint>&& a_indices,
            Material a_material,
-           Optional<GLuint>&& a_texture)
+           std::optional<GLuint>&& a_texture)
   : m_vertices(std::move(a_vertices))
   , m_indices(std::move(a_indices))
   , m_material(a_material)
@@ -55,7 +55,7 @@ Mesh::Mesh(std::vector<Vertex>&& a_vertices,
 
 Mesh::~Mesh() {
   AutoGLErrorChecker checker;
-  if (m_texture.isSome())
+  if (m_texture.has_value())
     glDeleteTextures(1, &*m_texture);
 
   if (m_vao == UNINITIALIZED) {
@@ -98,7 +98,7 @@ void Mesh::draw(DrawContext& context) const {
   glUniform1f(context.uniforms().m_material.m_shininess_percent,
               m_material.m_shininess_percent);
   // LOG("Texture: %d", (int) m_texture.isSome());
-  glUniform1i(context.uniforms().m_usesTexture, m_texture.isSome());
+  glUniform1i(context.uniforms().m_usesTexture, m_texture.has_value());
 
   if (m_texture) {
     // TODO: We should be able to avoid this glUniform1i call and do the

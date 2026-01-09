@@ -10,8 +10,7 @@
 #include "geometry/Vertex.h"
 #include "geometry/Material.h"
 
-#include "tools/Optional.h"
-
+#include <optional>
 #include <vector>
 #include <memory>
 
@@ -24,7 +23,7 @@ class Mesh : public Node {
   Material m_material;
 
   // The texture we're using.
-  Optional<GLuint> m_texture;
+  std::optional<GLuint> m_texture;
 
   // The vertex array object.
   GLuint m_vao;
@@ -59,7 +58,7 @@ public:
   Mesh(std::vector<Vertex>&& a_vertices,
        std::vector<GLuint>&& a_indices,
        Material a_material,
-       Optional<GLuint>&& a_texture);
+       std::optional<GLuint>&& a_texture);
 
   virtual void draw(DrawContext&) const override;
 };

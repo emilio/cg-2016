@@ -2,11 +2,10 @@
 
 #include <list>
 #include <memory>
+#include <optional>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
-#include "tools/Optional.h"
 
 class DrawContext;
 

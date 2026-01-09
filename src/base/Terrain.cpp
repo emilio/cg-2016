@@ -1,8 +1,8 @@
 #include "base/Terrain.h"
+#include <optional>
 #include "base/Logging.h"
 #include "base/Scene.h"
 #include "geometry/DrawContext.h"
-#include "tools/Optional.h"
 
 static inline float mapToHeight(uint8_t byte) {
   // Map byte from 255 to 0, to +0.25/-0.25
@@ -14,7 +14,7 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
                  std::vector<GLuint>&& indices,
                  sf::Image&& heightMap,
                  Material material,
-                 Optional<GLuint> texture)
+                 std::optional<GLuint> texture)
   : Mesh(std::move(vertices), std::move(indices), material, std::move(texture))
   , m_heightMap(std::move(heightMap)) {}
 
@@ -112,7 +112,7 @@ Terrain::Terrain(std::vector<Vertex>&& vertices,
 
   auto terrain = std::unique_ptr<Terrain>(
       new Terrain(std::move(vertices), std::move(indices), std::move(heightMap),
-                  mat, Some(texture)));
+                  mat, texture));
 
   // TODO: Add collision detection boxes, shouldn't be hard.
   terrain->scale(TERRAIN_DIMENSIONS);
@@ -134,6 +134,7 @@ float Terrain::heightAt(float x, float y) const {
 
   // This is kind of fiddly, because we're duplicating the stuff that is in the
   // fragment shader, but oh well.
-  float v = m_heightMap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
+  float v =
+      m_heightMap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
   return (v - 0.5) / 3.0 * TERRAIN_DIMENSIONS;
 }

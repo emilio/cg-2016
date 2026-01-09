@@ -1,6 +1,5 @@
 #pragma once
 
-#include "base/Program.h"
 #include "base/ITerrain.h"
 #include "geometry/Mesh.h"
 
@@ -13,7 +12,7 @@ class Terrain final : public ITerrain, public Mesh {
           std::vector<GLuint>&& indices,
           sf::Image&& heightMap,
           Material material,
-          Optional<GLuint> texture);
+          std::optional<GLuint> texture);
 
   sf::Image m_heightMap;
 

@@ -67,7 +67,7 @@ public:
   static std::unique_ptr<BezierTerrain> create();
 
   virtual void recomputeShadowMap(const Scene&) override;
-  virtual Optional<GLuint> shadowMapFBO() const override;
+  virtual std::optional<GLuint> shadowMapFBO() const override;
   virtual bool wantsShadowMap() const override {
     return true;
   }

@@ -279,6 +279,6 @@ void BezierTerrain::recomputeShadowMap(const Scene& scene) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Optional<GLuint> BezierTerrain::shadowMapFBO() const {
-  return Some(m_shadowMapFB);
+std::optional<GLuint> BezierTerrain::shadowMapFBO() const {
+  return m_shadowMapFB;
 }

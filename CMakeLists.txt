@@ -128,8 +128,5 @@ if(NOT N EQUAL 0)
   set(JFLAG -j${N})
 endif()
 
-add_executable(test-optional src/tests/optional.cpp)
-add_test(test-optional ${CMAKE_BINARY_DIR}/bin/test-optional)
-
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose ${JFLAG})
 add_custom_target(format COMMAND find ${CMAKE_SOURCE_DIR}/src -regex "'.*\\.\\(cpp\\|h\\)'" -exec clang-format -i {} "\;")

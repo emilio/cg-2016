@@ -1,5 +1,6 @@
 #include "base/Platform.h"
 #include "base/Scene.h"
+#include <optional>
 #include "base/Skybox.h"
 #include "base/gl.h"
 #include "base/Skybox.h"
@@ -88,7 +89,7 @@ Scene::Scene(ShaderSet a_shaderSet, TerrainMode a_terrainMode)
   }
 
   if (m_terrain && m_terrain->wantsShadowMap()) {
-    m_shadowMapFramebufferAndTexture.set(std::make_pair(0, 0));
+    m_shadowMapFramebufferAndTexture.emplace(std::make_pair(0, 0));
     glGenFramebuffers(1, &m_shadowMapFramebufferAndTexture->first);
     glGenTextures(1, &m_shadowMapFramebufferAndTexture->second);
     glBindTexture(GL_TEXTURE_2D, m_shadowMapFramebufferAndTexture->second);
@@ -161,7 +162,7 @@ void Scene::resize(uint32_t width, uint32_t height) {
   if (m_size.x == width && m_size.y == height)
     return;
 
-  m_pendingResize.set(width, height);
+  m_pendingResize.emplace(width, height);
 }
 
 void Scene::setupProjection(float width, float height) {
@@ -191,11 +192,11 @@ void Scene::toggleWireframeMode() {
 }
 
 void Scene::setPendingResize(uint32_t width, uint32_t height) {
-  m_pendingResize.set(width, height);
+  m_pendingResize.emplace(width, height);
 }
 
 void Scene::setPhysicsCallback(PhysicsCallback callback) {
-  m_physicsCallback.set(callback);
+  m_physicsCallback.emplace(callback);
 }
 
 #undef LOG
@@ -209,7 +210,7 @@ void Scene::draw() {
     m_size = *m_pendingResize;
     glViewport(0, 0, m_size.x, m_size.y);
     setupProjection(m_size.x, m_size.y);
-    m_pendingResize.clear();
+    m_pendingResize.reset();
 
     if (m_terrain)
       m_terrain->recomputeShadowMap(*this);
@@ -221,8 +222,8 @@ void Scene::draw() {
     (*m_physicsCallback)(*this);
 
   if (m_shadowMapFramebufferAndTexture) {
-    Optional<GLuint> terrainShadowMap =
-        m_terrain ? m_terrain->shadowMapFBO() : None;
+    std::optional<GLuint> terrainShadowMap =
+        m_terrain ? m_terrain->shadowMapFBO() : std::nullopt;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
                       m_shadowMapFramebufferAndTexture->first);

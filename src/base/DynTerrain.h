@@ -68,7 +68,7 @@ public:
 
   virtual void drawTerrain(const Scene&) const override;
   virtual void recomputeShadowMap(const Scene&) override;
-  virtual Optional<GLuint> shadowMapFBO() const override;
+  virtual std::optional<GLuint> shadowMapFBO() const override;
   virtual bool wantsShadowMap() const override;
   virtual float heightAt(float x, float y) const override;
 

@@ -2,10 +2,10 @@
 
 #include <cassert>
 #include <memory>
-#include "base/gl.h"
+#include <optional>
 #include "base/ErrorChecker.h"
 #include "base/Platform.h"
-#include "tools/Optional.h"
+#include "base/gl.h"
 
 struct ShaderSet {
   std::string m_version;
@@ -49,13 +49,6 @@ class Program;
 class Shader {
   friend class Program;
 
-  // FIXME: This loses the point :(
-  friend class Optional<Shader>;
-
-  Shader(GLuint a_id, ShaderKind a_kind) : m_id(a_id), m_kind(a_kind) {
-    assert(glIsShader(a_id));
-  }
-
   Shader(const Shader& other) = delete;
   Shader(const Shader&& other) = delete;
 
@@ -63,6 +56,10 @@ class Shader {
   ShaderKind m_kind;
 
 public:
+  Shader(GLuint a_id, ShaderKind a_kind) : m_id(a_id), m_kind(a_kind) {
+    assert(glIsShader(a_id));
+  }
+
   GLuint id() const {
     return m_id;
   }
@@ -80,26 +77,27 @@ class Program {
   GLuint m_id;
   Shader m_vertexShader;
   Shader m_fragmentShader;
-  Optional<Shader> m_geometryShader;
-  Optional<Shader> m_tessEvaluationShader;
-  Optional<Shader> m_tessControlShader;
+  std::optional<Shader> m_geometryShader;
+  std::optional<Shader> m_tessEvaluationShader;
+  std::optional<Shader> m_tessControlShader;
 
   Program(GLuint a_id,
           GLuint a_vertexShaderId,
           GLuint a_fragmentShaderId,
-          Optional<GLuint> a_geometryShaderId,
-          Optional<GLuint> a_tessControlShaderId,
-          Optional<GLuint> a_tessEvaluationShaderId)
+          std::optional<GLuint> a_geometryShaderId,
+          std::optional<GLuint> a_tessControlShaderId,
+          std::optional<GLuint> a_tessEvaluationShaderId)
     : m_id(a_id)
     , m_vertexShader(a_vertexShaderId, ShaderKind::Vertex)
     , m_fragmentShader(a_fragmentShaderId, ShaderKind::Fragment) {
     if (a_geometryShaderId)
-      m_geometryShader.set(*a_geometryShaderId, ShaderKind::Geometry);
+      m_geometryShader.emplace(*a_geometryShaderId, ShaderKind::Geometry);
     if (a_tessControlShaderId)
-      m_tessControlShader.set(*a_tessControlShaderId, ShaderKind::TessControl);
+      m_tessControlShader.emplace(*a_tessControlShaderId,
+                                  ShaderKind::TessControl);
     if (a_tessEvaluationShaderId)
-      m_tessEvaluationShader.set(*a_tessEvaluationShaderId,
-                                 ShaderKind::TessEvaluation);
+      m_tessEvaluationShader.emplace(*a_tessEvaluationShaderId,
+                                     ShaderKind::TessEvaluation);
 
     assert(glIsProgram(m_id));
   }

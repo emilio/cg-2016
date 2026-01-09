@@ -1,7 +1,8 @@
 #pragma once
 
+#include "gl.h"
 #include "glm/glm.hpp"
-#include "tools/Optional.h"
+#include <optional>
 
 class Scene;
 
@@ -19,8 +20,8 @@ public:
    * It'd be complex to enforce this at the type system level, so we just hope
    * callers act properly.
    */
-  virtual Optional<GLuint> shadowMapFBO() const {
-    return None;
+  virtual std::optional<GLuint> shadowMapFBO() const {
+    return std::nullopt;
   };
 
   virtual bool wantsShadowMap() const {

@@ -1,9 +1,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "base/Program.h"
 #include "base/ErrorChecker.h"
 #include "base/Logging.h"
+#include "base/Program.h"
 
 static bool createShaderFromSource(ShaderKind a_kind,
                                    const char* a_source,
@@ -75,7 +75,7 @@ static bool createShaderOfKind(ShaderKind a_kind,
     const ShaderSet& a_shaderSet) {
   GLuint vertexShaderId, fragmentShaderId;
   GLuint potentialOptionalShaderId;
-  Optional<GLuint> geometryShaderId, tessControlShaderId,
+  std::optional<GLuint> geometryShaderId, tessControlShaderId,
       tessEvaluationShaderId;
 
   // We need at least one of these.
@@ -125,7 +125,7 @@ static bool createShaderOfKind(ShaderKind a_kind,
               a_shaderSet.member_.c_str());                                    \
         return nullptr;                                                        \
       }                                                                        \
-      var_.set(potentialOptionalShaderId);                                     \
+      var_.emplace(potentialOptionalShaderId);                                 \
     }                                                                          \
   } while (0)
 

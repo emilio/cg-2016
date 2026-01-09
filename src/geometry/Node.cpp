@@ -95,7 +95,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
 
   // TODO: This can load a bunch of textures from the same file, build a cache,
   // and refcount, and all that stuff.
-  Optional<GLuint> texture;
+  std::optional<GLuint> texture;
 
   uint32_t count = ai_material.GetTextureCount(aiTextureType_DIFFUSE);
   if (count) {
@@ -132,7 +132,7 @@ static std::unique_ptr<Node> meshFromAi(const Path& basePath,
       }
 
       auto size = textureImporter.getSize();
-      texture.set(0);
+      texture.emplace(0);
       glGenTextures(1, &*texture);
       glBindTexture(GL_TEXTURE_2D, *texture);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA,

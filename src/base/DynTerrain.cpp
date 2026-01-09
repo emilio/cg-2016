@@ -4,8 +4,8 @@
 #include "base/Terrain.h"
 #include "geometry/DrawContext.h"
 
-#include <vector>
 #include <SFML/Graphics.hpp>
+#include <vector>
 
 // TODO: Share this among terrains, possibly converting this to a EBO.
 std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
@@ -15,7 +15,7 @@ std::vector<glm::vec2> makePlane(uint32_t width, uint32_t height) {
   float frac_x = 1.0f / width;
   float frac_y = 1.0f / height;
 
-#define AT(x, y) (glm::vec2((frac_x * (x)-0.5), (frac_y * (y)-0.5)))
+#define AT(x, y) (glm::vec2((frac_x * (x) - 0.5), (frac_y * (y) - 0.5)))
 
   // TODO: Could we send quads and just split those?
   for (size_t x = 0; x < width; ++x) {
@@ -262,12 +262,13 @@ float DynTerrain::heightAt(float x, float y) const {
 
   // This is kind of fiddly, because we're duplicating the stuff that is in the
   // fragment shader, but oh well.
-  float v = m_heightmap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
+  float v =
+      m_heightmap.getPixel(sf::Vector2u(x_ * size.x, y_ * size.y)).g / 255.0f;
   return (v - 0.5) / 3.0 * TERRAIN_DIMENSIONS;
 }
 
-Optional<GLuint> DynTerrain::shadowMapFBO() const {
-  return Some(m_cachedShadowMapFBO);
+std::optional<GLuint> DynTerrain::shadowMapFBO() const {
+  return m_cachedShadowMapFBO;
 }
 
 bool DynTerrain::wantsShadowMap() const {

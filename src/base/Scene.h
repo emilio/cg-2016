@@ -74,11 +74,11 @@ private:
   glm::mat4 m_view;
   glm::mat4 m_skyboxView;
   glm::mat4 m_shadowMapView;
-  Optional<std::pair<GLuint, GLuint>> m_shadowMapFramebufferAndTexture;
+  std::optional<std::pair<GLuint, GLuint>> m_shadowMapFramebufferAndTexture;
   // An ortho projection since the light doesn't have any perspective.
   glm::mat4 m_shadowMapProjection;
-  Optional<glm::u32vec2> m_pendingResize;
-  Optional<PhysicsCallback> m_physicsCallback;
+  std::optional<glm::u32vec2> m_pendingResize;
+  std::optional<PhysicsCallback> m_physicsCallback;
   int32_t m_tessLevel;
   bool m_shouldPaint;
 
@@ -115,10 +115,11 @@ public:
     return m_view;
   }
 
-  Optional<GLuint> shadowMap() const {
-    return m_shadowMapFramebufferAndTexture
-               ? Some(m_shadowMapFramebufferAndTexture->second)
-               : None;
+  std::optional<GLuint> shadowMap() const {
+    if (!m_shadowMapFramebufferAndTexture) {
+      return std::nullopt;
+    }
+    return m_shadowMapFramebufferAndTexture->second;
   }
 
   const glm::mat4& projectionMatrix() const {
